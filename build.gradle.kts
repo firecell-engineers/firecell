@@ -14,6 +14,8 @@ val lwjglNatives = Pair(
     System.getProperty("os.arch")!!
 ).let { (name, arch) ->
     when {
+        arrayOf("Linux", "FreeBSD", "SunOS", "Unit").any { name.startsWith(it) } ->
+            "natives-linux"
         arrayOf("Mac OS X", "Darwin").any { name.startsWith(it) }                ->
             "natives-macos"
         arrayOf("Windows").any { name.startsWith(it) }                           ->
@@ -21,6 +23,7 @@ val lwjglNatives = Pair(
         else -> throw Error("Unrecognized or unsupported platform. Please set \"lwjglNatives\" manually")
     }
 }
+
 
 repositories {
     mavenCentral()
@@ -32,11 +35,9 @@ dependencies {
     implementation("org.lwjgl", "lwjgl")
     implementation("org.lwjgl", "lwjgl-glfw")
     implementation("org.lwjgl", "lwjgl-opengl")
-    implementation("org.lwjgl", "lwjgl-tootle")
     runtimeOnly("org.lwjgl", "lwjgl", classifier = lwjglNatives)
     runtimeOnly("org.lwjgl", "lwjgl-glfw", classifier = lwjglNatives)
     runtimeOnly("org.lwjgl", "lwjgl-opengl", classifier = lwjglNatives)
-    runtimeOnly("org.lwjgl", "lwjgl-tootle", classifier = lwjglNatives)
 }
 
 tasks.getByName<Test>("test") {
