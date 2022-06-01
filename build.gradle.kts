@@ -1,4 +1,3 @@
-import org.gradle.internal.os.OperatingSystem
 
 plugins {
     id("java")
@@ -38,6 +37,8 @@ dependencies {
     runtimeOnly("org.lwjgl", "lwjgl", classifier = lwjglNatives)
     runtimeOnly("org.lwjgl", "lwjgl-glfw", classifier = lwjglNatives)
     runtimeOnly("org.lwjgl", "lwjgl-opengl", classifier = lwjglNatives)
+
+    implementation(fileTree("lib") { include("*.jar") })
 }
 
 tasks.getByName<Test>("test") {
