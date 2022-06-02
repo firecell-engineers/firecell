@@ -1,5 +1,8 @@
+import com.google.protobuf.gradle.*
+
 plugins {
     id("java")
+    id("com.google.protobuf") version "0.8.18"
 }
 
 group = "pl.edu.agh"
@@ -43,8 +46,27 @@ dependencies {
     implementation("org.apache.logging.log4j", "log4j-core", "2.7")
     implementation("org.apache.logging.log4j", "log4j-slf4j-impl", "2.7")
 
+    // protobuf
+    implementation("com.google.protobuf:protobuf-java:3.21.1")
+
 }
 
 tasks.getByName<Test>("test") {
     useJUnitPlatform()
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs("build/generated/source/proto/main/java")
+        }
+    }
+}
+
+protobuf {
+    // Configure the protoc executable
+    protoc {
+        // Download from repositories
+        artifact = "com.google.protobuf:protoc:3.0.0"
+    }
 }

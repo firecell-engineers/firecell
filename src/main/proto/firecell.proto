@@ -1,0 +1,11 @@
+syntax = "proto2";
+
+package firecell;
+
+option java_multiple_files = true;
+option java_package = "pl.edu.agh.firecell.storage.proto";
+option java_outer_classname = "FirecellProto";
+
+message State {
+  required int32 index = 2;
+}
