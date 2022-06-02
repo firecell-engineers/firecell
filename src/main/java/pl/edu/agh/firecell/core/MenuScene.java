@@ -3,7 +3,9 @@ package pl.edu.agh.firecell.core;
 import imgui.ImGui;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import pl.edu.agh.firecell.model.Cell;
 import pl.edu.agh.firecell.model.SimulationConfig;
+import pl.edu.agh.firecell.model.State;
 
 import java.util.function.Consumer;
 
@@ -11,7 +13,7 @@ public class MenuScene implements Scene {
 
     private final Logger logger = LoggerFactory.getLogger(MenuScene.class);
 
-    private SimulationConfig config;
+    private SimulationConfig config = new SimulationConfig(new State(new Cell[][][]{}));
     private final Consumer<SimulationConfig> startSimulationHandler;
 
     public MenuScene(Consumer<SimulationConfig> startSimulationHandler) {
@@ -44,4 +46,6 @@ public class MenuScene implements Scene {
         }
     }
 
+    @Override
+    public void dispose() {}
 }

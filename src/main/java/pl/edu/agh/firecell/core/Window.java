@@ -68,7 +68,7 @@ public class Window {
             frameTime = glfwGetTime() - startFrameTime;
             startFrameTime = glfwGetTime();
         }
-
+        scene.dispose();
         dispose();
     }
 
@@ -125,7 +125,7 @@ public class Window {
         imGuiGlfw.init(glfwWindow, true);
         imGuiGl3.init(GLSL_VERSION);
 
-        logger.info("Firecell initialized");
+        logger.info("Firecell initialized.");
     }
 
     private void dispose() {
@@ -146,10 +146,14 @@ public class Window {
     }
 
     private void startSimulation(SimulationConfig config) {
+        scene.dispose();
         scene = new SimulationScene(config, this::finishSimulation);
+        logger.info("Starting simulation.");
     }
 
     private void finishSimulation() {
+        scene.dispose();
         scene = new MenuScene(this::startSimulation);
+        logger.info("Finished simulation.");
     }
 }

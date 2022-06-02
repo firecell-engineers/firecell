@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pl.edu.agh.firecell.engine.BasicEngine;
 import pl.edu.agh.firecell.engine.Engine;
+import pl.edu.agh.firecell.engine.algorithm.BasicAlgorithm;
 import pl.edu.agh.firecell.model.SimulationConfig;
 import pl.edu.agh.firecell.renderer.BasicRenderer;
 import pl.edu.agh.firecell.renderer.Renderer;
@@ -29,7 +30,7 @@ public class SimulationScene implements Scene {
         this.finishSimulationHandler = finishSimulationHandler;
         renderer = new BasicRenderer();
         storage = new BasicStorage();
-        engine = new BasicEngine(config, storage);
+        engine = new BasicEngine(config, storage, new BasicAlgorithm());
 
         engine.run();
     }
@@ -52,4 +53,8 @@ public class SimulationScene implements Scene {
         }
     }
 
+    @Override
+    public void dispose() {
+        engine.stop();
+    }
 }

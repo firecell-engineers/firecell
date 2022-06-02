@@ -1,4 +1,4 @@
 package pl.edu.agh.firecell.model;
 
-public class SimulationConfig {
+public record SimulationConfig(State initialState) {
 }
