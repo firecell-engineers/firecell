@@ -34,7 +34,7 @@ public class Window {
     private ImGuiImplGlfw imGuiGlfw;
     private ImGuiImplGl3 imGuiGl3;
 
-    private Scene scene = new MenuScene(this::startSimulation);
+    private Scene scene;
 
     public Window(int width, int height, String name) {
         initialize(width, height, name);
@@ -44,6 +44,8 @@ public class Window {
 
         double startFrameTime = glfwGetTime();
         double frameTime = 0.0;
+
+        scene = new MenuScene(this::startSimulation);
 
         while (!glfwWindowShouldClose(glfwWindow)) {
             glfwPollEvents();
@@ -115,7 +117,7 @@ public class Window {
 
         ImGui.createContext();
         ImGuiIO io = ImGui.getIO();
-        io.addConfigFlags(ImGuiConfigFlags.ViewportsEnable);
+        io.addConfigFlags(ImGuiConfigFlags.ViewportsEnable | ImGuiConfigFlags.DockingEnable);
 
         imGuiGlfw = new ImGuiImplGlfw();
         imGuiGl3 = new ImGuiImplGl3();
@@ -123,7 +125,7 @@ public class Window {
         imGuiGlfw.init(glfwWindow, true);
         imGuiGl3.init(GLSL_VERSION);
 
-        logger.warn("Firecell initialized");
+        logger.info("Firecell initialized");
     }
 
     private void dispose() {
@@ -144,6 +146,10 @@ public class Window {
     }
 
     private void startSimulation(SimulationConfig config) {
-        scene = new SimulationScene(config);
+        scene = new SimulationScene(config, this::finishSimulation);
+    }
+
+    private void finishSimulation() {
+        scene = new MenuScene(this::startSimulation);
     }
 }
