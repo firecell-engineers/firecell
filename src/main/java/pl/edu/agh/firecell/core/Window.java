@@ -1,4 +1,4 @@
-package pl.edu.agh.core;
+package pl.edu.agh.firecell.core;
 
 import imgui.ImGui;
 import imgui.ImGuiIO;
@@ -12,22 +12,29 @@ import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import pl.edu.agh.firecell.core.util.LoggingOutputStream;
+import pl.edu.agh.firecell.model.SimulationConfig;
 
+import java.io.PrintStream;
 import java.nio.IntBuffer;
 import java.util.Objects;
-import java.util.UUID;
 
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
 
 public class Window {
+
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
+
     private static final String GLSL_VERSION = "#version 330";
 
     private long glfwWindow;
-    private final ImGuiImplGlfw imGuiGlfw = new ImGuiImplGlfw();
-    private final ImGuiImplGl3 imGuiGl3 = new ImGuiImplGl3();
+    private ImGuiImplGlfw imGuiGlfw;
+    private ImGuiImplGl3 imGuiGl3;
 
-    private IScene scene = new MenuScene();
+    private Scene scene = new MenuScene(this::startSimulation);
 
     public Window(int width, int height, String name) {
         initialize(width, height, name);
@@ -64,9 +71,9 @@ public class Window {
     }
 
     private void initialize(int width, int height, String name) {
-        System.out.println("LWJGL " + Version.getVersion() + "!");
+        logger.info(String.format("Using LWJGL %s.", Version.getVersion()));
 
-        GLFWErrorCallback.createPrint(System.err).set();
+        GLFWErrorCallback.createPrint(createGLFWErrorPrintStream(logger)).set();
 
         if (!glfwInit())
             throw new IllegalStateException("Unable to initialize GLFW");
@@ -110,8 +117,13 @@ public class Window {
         ImGuiIO io = ImGui.getIO();
         io.addConfigFlags(ImGuiConfigFlags.ViewportsEnable);
 
+        imGuiGlfw = new ImGuiImplGlfw();
+        imGuiGl3 = new ImGuiImplGl3();
+
         imGuiGlfw.init(glfwWindow, true);
         imGuiGl3.init(GLSL_VERSION);
+
+        logger.warn("Firecell initialized");
     }
 
     private void dispose() {
@@ -123,5 +135,15 @@ public class Window {
         glfwDestroyWindow(glfwWindow);
         glfwTerminate();
         Objects.requireNonNull(glfwSetErrorCallback(null)).free();
+    }
+
+    private PrintStream createGLFWErrorPrintStream(Logger logger) {
+        return new PrintStream(
+                new LoggingOutputStream(logger, LoggingOutputStream.LogLevel.ERROR)
+        );
+    }
+
+    private void startSimulation(SimulationConfig config) {
+        scene = new SimulationScene(config);
     }
 }
