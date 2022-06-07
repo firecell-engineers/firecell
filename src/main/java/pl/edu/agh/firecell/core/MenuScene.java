@@ -21,7 +21,7 @@ public class MenuScene implements Scene {
     }
 
     @Override
-    public void update(double deltaTime) {
+    public void update(double frameTime) {
         renderGUI();
     }
 
@@ -33,12 +33,12 @@ public class MenuScene implements Scene {
                 }
                 ImGui.endMenu();
             }
-            if (ImGui.beginMenu("Chuje muje")) {
-                if (ImGui.menuItem("Siema")) {
-                    logger.info("Siema");
+            if (ImGui.beginMenu("Some settings1")) {
+                if (ImGui.menuItem("Some settings1.1")) {
+                    logger.info("Some settings1.1");
                 }
-                if (ImGui.menuItem("Spierdalaj")) {
-                    logger.info("Spierdalaj");
+                if (ImGui.menuItem("Some settings1.2")) {
+                    logger.info("Some settings1.2");
                 }
                 ImGui.endMenu();
             }

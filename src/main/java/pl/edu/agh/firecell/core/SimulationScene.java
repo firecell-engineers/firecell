@@ -36,7 +36,7 @@ public class SimulationScene implements Scene {
     }
 
     @Override
-    public void update(double deltaTime) {
+    public void update(double frameTime) {
         storage.getState(currentStateIndex).ifPresent(renderer::render);
         renderGUI();
     }
