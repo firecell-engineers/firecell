@@ -47,7 +47,10 @@ dependencies {
     implementation("org.apache.logging.log4j", "log4j-slf4j-impl", "2.7")
 
     // protobuf
-    implementation("com.google.protobuf:protobuf-java:3.21.1")
+    implementation("com.google.protobuf", "protobuf-java", "3.21.1")
+
+    // rxjava
+    implementation("io.reactivex.rxjava3", "rxjava", "3.1.5")
 
 }
 
