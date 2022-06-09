@@ -13,7 +13,7 @@ public class MenuScene implements Scene {
 
     private final Logger logger = LoggerFactory.getLogger(MenuScene.class);
 
-    private SimulationConfig config = new SimulationConfig(new State(new Cell[][][]{}));
+    private SimulationConfig config = new SimulationConfig(new State(new Cell[][][]{}), 1.0);
     private final Consumer<SimulationConfig> startSimulationHandler;
 
     public MenuScene(Consumer<SimulationConfig> startSimulationHandler) {

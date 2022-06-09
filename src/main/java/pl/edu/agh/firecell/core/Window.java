@@ -14,6 +14,7 @@ import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import pl.edu.agh.firecell.core.util.FirecellUncaughtExceptionHandler;
 import pl.edu.agh.firecell.core.util.LoggingOutputStream;
 import pl.edu.agh.firecell.model.SimulationConfig;
 
@@ -75,22 +76,28 @@ public class Window {
     private void initialize(int width, int height, String name) {
         logger.info(String.format("Using LWJGL %s.", Version.getVersion()));
 
+        Thread.setDefaultUncaughtExceptionHandler(new FirecellUncaughtExceptionHandler());
+
+
         GLFWErrorCallback.createPrint(createGLFWErrorPrintStream(logger)).set();
 
-        if (!glfwInit())
+        if (!glfwInit()) {
             throw new IllegalStateException("Unable to initialize GLFW");
+        }
 
         glfwDefaultWindowHints();
         glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
         glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
         glfwWindow = glfwCreateWindow(width, height, name, MemoryUtil.NULL, MemoryUtil.NULL);
-        if (glfwWindow == MemoryUtil.NULL)
-            throw new RuntimeException("Failed to create the GLFW window");
+        if (glfwWindow == MemoryUtil.NULL) {
+            throw new IllegalStateException("Failed to create the GLFW window");
+        }
 
         glfwSetKeyCallback(glfwWindow, (window, key, scancode, action, mods) -> {
-            if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE)
+            if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE) {
                 glfwSetWindowShouldClose(window, true);
+            }
         });
 
         try (MemoryStack stack = MemoryStack.stackPush()) {
@@ -100,6 +107,9 @@ public class Window {
             glfwGetWindowSize(glfwWindow, pWidth, pHeight);
 
             GLFWVidMode videoMode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+            if (videoMode == null) {
+                throw new IllegalStateException("Failed to get video mode.");
+            }
 
             glfwSetWindowPos(
                     glfwWindow,
