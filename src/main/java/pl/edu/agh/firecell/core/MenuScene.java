@@ -1,19 +1,25 @@
 package pl.edu.agh.firecell.core;
 
 import imgui.ImGui;
+import org.joml.Vector3i;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pl.edu.agh.firecell.model.Cell;
 import pl.edu.agh.firecell.model.SimulationConfig;
 import pl.edu.agh.firecell.model.State;
+import pl.edu.agh.firecell.model.util.IndexUtils;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 import java.util.function.Consumer;
+import java.util.stream.IntStream;
 
 public class MenuScene implements Scene {
 
     private final Logger logger = LoggerFactory.getLogger(MenuScene.class);
 
-    private SimulationConfig config = new SimulationConfig(new State(new Cell[][][]{}), 1.0);
+    private SimulationConfig config = createInitialSimulationConfig();
     private final Consumer<SimulationConfig> startSimulationHandler;
 
     public MenuScene(Consumer<SimulationConfig> startSimulationHandler) {
@@ -48,4 +54,16 @@ public class MenuScene implements Scene {
 
     @Override
     public void dispose() {}
+
+    private SimulationConfig createInitialSimulationConfig() {
+        Random random = new Random();
+        Vector3i spaceSize = new Vector3i(3, 3, 3);
+        List<Cell> cells = IntStream.range(0, 9)
+                .mapToObj(flatIndex -> IndexUtils.expandIndex(flatIndex, spaceSize))
+                .map(cellIndex -> new Cell(random.nextDouble(), random.nextDouble()))
+                .toList();
+        State initialState = new State(cells, spaceSize);
+
+        return new SimulationConfig(initialState, 0.001);
+    }
 }

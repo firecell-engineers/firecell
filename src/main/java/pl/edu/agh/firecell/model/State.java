@@ -1,13 +1,12 @@
 package pl.edu.agh.firecell.model;
 
-public record State(Cell[][][] cells) {
+import org.joml.Vector3i;
+import pl.edu.agh.firecell.model.util.IndexUtils;
 
-    public Cell getCell(int x, int y, int z){
-        return cells[x][y][z];
+import java.util.List;
+
+public record State(List<Cell> cells, Vector3i spaceSize) {
+    public Cell getCell(Vector3i index) {
+        return cells.get(IndexUtils.flattenIndex(index, spaceSize));
     }
-
-    public Cell getCell(Index index){
-        return cells[index.x()][index.y()][index.z()];
-    }
-
 }

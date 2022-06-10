@@ -24,6 +24,12 @@ val lwjglNatives = Pair(System.getProperty("os.name")!!, System.getProperty("os.
     }
 
 dependencies {
+    // junit tests
+    testImplementation(group = "junit", name = "junit", version = "4.13")
+    testImplementation(group = "org.junit.jupiter", name = "junit-jupiter-api", "5.6.2")
+    testImplementation(group = "org.junit.jupiter", name = "junit-jupiter-params", "5.6.2")
+    testRuntimeOnly(group = "org.junit.jupiter", name = "junit-jupiter-engine", "5.6.2")
+    testImplementation(group = "org.junit.jupiter", name = "junit-jupiter-params", "5.6.2")
 
     // opengl
     implementation(platform("org.lwjgl:lwjgl-bom:$lwjglVersion"))
@@ -42,6 +48,9 @@ dependencies {
     implementation("org.apache.logging.log4j", "log4j-api", "2.7")
     implementation("org.apache.logging.log4j", "log4j-core", "2.7")
     implementation("org.apache.logging.log4j", "log4j-slf4j-impl", "2.7")
+
+    // joml
+    implementation("org.joml:joml:1.10.4")
 
 }
 

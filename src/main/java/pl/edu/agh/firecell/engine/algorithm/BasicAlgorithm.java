@@ -1,56 +1,52 @@
 package pl.edu.agh.firecell.engine.algorithm;
 
+import org.joml.Vector3i;
 import pl.edu.agh.firecell.model.Cell;
-import pl.edu.agh.firecell.model.Index;
 import pl.edu.agh.firecell.model.State;
+import pl.edu.agh.firecell.model.util.IndexUtils;
 
-import java.util.List;
+import java.util.stream.DoubleStream;
 
 public class BasicAlgorithm implements Algorithm {
 
     @Override
-    public Cell compute(State oldState, Index cellIndex) {
+    public Cell compute(State oldState, Vector3i cellIndex) {
 
         Cell oldCell = oldState.getCell(cellIndex);
 
-        double temp1 = conductivity(
-                oldState.getCell(cellIndex.getNorthIndex()),
+        double yTemp = computeConductivity(
+                oldState.getCell(IndexUtils.north(cellIndex)),
                 oldCell,
-                oldState.getCell(cellIndex.getSouthIndex()));
+                oldState.getCell(IndexUtils.south(cellIndex)));
 
-        double temp2 = conductivity(
-                oldState.getCell(cellIndex.getDownIndex()),
+        double zTemp = computeConductivity(
+                oldState.getCell(IndexUtils.up(cellIndex)),
                 oldCell,
-                oldState.getCell(cellIndex.getUpIndex()));
+                oldState.getCell(IndexUtils.down(cellIndex)));
 
-        double temp3 = conductivity(
-                oldState.getCell(cellIndex.getEastIndex()),
+        double xTemp = computeConductivity(
+                oldState.getCell(IndexUtils.east(cellIndex)),
                 oldCell,
-                oldState.getCell(cellIndex.getWestIndex()));
+                oldState.getCell(IndexUtils.west(cellIndex)));
 
-        return new Cell(avg(List.of(temp1, temp2, temp3)), oldCell.coefficientConductivity());
+        double averageTemp = DoubleStream.of(yTemp, zTemp, xTemp)
+                .average()
+                .orElseThrow(() -> new IllegalStateException("Empty stream while computing average temperature"));
+
+        return new Cell(averageTemp, oldCell.conductivityCoefficient());
     }
 
-    private double conductivity(Cell left, Cell middle, Cell right){
+    private double computeConductivity(Cell former, Cell middle, Cell latter) {
 
+        // TODO: put them into class constants and give meaningful names
         double dt = 0.05;
         double gammaPrimN = 0;
         double gammaPrimN1 = 0;
 
-        return middle.temp() +
-                (
-                        gammaPrimN  * (middle.temp() - left.temp())   -
-                        gammaPrimN1 * (right.temp()  - middle.temp())
-                ) * dt;
-
+        return middle.temperature() +
+                dt * (
+                        gammaPrimN * (middle.temperature() - former.temperature()) -
+                                gammaPrimN1 * (latter.temperature() - middle.temperature())
+                );
     }
-
-    private double avg(List<Double> arr){
-        Double r = (double) 0;
-        for (Double aDouble : arr) {
-            r += aDouble;
-        }
-        return r/arr.size();
-    }
-
 }

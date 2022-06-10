@@ -4,9 +4,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pl.edu.agh.firecell.engine.algorithm.Algorithm;
 import pl.edu.agh.firecell.model.Cell;
-import pl.edu.agh.firecell.model.Index;
 import pl.edu.agh.firecell.model.State;
+import pl.edu.agh.firecell.model.util.IndexUtils;
 import pl.edu.agh.firecell.storage.Storage;
+
+import java.util.List;
+import java.util.stream.IntStream;
 
 public class BasicEngineRunnable implements Runnable {
 
@@ -28,42 +31,18 @@ public class BasicEngineRunnable implements Runnable {
         while (!Thread.currentThread().isInterrupted()) {
             storage.putState(currentState, currentStateIndex);
             currentState = computeNewState(currentState);
-            currentStateIndex ++;
+            currentStateIndex++;
         }
     }
 
     private State computeNewState(State oldState) {
+        logger.debug("Computing state %s".formatted(currentStateIndex));
 
-        logger.debug("Computing new state");
+        List<Cell> newCells = IntStream.range(0, oldState.cells().size())
+                .mapToObj(flatIndex -> IndexUtils.expandIndex(flatIndex, oldState.spaceSize()))
+                .map(expandedIndex -> algorithm.compute(oldState, expandedIndex))
+                .toList();
 
-        int xLen = oldState.cells().length;
-        if(xLen==0){
-            logger.info("Compute new state::xLen==0");
-            return oldState;
-        }
-        int yLen = oldState.cells()[0].length;
-        if(yLen==0){
-            logger.info("Compute new state::yLen==0");
-            return oldState;
-        }
-        int zLen = oldState.cells()[0][0].length;
-        if(zLen==0){
-            logger.info("Compute new state::zLen==0");
-            return oldState;
-        }
-
-        State newState = new State(new Cell[xLen][yLen][zLen]);
-
-        for(int x=0;x<xLen;x++){
-            for(int y=0;y<yLen;y++){
-                for(int z=0;z<zLen;z++){
-                    newState.cells()[x][y][z] = algorithm.compute(oldState, new Index(x, y, z));
-                }
-            }
-        }
-
-        logger.debug("Computed new state");
-
-        return newState;
+        return new State(newCells, oldState.spaceSize());
     }
 }

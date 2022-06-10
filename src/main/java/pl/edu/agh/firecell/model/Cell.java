@@ -1,4 +1,6 @@
 package pl.edu.agh.firecell.model;
 
-public record Cell(double temp, double coefficientConductivity) {
+import org.joml.Vector3i;
+
+public record Cell(double temperature, double conductivityCoefficient) {
 }
