@@ -8,9 +8,7 @@ import imgui.glfw.ImGuiImplGlfw;
 import org.lwjgl.Version;
 import org.lwjgl.glfw.Callbacks;
 import org.lwjgl.glfw.GLFWErrorCallback;
-import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL;
-import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,8 +16,9 @@ import pl.edu.agh.firecell.core.util.FirecellUncaughtExceptionHandler;
 import pl.edu.agh.firecell.core.util.LoggingOutputStream;
 import pl.edu.agh.firecell.model.SimulationConfig;
 
+import java.io.IOException;
 import java.io.PrintStream;
-import java.nio.IntBuffer;
+import java.nio.file.InvalidPathException;
 import java.util.Objects;
 
 import static org.lwjgl.glfw.GLFW.*;
@@ -29,6 +28,7 @@ public class Window {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
+    // need to be same as in glsl shaders
     private static final String GLSL_VERSION = "#version 330";
 
     private long glfwWindow;
@@ -94,29 +94,12 @@ public class Window {
             throw new IllegalStateException("Failed to create the GLFW window");
         }
 
+        glfwSetWindowSizeCallback(glfwWindow, (window, newWidth, newHeight) -> glViewport(0, 0, newWidth, newHeight));
         glfwSetKeyCallback(glfwWindow, (window, key, scancode, action, mods) -> {
             if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE) {
                 glfwSetWindowShouldClose(window, true);
             }
         });
-
-        try (MemoryStack stack = MemoryStack.stackPush()) {
-            IntBuffer pWidth = stack.mallocInt(1);
-            IntBuffer pHeight = stack.mallocInt(1);
-
-            glfwGetWindowSize(glfwWindow, pWidth, pHeight);
-
-            GLFWVidMode videoMode = glfwGetVideoMode(glfwGetPrimaryMonitor());
-            if (videoMode == null) {
-                throw new IllegalStateException("Failed to get video mode.");
-            }
-
-            glfwSetWindowPos(
-                    glfwWindow,
-                    (videoMode.width() - pWidth.get(0)) / 2,
-                    (videoMode.height() - pHeight.get(0)) / 2
-            );
-        }
 
         glfwMakeContextCurrent(glfwWindow);
         glfwSwapInterval(1);
@@ -156,9 +139,14 @@ public class Window {
     }
 
     private void startSimulation(SimulationConfig config) {
-        scene.dispose();
-        scene = new SimulationScene(config, this::finishSimulation);
-        logger.info("Starting simulation.");
+        try {
+            var simulationScene = new SimulationScene(config, this::finishSimulation);
+            scene.dispose();
+            scene = simulationScene;
+            logger.info("Starting simulation.");
+        } catch (IOException | InvalidPathException | IllegalStateException e) {
+            logger.error("Could not create Simulation Scene.", e);
+        }
     }
 
     private void finishSimulation() {

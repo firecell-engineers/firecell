@@ -9,27 +9,27 @@ public class IndexUtils {
 
     public static int flattenIndex(Vector3i index, Vector3i spaceSize) {
         if (index.x < 0 || index.y < 0 || index.z < 0) {
-            throw new IllegalArgumentException("Index %s has negative components.".formatted(index));
+            throw new IndexOutOfBoundsException("Index %s has negative components.".formatted(index));
         }
 
         int flattenedIndex = index.x + index.y * spaceSize.x + index.z * spaceSize.y;
 
         if (flattenedIndex >= spaceSize.x * spaceSize.y * spaceSize.z) {
-            throw new IllegalArgumentException("Index %s out of space %s.".formatted(index, spaceSize));
+            throw new IndexOutOfBoundsException("Index %s out of space %s.".formatted(index, spaceSize));
         }
         return flattenedIndex;
     }
 
     public static Vector3i expandIndex(int index, Vector3i spaceSize) {
         if (index < 0) {
-            throw new IllegalArgumentException("Index %s is negative.".formatted(index));
+            throw new IndexOutOfBoundsException("Index %s is negative.".formatted(index));
         }
         int spaceSizeXY = spaceSize.x * spaceSize.y;
         int z = index / spaceSizeXY;
         int y = index % spaceSizeXY / spaceSize.x;
         int x = index - y * spaceSize.x - z * spaceSizeXY;
         if (index >= spaceSize.x * spaceSize.y * spaceSize.z) {
-            throw new IllegalArgumentException("Index %s out of space %s.".formatted(index, spaceSize));
+            throw new IndexOutOfBoundsException("Index %s out of space %s.".formatted(index, spaceSize));
         }
 
         return new Vector3i(x, y, z);

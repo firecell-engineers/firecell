@@ -13,6 +13,9 @@ import pl.edu.agh.firecell.renderer.Renderer;
 import pl.edu.agh.firecell.storage.BasicStorage;
 import pl.edu.agh.firecell.storage.Storage;
 
+import java.io.IOException;
+import java.nio.file.InvalidPathException;
+
 import static org.lwjgl.glfw.GLFW.glfwGetTime;
 
 public class SimulationScene implements Scene {
@@ -30,7 +33,8 @@ public class SimulationScene implements Scene {
     private State currentState;
     private double lastStepRenderTime = 0.0;
 
-    public SimulationScene(SimulationConfig config, Runnable finishSimulationHandler) {
+    public SimulationScene(SimulationConfig config, Runnable finishSimulationHandler)
+            throws IOException, InvalidPathException, IllegalStateException{
         this.currentState = config.initialState();
         this.stepTime = config.stepTime();
         this.finishSimulationHandler = finishSimulationHandler;
