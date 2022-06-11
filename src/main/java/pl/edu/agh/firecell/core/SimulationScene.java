@@ -42,7 +42,7 @@ public class SimulationScene implements Scene {
         storage = new BasicStorage();
         engine = new BasicEngine(config, storage, new BasicAlgorithm());
 
-        engine.run();
+        // engine.run();
     }
 
     @Override
@@ -53,7 +53,7 @@ public class SimulationScene implements Scene {
                 currentStateIndex++;
             });
         }
-        renderer.render(currentState);
+        renderer.render(currentState, frameTime);
         renderGUI();
     }
 

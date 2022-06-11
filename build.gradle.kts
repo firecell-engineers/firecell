@@ -51,7 +51,6 @@ dependencies {
 
     // joml
     implementation("org.joml:joml:1.10.4")
-
 }
 
 tasks.getByName<Test>("test") {
