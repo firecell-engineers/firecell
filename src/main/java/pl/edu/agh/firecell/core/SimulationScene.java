@@ -28,17 +28,19 @@ public class SimulationScene implements Scene {
     private final Runnable finishSimulationHandler;
 
     private final double stepTime;
+    private final IOListener ioListener;
 
     private int currentStateIndex = 0;
     private State currentState;
     private double lastStepRenderTime = 0.0;
 
-    public SimulationScene(SimulationConfig config, Runnable finishSimulationHandler)
+    public SimulationScene(SimulationConfig config, Runnable finishSimulationHandler, IOListener ioListener, float aspectRatio)
             throws IOException, InvalidPathException, IllegalStateException{
         this.currentState = config.initialState();
         this.stepTime = config.stepTime();
         this.finishSimulationHandler = finishSimulationHandler;
-        renderer = new BasicRenderer();
+        this.ioListener = ioListener;
+        renderer = new BasicRenderer(aspectRatio, ioListener);
         storage = new BasicStorage();
         engine = new BasicEngine(config, storage, new BasicAlgorithm());
 

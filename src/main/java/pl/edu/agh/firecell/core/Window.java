@@ -5,6 +5,7 @@ import imgui.ImGuiIO;
 import imgui.flag.ImGuiConfigFlags;
 import imgui.gl3.ImGuiImplGl3;
 import imgui.glfw.ImGuiImplGlfw;
+import org.joml.Vector2i;
 import org.lwjgl.Version;
 import org.lwjgl.glfw.Callbacks;
 import org.lwjgl.glfw.GLFWErrorCallback;
@@ -12,7 +13,6 @@ import org.lwjgl.opengl.GL;
 import org.lwjgl.system.MemoryUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import pl.edu.agh.firecell.core.util.FirecellUncaughtExceptionHandler;
 import pl.edu.agh.firecell.core.util.LoggingOutputStream;
 import pl.edu.agh.firecell.model.SimulationConfig;
 
@@ -31,14 +31,28 @@ public class Window {
     // need to be same as in glsl shaders
     private static final String GLSL_VERSION = "#version 330";
 
+    private final String name;
+    private Vector2i size;
+
     private long glfwWindow;
     private ImGuiImplGlfw imGuiGlfw;
     private ImGuiImplGl3 imGuiGl3;
 
     private Scene scene;
+    private final IOListener ioListener = new IOListener();
 
-    public Window(int width, int height, String name) {
-        initialize(width, height, name);
+    public Window(int initialWidth, int initialHeight, String name) {
+        size = new Vector2i(initialWidth, initialHeight);
+        this.name = name;
+
+        initializeGLFW();
+        initializeOpenGL();
+        initializeImGui();
+
+        ioListener.windowSizeObservable().subscribe(size -> {
+            this.size = size;
+            glViewport(0, 0, size.x, size.y);
+        });
     }
 
     public void run() {
@@ -66,59 +80,15 @@ public class Window {
             }
             glfwSwapBuffers(glfwWindow);
 
+            if (IOListener.isPressed(GLFW_KEY_ESCAPE)) {
+                glfwSetWindowShouldClose(glfwWindow, true);
+            }
+
             frameTime = glfwGetTime() - startFrameTime;
             startFrameTime = glfwGetTime();
         }
         scene.dispose();
         dispose();
-    }
-
-    private void initialize(int width, int height, String name) {
-        logger.info(String.format("Using LWJGL %s.", Version.getVersion()));
-
-        Thread.setDefaultUncaughtExceptionHandler(new FirecellUncaughtExceptionHandler());
-
-
-        GLFWErrorCallback.createPrint(createGLFWErrorPrintStream(logger)).set();
-
-        if (!glfwInit()) {
-            throw new IllegalStateException("Unable to initialize GLFW");
-        }
-
-        glfwDefaultWindowHints();
-        glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
-        glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
-
-        glfwWindow = glfwCreateWindow(width, height, name, MemoryUtil.NULL, MemoryUtil.NULL);
-        if (glfwWindow == MemoryUtil.NULL) {
-            throw new IllegalStateException("Failed to create the GLFW window");
-        }
-
-        glfwSetWindowSizeCallback(glfwWindow, (window, newWidth, newHeight) -> glViewport(0, 0, newWidth, newHeight));
-        glfwSetKeyCallback(glfwWindow, (window, key, scancode, action, mods) -> {
-            if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE) {
-                glfwSetWindowShouldClose(window, true);
-            }
-        });
-
-        glfwMakeContextCurrent(glfwWindow);
-        glfwSwapInterval(1);
-        glfwShowWindow(glfwWindow);
-
-        GL.createCapabilities();
-        glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
-
-        ImGui.createContext();
-        ImGuiIO io = ImGui.getIO();
-        io.addConfigFlags(ImGuiConfigFlags.ViewportsEnable | ImGuiConfigFlags.DockingEnable);
-
-        imGuiGlfw = new ImGuiImplGlfw();
-        imGuiGl3 = new ImGuiImplGl3();
-
-        imGuiGlfw.init(glfwWindow, true);
-        imGuiGl3.init(GLSL_VERSION);
-
-        logger.info("Firecell initialized.");
     }
 
     private void dispose() {
@@ -132,15 +102,9 @@ public class Window {
         Objects.requireNonNull(glfwSetErrorCallback(null)).free();
     }
 
-    private PrintStream createGLFWErrorPrintStream(Logger logger) {
-        return new PrintStream(
-                new LoggingOutputStream(logger, LoggingOutputStream.LogLevel.ERROR)
-        );
-    }
-
     private void startSimulation(SimulationConfig config) {
         try {
-            var simulationScene = new SimulationScene(config, this::finishSimulation);
+            var simulationScene = new SimulationScene(config, this::finishSimulation, ioListener, size.x / (float) size.y);
             scene.dispose();
             scene = simulationScene;
             logger.info("Starting simulation.");
@@ -153,5 +117,44 @@ public class Window {
         scene.dispose();
         scene = new MenuScene(this::startSimulation);
         logger.info("Finished simulation.");
+    }
+
+    private void initializeGLFW() {
+        GLFWErrorCallback.createPrint(new PrintStream(new LoggingOutputStream(logger, LoggingOutputStream.LogLevel.ERROR))).set();
+        if (!glfwInit()) {
+            throw new IllegalStateException("Unable to initialize GLFW");
+        }
+        glfwDefaultWindowHints();
+        glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
+        glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+        glfwWindow = glfwCreateWindow(size.x, size.y, name, MemoryUtil.NULL, MemoryUtil.NULL);
+        if (glfwWindow == MemoryUtil.NULL) {
+            throw new IllegalStateException("Failed to create the GLFW window");
+        }
+        glfwMakeContextCurrent(glfwWindow);
+        glfwSetKeyCallback(glfwWindow, IOListener::keyCallback);
+        glfwSetWindowSizeCallback(glfwWindow, IOListener::windowSizeCallback);
+        glfwSetFramebufferSizeCallback(glfwWindow, IOListener::windowSizeCallback);
+        glfwSwapInterval(1);
+        glfwShowWindow(glfwWindow);
+    }
+
+    private void initializeOpenGL() {
+        logger.info(String.format("Using LWJGL %s.", Version.getVersion()));
+        GL.createCapabilities();
+        glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
+        glEnable(GL_DEPTH_TEST);
+        glDepthFunc(GL_LESS);
+        glViewport(0, 0, size.x, size.y);
+    }
+
+    private void initializeImGui() {
+        ImGui.createContext();
+        ImGuiIO io = ImGui.getIO();
+        io.addConfigFlags(ImGuiConfigFlags.ViewportsEnable | ImGuiConfigFlags.DockingEnable);
+        imGuiGlfw = new ImGuiImplGlfw();
+        imGuiGl3 = new ImGuiImplGl3();
+        imGuiGlfw.init(glfwWindow, true);
+        imGuiGl3.init(GLSL_VERSION);
     }
 }
