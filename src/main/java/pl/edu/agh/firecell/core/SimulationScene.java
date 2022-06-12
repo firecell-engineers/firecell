@@ -38,7 +38,7 @@ public class SimulationScene implements Scene {
         storage = new BasicStorage();
         engine = new BasicEngine(config, storage, new BasicAlgorithm());
 
-        engine.run();
+//        engine.run(); TODO: index utils errors
     }
 
     @Override
