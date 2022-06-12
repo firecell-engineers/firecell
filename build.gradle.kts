@@ -1,3 +1,4 @@
+
 plugins {
     id("java")
 }
@@ -59,3 +60,5 @@ dependencies {
 tasks.getByName<Test>("test") {
     useJUnitPlatform()
 }
+
+tasks.withType<Jar> { duplicatesStrategy = DuplicatesStrategy.INHERIT }

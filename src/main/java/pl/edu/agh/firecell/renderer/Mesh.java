@@ -14,9 +14,9 @@ import static org.lwjgl.opengl.GL30.glGenVertexArrays;
 
 public class Mesh {
 
-    private final float[] vertices;
+    protected final float[] vertices;
 
-    private final int vaoID;
+    protected final int vaoID;
 
     public Mesh(float[] vertices) {
         this.vertices = vertices;
@@ -34,6 +34,8 @@ public class Mesh {
         glEnableVertexAttribArray(0);
         glVertexAttribPointer(1, 3, GL_FLOAT, false, 6 * Float.BYTES, 3 * Float.BYTES);
         glEnableVertexAttribArray(1);
+
+        glBindVertexArray(0);
     }
 
     public void draw() {
@@ -41,5 +43,6 @@ public class Mesh {
         glEnableVertexAttribArray(0);
         glEnableVertexAttribArray(1);
         glDrawArrays(GL_TRIANGLES, 0, vertices.length);
+        glBindVertexArray(0);
     }
 }

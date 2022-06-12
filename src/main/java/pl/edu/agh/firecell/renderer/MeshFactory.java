@@ -1,11 +1,21 @@
 package pl.edu.agh.firecell.renderer;
 
+import java.util.List;
+
 public class MeshFactory {
     private MeshFactory() {
     }
 
     public static Mesh createCubeMesh() {
-        float[] vertices = {
+        return new Mesh(cubeVertices());
+    }
+
+    public static InstancedMesh createInstancedCubeMesh(List<Transformation> transformations) {
+        return new InstancedMesh(cubeVertices(), transformations);
+    }
+
+    private static float[] cubeVertices() {
+        return new float[] {
                 -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
                 0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
                 0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
@@ -48,6 +58,5 @@ public class MeshFactory {
                 -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
                 -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
         };
-        return new Mesh(vertices);
     }
 }
