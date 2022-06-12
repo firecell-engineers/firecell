@@ -13,6 +13,7 @@ import org.lwjgl.opengl.GL;
 import org.lwjgl.system.MemoryUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import pl.edu.agh.firecell.core.io.IOListener;
 import pl.edu.agh.firecell.core.util.LoggingOutputStream;
 import pl.edu.agh.firecell.model.SimulationConfig;
 
@@ -41,9 +42,9 @@ public class Window {
     private Scene scene;
     private final IOListener ioListener = new IOListener();
 
-    public Window(int initialWidth, int initialHeight, String name) {
+    public Window(int initialWidth, int initialHeight, String appName) {
         size = new Vector2i(initialWidth, initialHeight);
-        this.name = name;
+        name = appName;
 
         initializeGLFW();
         initializeOpenGL();
@@ -53,6 +54,9 @@ public class Window {
             this.size = size;
             glViewport(0, 0, size.x, size.y);
         });
+        ioListener.keyObservable(GLFW_KEY_ESCAPE)
+                .filter(pressed -> pressed)
+                .subscribe(pressed -> glfwSetWindowShouldClose(glfwWindow, true));
     }
 
     public void run() {
@@ -79,10 +83,6 @@ public class Window {
                 glfwMakeContextCurrent(backupWindowPtr);
             }
             glfwSwapBuffers(glfwWindow);
-
-            if (IOListener.isPressed(GLFW_KEY_ESCAPE)) {
-                glfwSetWindowShouldClose(glfwWindow, true);
-            }
 
             frameTime = glfwGetTime() - startFrameTime;
             startFrameTime = glfwGetTime();
@@ -124,7 +124,10 @@ public class Window {
         if (!glfwInit()) {
             throw new IllegalStateException("Unable to initialize GLFW");
         }
-        glfwDefaultWindowHints();
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
         glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
         glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
         glfwWindow = glfwCreateWindow(size.x, size.y, name, MemoryUtil.NULL, MemoryUtil.NULL);

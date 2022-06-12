@@ -1,5 +1,6 @@
 package pl.edu.agh.firecell.renderer;
 
+import org.joml.Vector4f;
 import org.lwjgl.BufferUtils;
 
 import java.nio.FloatBuffer;
@@ -14,41 +15,31 @@ import static org.lwjgl.opengl.GL30.glGenVertexArrays;
 public class Mesh {
 
     private final float[] vertices;
-    private final int[] indices;
 
-    private final int eboID;
-    private final int vboID;
     private final int vaoID;
 
-    public Mesh(float[] vertices, int[] indices) {
+    public Mesh(float[] vertices) {
         this.vertices = vertices;
-        this.indices = indices;
 
         vaoID = glGenVertexArrays();
         glBindVertexArray(vaoID);
 
-        vboID = glGenBuffers();
+        int vboID = glGenBuffers();
         glBindBuffer(GL_ARRAY_BUFFER, vboID);
         FloatBuffer vertexBuffer = BufferUtils.createFloatBuffer(vertices.length);
         vertexBuffer.put(vertices).flip();
         glBufferData(GL_ARRAY_BUFFER, vertexBuffer, GL_STATIC_DRAW);
 
-        eboID = glGenBuffers();
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboID);
-        IntBuffer elementBuffer = BufferUtils.createIntBuffer(this.indices.length);
-        elementBuffer.put(this.indices).flip();
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, elementBuffer, GL_STATIC_DRAW);
-
-        int positionCount = 3;
-        int vertexSize = (positionCount) * Float.BYTES;
-        glVertexAttribPointer(0, positionCount, GL_FLOAT, false, vertexSize, 0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, false, 6 * Float.BYTES, 0);
         glEnableVertexAttribArray(0);
+        glVertexAttribPointer(1, 3, GL_FLOAT, false, 6 * Float.BYTES, 3 * Float.BYTES);
+        glEnableVertexAttribArray(1);
     }
 
     public void draw() {
         glBindVertexArray(vaoID);
         glEnableVertexAttribArray(0);
         glEnableVertexAttribArray(1);
-        glDrawElements(GL_TRIANGLES, indices.length, GL_UNSIGNED_INT, 0);
+        glDrawArrays(GL_TRIANGLES, 0, vertices.length);
     }
 }

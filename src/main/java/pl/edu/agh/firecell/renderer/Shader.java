@@ -2,11 +2,10 @@ package pl.edu.agh.firecell.renderer;
 
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
-import org.lwjgl.BufferUtils;
+import org.joml.Vector4f;
 import org.lwjgl.system.MemoryStack;
 
 import java.io.IOException;
-import java.nio.FloatBuffer;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Paths;
@@ -43,6 +42,20 @@ public class Shader {
         try (MemoryStack stack = MemoryStack.stackPush()) {
             var buffer = matrix.get(stack.mallocFloat(16));
             glUniformMatrix4fv(getLocation(name), false, buffer);
+        }
+    }
+
+    public void setVector3(String name, Vector3f vector) {
+        try (MemoryStack stack = MemoryStack.stackPush()) {
+            var buffer = vector.get(stack.mallocFloat(3));
+            glUniform3fv(getLocation(name), buffer);
+        }
+    }
+
+    public void setVector4(String name, Vector4f vector) {
+        try (MemoryStack stack = MemoryStack.stackPush()) {
+            var buffer = vector.get(stack.mallocFloat(4));
+            glUniform4fv(getLocation(name), buffer);
         }
     }
 

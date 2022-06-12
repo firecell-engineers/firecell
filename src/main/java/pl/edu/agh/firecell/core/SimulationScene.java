@@ -3,6 +3,7 @@ package pl.edu.agh.firecell.core;
 import imgui.ImGui;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import pl.edu.agh.firecell.core.io.IOListener;
 import pl.edu.agh.firecell.engine.BasicEngine;
 import pl.edu.agh.firecell.engine.Engine;
 import pl.edu.agh.firecell.engine.algorithm.BasicAlgorithm;
@@ -15,7 +16,9 @@ import pl.edu.agh.firecell.storage.Storage;
 
 import java.io.IOException;
 import java.nio.file.InvalidPathException;
+import java.util.concurrent.TimeUnit;
 
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_SPACE;
 import static org.lwjgl.glfw.GLFW.glfwGetTime;
 
 public class SimulationScene implements Scene {
@@ -43,7 +46,6 @@ public class SimulationScene implements Scene {
         renderer = new BasicRenderer(aspectRatio, ioListener);
         storage = new BasicStorage();
         engine = new BasicEngine(config, storage, new BasicAlgorithm());
-
         // engine.run();
     }
 
