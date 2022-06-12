@@ -19,8 +19,8 @@ public class IndexUtilTest {
     }
 
     public static Stream<Arguments> flattenIndexTestCases() {
-        return Stream.of( // 0,1,0 -> 0,0,0
-                Arguments.of(new Vector3i(0, 1, 0), new Vector3i(1, 2, 3), 0),
+        return Stream.of(
+                Arguments.of(new Vector3i(0, 0, 0), new Vector3i(1, 2, 3), 0),
                 Arguments.of(new Vector3i(0, 0, 1), new Vector3i(1, 2, 3), 2),
                 Arguments.of(new Vector3i(0, 1, 2), new Vector3i(1, 2, 3), 5)
         );
