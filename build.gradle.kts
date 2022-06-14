@@ -27,6 +27,12 @@ val lwjglNatives = Pair(System.getProperty("os.name")!!, System.getProperty("os.
     }
 
 dependencies {
+    // junit tests
+    testImplementation(group = "junit", name = "junit", version = "4.13")
+    testImplementation(group = "org.junit.jupiter", name = "junit-jupiter-api", "5.6.2")
+    testImplementation(group = "org.junit.jupiter", name = "junit-jupiter-params", "5.6.2")
+    testRuntimeOnly(group = "org.junit.jupiter", name = "junit-jupiter-engine", "5.6.2")
+    testImplementation(group = "org.junit.jupiter", name = "junit-jupiter-params", "5.6.2")
 
     // opengl
     implementation(platform("org.lwjgl:lwjgl-bom:$lwjglVersion"))
@@ -51,6 +57,9 @@ dependencies {
 
     // rxjava
     implementation("io.reactivex.rxjava3", "rxjava", "3.1.5")
+
+    // joml
+    implementation("org.joml:joml:1.10.4")
 
 }
 
