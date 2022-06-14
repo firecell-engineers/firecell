@@ -13,7 +13,7 @@ import java.io.*;
 import java.nio.file.Path;
 import java.util.Optional;
 
-public class FileSystemStorage implements StateConsumer, StateProvider {
+public class FileSystemStorage implements Storage {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private final Subject<StateHolder> stateSubject = PublishSubject.create();

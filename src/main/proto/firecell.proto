@@ -6,6 +6,18 @@ option java_multiple_files = true;
 option java_package = "pl.edu.agh.firecell.storage.proto";
 option java_outer_classname = "FirecellProto";
 
+message ProtoVector3i {
+  required int32 x = 1;
+  required int32 y = 2;
+  required int32 z = 3;
+}
+
+message ProtoCell {
+  required double temperature = 1;
+  required double conductivityCoefficient = 2;
+}
+
 message ProtoState {
-  required int32 index = 2;
+  required ProtoVector3i spaceSize = 1;
+  repeated ProtoCell cells = 2;
 }
