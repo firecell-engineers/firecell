@@ -7,7 +7,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 public interface StateSerializer {
-    byte[] serialize(State state);
     void writeTo(State state, OutputStream stream) throws IOException;
     State parseFrom(InputStream stream) throws IOException;
 }

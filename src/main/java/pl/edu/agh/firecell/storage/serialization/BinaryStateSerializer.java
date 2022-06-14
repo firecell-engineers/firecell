@@ -9,12 +9,6 @@ import java.io.OutputStream;
 
 public class BinaryStateSerializer implements StateSerializer {
     @Override
-    public byte[] serialize(State state) {
-        ProtoState protoState = createProtoState(state);
-        return protoState.toByteArray();
-    }
-
-    @Override
     public void writeTo(State state, OutputStream stream) throws IOException {
         ProtoState protoState = createProtoState(state);
         protoState.writeTo(stream);
