@@ -12,7 +12,7 @@ public class IndexUtils {
             throw new IllegalArgumentException("Index %s has negative components.".formatted(index));
         }
 
-        int flattenedIndex = index.x + index.y * spaceSize.x + index.z * spaceSize.y;
+        int flattenedIndex = index.x + index.y * spaceSize.x + index.z * spaceSize.y * spaceSize.x;
 
         if (flattenedIndex >= spaceSize.x * spaceSize.y * spaceSize.z) {
             throw new IllegalArgumentException("Index %s out of space %s.".formatted(index, spaceSize));

@@ -22,7 +22,9 @@ public class IndexUtilTest {
         return Stream.of(
                 Arguments.of(new Vector3i(0, 0, 0), new Vector3i(1, 2, 3), 0),
                 Arguments.of(new Vector3i(0, 0, 1), new Vector3i(1, 2, 3), 2),
-                Arguments.of(new Vector3i(0, 1, 2), new Vector3i(1, 2, 3), 5)
+                Arguments.of(new Vector3i(0, 1, 2), new Vector3i(1, 2, 3), 5),
+                Arguments.of(new Vector3i(0, 0, 0), new Vector3i(3, 3, 3), 0),
+                Arguments.of(new Vector3i(1, 1, 1), new Vector3i(3, 3, 3), 13)
         );
     }
 
