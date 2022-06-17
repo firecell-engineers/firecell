@@ -1,6 +1,5 @@
 package pl.edu.agh.firecell.model;
 
-import org.joml.Vector3f;
 import org.joml.Vector3i;
 import pl.edu.agh.firecell.model.util.IndexUtils;
 
@@ -23,8 +22,7 @@ public class StateBuilder {
     }
 
     public StateBuilder addCuboid(Vector3i position, Vector3i size, Material material) {
-        Vector3i end = new Vector3i(0).add(position).add(size).sub(new Vector3i(1));
-        IndexUtils.range(position, end)
+        IndexUtils.range(position, new Vector3i(-1).add(position).add(size))
                 .map(expandedIndex -> IndexUtils.flattenIndex(expandedIndex, spaceSize))
                 .forEach(flatIndex -> cells.set(flatIndex, new Cell(0, 0, 0, false, material)));
         return this;

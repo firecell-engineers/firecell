@@ -1,5 +1,5 @@
 #version 330 core
-in vec3 fPos;
+
 in vec3 fNormal;
 
 uniform vec3 uObjectColor;
@@ -14,9 +14,10 @@ void main()
     vec3 ambient = uLightColor * 0.3;
 
     // diffuse
-    float diffuseCoeff = max(dot(normalize(fNormal), normalize(uLightDir)), 0.0);
+    float diffuseCoeff = max(dot(normalize(fNormal), normalize(-uLightDir)), 0.0);
     vec3 diffuse = diffuseCoeff * uLightColor;
 
     // result
-    FragColor = vec4((ambient + diffuse) * uObjectColor, 1.0);
+    vec3 resultColor = (ambient + diffuse) * uObjectColor;
+    FragColor = vec4(resultColor, 1.0);
 }

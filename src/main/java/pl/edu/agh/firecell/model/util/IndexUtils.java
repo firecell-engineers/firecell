@@ -45,12 +45,13 @@ public class IndexUtils {
                 .flatMap(xy -> IntStream.range(startInclusive.z, endInclusive.z + 1).mapToObj(z -> new Vector3i(xy.x, xy.y, z)));
     }
 
+    // [koszar] Graphics assumes that y is up, z is front. I made it here the same to avoid unnecessary computing
     public static Vector3i up(Vector3i index) {
-        return new Vector3i(index.x, index.y, index.z + 1);
+        return new Vector3i(index.x, index.y + 1, index.z);
     }
 
     public static Vector3i down(Vector3i index) {
-        return new Vector3i(index.x, index.y, index.z - 1);
+        return new Vector3i(index.x, index.y - 1, index.z);
     }
 
     public static Vector3i east(Vector3i index) {
@@ -62,10 +63,10 @@ public class IndexUtils {
     }
 
     public static Vector3i north(Vector3i index) {
-        return new Vector3i(index.x, index.y + 1, index.z);
+        return new Vector3i(index.x, index.y, index.z + 1);
     }
 
     public static Vector3i south(Vector3i index) {
-        return new Vector3i(index.x, index.y - 1, index.z);
+        return new Vector3i(index.x, index.y, index.z - 1);
     }
 }

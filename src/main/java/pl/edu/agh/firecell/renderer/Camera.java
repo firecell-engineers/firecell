@@ -8,8 +8,8 @@ import org.slf4j.LoggerFactory;
 public class Camera {
 
     private static final float FOV = 60.0f;
-    private static final float Z_NEAR = 1e-4f;
-    private static final float Z_FAR = 1e6f;
+    private static final float Z_NEAR = 0.05f;
+    private static final float Z_FAR = 500.0f;
     private static final float MOVING_SPEED = 10.0f;
 
     private Logger logger = LoggerFactory.getLogger(Camera.class);
@@ -33,6 +33,16 @@ public class Camera {
         updateProjectionMatrix();
     }
 
+    public void setPosition(Vector3f position) {
+        this.position = position;
+        updateViewMatrix();
+    }
+
+    public void setDirection(Vector3f direction) {
+        this.direction = direction;
+        updateViewMatrix();
+    }
+
     public Matrix4f perspectiveMatrix() {
         return perspectiveMatrix;
     }
@@ -48,7 +58,6 @@ public class Camera {
     }
 
     public void moveRight(float deltaTime) {
-        logger.debug("Moving right");
         var directionXZ = new Vector3f(direction.x, 0, direction.z);
         var rightXZ = directionXZ.cross(up, new Vector3f()).normalize();
         position.add(rightXZ.mul(deltaTime * MOVING_SPEED));
@@ -58,6 +67,18 @@ public class Camera {
     public void moveUp(float deltaTime) {
         position.add(up.mul(deltaTime * MOVING_SPEED, new Vector3f()));
         updateViewMatrix();
+    }
+
+    public Vector3f position() {
+        return position;
+    }
+
+    public Vector3f direction() {
+        return direction;
+    }
+
+    public Vector3f up() {
+        return up;
     }
 
     private void updateViewMatrix() {

@@ -28,11 +28,13 @@ public class BasicEngineRunnable implements Runnable {
 
     @Override
     public void run() {
+        logger.info("Engine run.");
         while (!Thread.currentThread().isInterrupted()) {
             storage.putState(currentState, currentStateIndex);
             currentState = computeNewState(currentState);
             currentStateIndex++;
         }
+        logger.info("Engine stopped.");
     }
 
     private State computeNewState(State oldState) {

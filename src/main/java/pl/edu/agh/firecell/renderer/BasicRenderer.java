@@ -1,14 +1,15 @@
 package pl.edu.agh.firecell.renderer;
 
-import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.Disposable;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.joml.Vector3f;
+import org.joml.Vector3fc;
 import org.joml.Vector3i;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pl.edu.agh.firecell.core.io.IOListener;
 import pl.edu.agh.firecell.model.Material;
+import pl.edu.agh.firecell.model.SimulationConfig;
 import pl.edu.agh.firecell.model.State;
 import pl.edu.agh.firecell.model.util.IndexUtils;
 
@@ -24,17 +25,20 @@ public class BasicRenderer implements Renderer {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private final Shader shader = new Shader("instanced.glsl.vert", "basic.glsl.frag");
-    private static final float CELL_SIZE = 3.0f;
     private final Camera camera;
     private final IOListener ioListener;
     private final Disposable windowSizeSubscription;
 
-    public BasicRenderer(float aspectRatio, IOListener ioListener) throws IOException, InvalidPathException, IllegalStateException {
+    public BasicRenderer(float aspectRatio, IOListener ioListener, SimulationConfig config)
+            throws IOException, InvalidPathException, IllegalStateException {
         this.ioListener = ioListener;
         camera = new Camera(aspectRatio);
+        var spaceSize = new Vector3f(config.size().x, config.size().y, config.size().z);
+        camera.setPosition(new Vector3f(spaceSize).mul(1.2f));
+        camera.setDirection(new Vector3f(spaceSize).mul(0.5f).sub(camera.position()));
         shader.bind();
         shader.setMatrix4("uProjection", camera.perspectiveMatrix());
-        shader.setVector3("uLightDir", new Vector3f(0.2f, -0.2f, 1.0f));
+        shader.setVector3("uLightDir", new Vector3f(-1.0f, -0.8f, 0.5f));
         shader.setVector3("uLightColor", new Vector3f(1.0f, 1.0f, 1.0f));
 
         windowSizeSubscription = ioListener.windowSizeObservable().subscribe(size -> {
@@ -77,33 +81,30 @@ public class BasicRenderer implements Renderer {
     }
 
     private void renderState(State state) {
-        Map<Material, List<Integer>> materialToIndexesMap = new HashMap<>();
+        Map<Material, List<Integer>> cellsGroups = new HashMap<>();
         IntStream.range(0, state.cells().size()).boxed()
                 .map(index -> new ImmutablePair<>(index, state.cells().get(index)))
                 .filter(indexCellPair -> indexCellPair.getRight().material() != Material.AIR)
                 .forEach(indexCellPair -> {
                     var material = indexCellPair.getRight().material();
-                    if (!materialToIndexesMap.containsKey(material)) {
-                        materialToIndexesMap.put(material, new LinkedList<>());
+                    if (!cellsGroups.containsKey(material)) {
+                        cellsGroups.put(material, new LinkedList<>());
                     }
-                    materialToIndexesMap.get(material).add(indexCellPair.getLeft());
+                    cellsGroups.get(material).add(indexCellPair.getLeft());
                 });
-        materialToIndexesMap.forEach((key, value) -> {
+        cellsGroups.forEach((key, value) -> {
             var transformations = value.stream()
                     .map(index -> IndexUtils.expandIndex(index, state.spaceSize()))
                     .map(this::indexToTransformation)
                     .toList();
-            if (key == Material.WOOD) {
-                logger.debug("Rendering wood");
-            }
             renderInstancedCube(resolveColor(key), transformations);
         });
     }
 
     private Transformation indexToTransformation(Vector3i index) {
         return new Transformation(
-                new Vector3f(index.x * CELL_SIZE, index.y * CELL_SIZE, index.z * CELL_SIZE),
-                new Vector3f(0), new Vector3f(CELL_SIZE)
+                new Vector3f(index.x, index.y, index.z),
+                new Vector3f(0.0f), new Vector3f(1.0f)
         );
     }
 

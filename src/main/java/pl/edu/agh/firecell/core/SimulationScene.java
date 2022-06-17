@@ -31,7 +31,7 @@ public class SimulationScene implements Scene {
             throws IOException, InvalidPathException, IllegalStateException {
         this.currentState = config.initialState();
         this.finishSimulationHandler = finishSimulationHandler;
-        renderer = new BasicRenderer(aspectRatio, ioListener);
+        renderer = new BasicRenderer(aspectRatio, ioListener, config);
         storage = new BasicStorage();
         engine = new BasicEngine(config, storage, new BasicAlgorithm());
     }
