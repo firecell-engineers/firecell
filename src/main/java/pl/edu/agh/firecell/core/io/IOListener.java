@@ -4,47 +4,56 @@ import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.subjects.PublishSubject;
 import io.reactivex.rxjava3.subjects.Subject;
 import org.joml.Vector2i;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.IntStream;
 
 import static org.lwjgl.glfw.GLFW.GLFW_PRESS;
+import static org.lwjgl.glfw.GLFW.GLFW_RELEASE;
 
+
+// TODO: Refactor this class: it should be proper singleton (probably IoC container is the only way, maybe spring)
 public class IOListener {
 
-    public static final int KEYS_COUNT = 350;
-    private static final List<Boolean> keys = new ArrayList<>(KEYS_COUNT);
-    private static final List<Subject<Boolean>> keysObservables = new ArrayList<>(KEYS_COUNT);
+    private final Logger logger = LoggerFactory.getLogger(IOListener.class);
 
-    private static Vector2i windowSize;
-    private static final Subject<Vector2i> windowSizeObservable = PublishSubject.create();
+    private final int KEYS_COUNT = 350;
+    private final List<Boolean> keys = new ArrayList<>(KEYS_COUNT);
+    private final Subject<KeyEvent> keysObservable = PublishSubject.create();
 
-    static {
-        IntStream.range(0, KEYS_COUNT).forEach(keyIndex -> {
-            keys.add(keyIndex, false);
-            keysObservables.add(keyIndex, PublishSubject.create());
-        });
+    private Vector2i windowSize;
+    private final Subject<Vector2i> windowSizeObservable = PublishSubject.create();
+
+    public IOListener(Vector2i windowSize) {
+        this.windowSize = windowSize;
+        IntStream.range(0, KEYS_COUNT).forEach(idx -> keys.add(false));
     }
 
-    // TODO: Refactor this class: it's objects have thread-unsafe access to it's static members.
-    // TODO: Also it should be proper singleton (probably IoC container is the only way, maybe spring)
-    public IOListener() {
+    public void keyCallback(long window, int key, int scancode, int action, int mods) {
+        switch (action) {
+            case GLFW_PRESS -> {
+                keys.set(key, true);
+                keysObservable.onNext(new KeyEvent(key, true));
+            }
+            case GLFW_RELEASE -> {
+                keys.set(key, false);
+                keysObservable.onNext(new KeyEvent(key, false));
+            }
+        }
     }
 
-    public static void keyCallback(long window, int key, int scancode, int action, int mods) {
-        keys.set(key, action == GLFW_PRESS);
-        keysObservables.get(key).onNext(action == GLFW_PRESS);
-    }
-
-    public Observable<Boolean> keyObservable(int key) {
-        return keysObservables.get(key);
+    public Observable<KeyEvent> keyObservable(int keyCode) {
+        return keysObservable.filter(keyEvent -> keyEvent.keyCode() == keyCode);
     }
 
     public boolean isPressed(int key) {
         return keys.get(key);
     }
 
-    public static void windowSizeCallback(long window, int width, int height) {
+    public void windowSizeCallback(long window, int width, int height) {
         windowSize = new Vector2i(width, height);
         windowSizeObservable.onNext(new Vector2i(width, height));
     }

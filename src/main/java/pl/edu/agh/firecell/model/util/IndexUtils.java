@@ -1,6 +1,10 @@
 package pl.edu.agh.firecell.model.util;
 
+import org.joml.Vector2i;
 import org.joml.Vector3i;
+
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 public class IndexUtils {
 
@@ -12,7 +16,7 @@ public class IndexUtils {
             throw new IndexOutOfBoundsException("Index %s has negative components.".formatted(index));
         }
 
-        int flattenedIndex = index.x + index.y * spaceSize.x + index.z * spaceSize.y;
+        int flattenedIndex = index.x + index.y * spaceSize.x + index.z * spaceSize.y * spaceSize.x;
 
         if (flattenedIndex >= spaceSize.x * spaceSize.y * spaceSize.z) {
             throw new IndexOutOfBoundsException("Index %s out of space %s.".formatted(index, spaceSize));
@@ -33,6 +37,12 @@ public class IndexUtils {
         }
 
         return new Vector3i(x, y, z);
+    }
+
+    public static Stream<Vector3i> range(Vector3i startInclusive, Vector3i endInclusive) {
+        return IntStream.range(startInclusive.x, endInclusive.x + 1).boxed()
+                .flatMap(x -> IntStream.range(startInclusive.y, endInclusive.y + 1).mapToObj(y -> new Vector2i(x, y)))
+                .flatMap(xy -> IntStream.range(startInclusive.z, endInclusive.z + 1).mapToObj(z -> new Vector3i(xy.x, xy.y, z)));
     }
 
     public static Vector3i up(Vector3i index) {

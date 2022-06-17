@@ -54,7 +54,11 @@ dependencies {
     implementation("org.joml:joml:1.10.4")
 
     // rx java
-    implementation("io.reactivex.rxjava3:rxjava:3.1.0")
+    implementation("io.reactivex.rxjava3:rxjava:3.1.5")
+
+    // apache commons
+    implementation("org.apache.commons:commons-lang3:3.12.0")
+
 }
 
 tasks.getByName<Test>("test") {

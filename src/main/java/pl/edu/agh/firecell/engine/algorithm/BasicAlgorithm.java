@@ -33,7 +33,7 @@ public class BasicAlgorithm implements Algorithm {
                 .average()
                 .orElse(oldCell.temperature());
 
-        return new Cell(averageTemp, oldCell.conductivityCoefficient());
+        return new Cell(averageTemp, oldCell.conductivityCoefficient(), 0, false, oldCell.material());
     }
 
     private double computeConductivity(Cell former, Cell middle, Cell latter) {

@@ -17,8 +17,6 @@ import pl.edu.agh.firecell.storage.Storage;
 import java.io.IOException;
 import java.nio.file.InvalidPathException;
 
-import static org.lwjgl.glfw.GLFW.glfwGetTime;
-
 public class SimulationScene implements Scene {
 
     private final Logger logger = LoggerFactory.getLogger(SimulationScene.class);
@@ -27,47 +25,21 @@ public class SimulationScene implements Scene {
     private final Storage storage;
     private final Renderer renderer;
     private final Runnable finishSimulationHandler;
-
-    private final double stepTime;
-    private final IOListener ioListener;
-
-    private int currentStateIndex = 0;
     private State currentState;
-    private double lastStepRenderTime = 0.0;
 
     public SimulationScene(SimulationConfig config, Runnable finishSimulationHandler, IOListener ioListener, float aspectRatio)
             throws IOException, InvalidPathException, IllegalStateException {
         this.currentState = config.initialState();
-        this.stepTime = config.stepTime();
         this.finishSimulationHandler = finishSimulationHandler;
-        this.ioListener = ioListener;
         renderer = new BasicRenderer(aspectRatio, ioListener);
         storage = new BasicStorage();
         engine = new BasicEngine(config, storage, new BasicAlgorithm());
-
-        // TODO: index utils errors
-        // engine.run();
     }
 
     @Override
     public void update(double frameTime) {
-        if (stepTimePassed()) {
-            storage.getState(currentStateIndex).ifPresent(state -> {
-                currentState = state;
-                currentStateIndex++;
-            });
-        }
         renderer.render(currentState, frameTime);
         renderGUI();
-    }
-
-    private boolean stepTimePassed() {
-        double now = glfwGetTime();
-        if (now - lastStepRenderTime >= stepTime) {
-            lastStepRenderTime = now;
-            return true;
-        }
-        return false;
     }
 
     private void renderGUI() {
@@ -84,6 +56,7 @@ public class SimulationScene implements Scene {
 
     @Override
     public void dispose() {
+        renderer.dispose();
         engine.stop();
     }
 }

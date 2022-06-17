@@ -5,6 +5,7 @@ import imgui.ImGuiIO;
 import imgui.flag.ImGuiConfigFlags;
 import imgui.gl3.ImGuiImplGl3;
 import imgui.glfw.ImGuiImplGlfw;
+import io.reactivex.rxjava3.disposables.Disposable;
 import org.joml.Vector2i;
 import org.lwjgl.Version;
 import org.lwjgl.glfw.Callbacks;
@@ -14,6 +15,7 @@ import org.lwjgl.system.MemoryUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pl.edu.agh.firecell.core.io.IOListener;
+import pl.edu.agh.firecell.core.io.KeyEvent;
 import pl.edu.agh.firecell.core.util.LoggingOutputStream;
 import pl.edu.agh.firecell.model.SimulationConfig;
 
@@ -40,22 +42,26 @@ public class Window {
     private ImGuiImplGl3 imGuiGl3;
 
     private Scene scene;
-    private final IOListener ioListener = new IOListener();
+    private final IOListener ioListener;
+
+    private final Disposable windowSizeSubscription;
+    private final Disposable closeKeyEventSubscription;
 
     public Window(int initialWidth, int initialHeight, String appName) {
         size = new Vector2i(initialWidth, initialHeight);
+        ioListener = new IOListener(size);
         name = appName;
 
         initializeGLFW();
         initializeOpenGL();
         initializeImGui();
 
-        ioListener.windowSizeObservable().subscribe(size -> {
+        windowSizeSubscription = ioListener.windowSizeObservable().subscribe(size -> {
             this.size = size;
             glViewport(0, 0, size.x, size.y);
         });
-        ioListener.keyObservable(GLFW_KEY_ESCAPE)
-                .filter(pressed -> pressed)
+        closeKeyEventSubscription = ioListener.keyObservable(GLFW_KEY_ESCAPE)
+                .filter(KeyEvent::pressed)
                 .subscribe(pressed -> glfwSetWindowShouldClose(glfwWindow, true));
     }
 
@@ -64,7 +70,7 @@ public class Window {
         double startFrameTime = glfwGetTime();
         double frameTime = 0.0;
 
-        scene = new MenuScene(this::startSimulation);
+        scene = new MenuScene(this::startSimulation, ioListener);
 
         while (!glfwWindowShouldClose(glfwWindow)) {
             glfwPollEvents();
@@ -87,11 +93,15 @@ public class Window {
             frameTime = glfwGetTime() - startFrameTime;
             startFrameTime = glfwGetTime();
         }
-        scene.dispose();
         dispose();
     }
 
     private void dispose() {
+        scene.dispose();
+
+        closeKeyEventSubscription.dispose();
+        windowSizeSubscription.dispose();
+
         imGuiGl3.dispose();
         imGuiGlfw.dispose();
         ImGui.destroyContext();
@@ -115,7 +125,7 @@ public class Window {
 
     private void finishSimulation() {
         scene.dispose();
-        scene = new MenuScene(this::startSimulation);
+        scene = new MenuScene(this::startSimulation, ioListener);
         logger.info("Finished simulation.");
     }
 
@@ -135,9 +145,9 @@ public class Window {
             throw new IllegalStateException("Failed to create the GLFW window");
         }
         glfwMakeContextCurrent(glfwWindow);
-        glfwSetKeyCallback(glfwWindow, IOListener::keyCallback);
-        glfwSetWindowSizeCallback(glfwWindow, IOListener::windowSizeCallback);
-        glfwSetFramebufferSizeCallback(glfwWindow, IOListener::windowSizeCallback);
+        glfwSetKeyCallback(glfwWindow, ioListener::keyCallback);
+        glfwSetWindowSizeCallback(glfwWindow, ioListener::windowSizeCallback);
+        glfwSetFramebufferSizeCallback(glfwWindow, ioListener::windowSizeCallback);
         glfwSwapInterval(1);
         glfwShowWindow(glfwWindow);
     }
@@ -147,7 +157,7 @@ public class Window {
         GL.createCapabilities();
         glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
         glEnable(GL_DEPTH_TEST);
-        glDepthFunc(GL_LESS);
+        glDepthFunc(GL_LEQUAL);
         glViewport(0, 0, size.x, size.y);
     }
 

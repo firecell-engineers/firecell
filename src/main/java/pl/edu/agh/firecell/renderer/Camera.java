@@ -2,6 +2,8 @@ package pl.edu.agh.firecell.renderer;
 
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Camera {
 
@@ -9,6 +11,8 @@ public class Camera {
     private static final float Z_NEAR = 1e-4f;
     private static final float Z_FAR = 1e6f;
     private static final float MOVING_SPEED = 10.0f;
+
+    private Logger logger = LoggerFactory.getLogger(Camera.class);
 
     private float aspectRatio;
     private Vector3f position = new Vector3f(0);
@@ -44,6 +48,7 @@ public class Camera {
     }
 
     public void moveRight(float deltaTime) {
+        logger.debug("Moving right");
         var directionXZ = new Vector3f(direction.x, 0, direction.z);
         var rightXZ = directionXZ.cross(up, new Vector3f()).normalize();
         position.add(rightXZ.mul(deltaTime * MOVING_SPEED));
