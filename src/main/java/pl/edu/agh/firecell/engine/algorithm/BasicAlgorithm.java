@@ -12,7 +12,7 @@ public class BasicAlgorithm implements Algorithm {
 
     private final Logger logger = LoggerFactory.getLogger(BasicEngineRunnable.class);
     private final double deltaTime = 0.5;
-    public static final double convectionCoefficient = 5;
+    public static final double convectionCoefficient = 1;
     public static final double GAMMA_PRIM_N1 = 1;
     public static final double GAMMA_PRIM_N2 = 1;
 
@@ -103,13 +103,16 @@ public class BasicAlgorithm implements Algorithm {
         double fromDownToMe = 0;
         double fromMeToUp = 0;
 
-        if (oldState.getCell(IndexUtils.down(cellIndex)).temperature() - oldCell.temperature() > 0) {
-            fromDownToMe = convectionCoefficient * tempDiff(oldCell, oldState.getCell(IndexUtils.down(cellIndex))) * deltaTime;
+        try {
+            if (oldState.getCell(IndexUtils.south(cellIndex)).temperature() - oldCell.temperature() > 0) {
+                fromDownToMe = convectionCoefficient * tempDiff(oldCell, oldState.getCell(IndexUtils.south(cellIndex))) * deltaTime;
+            }
+            if (oldState.getCell(IndexUtils.north(cellIndex)).temperature() - oldCell.temperature() < 0) {
+                fromMeToUp = - convectionCoefficient * tempDiff(oldCell, oldState.getCell(IndexUtils.north(cellIndex))) * deltaTime;
+            }
+        } catch (IllegalArgumentException e){
+            return oldCell.temperature();
         }
-        if (oldState.getCell(IndexUtils.up(cellIndex)).temperature() - oldCell.temperature() < 0) {
-            fromMeToUp = convectionCoefficient * tempDiff(oldCell, oldState.getCell(IndexUtils.down(cellIndex))) * deltaTime;
-        }
-
         return fromDownToMe + fromMeToUp;
     }
 
