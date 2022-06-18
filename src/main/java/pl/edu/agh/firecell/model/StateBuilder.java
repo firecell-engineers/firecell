@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
 
+// TODO: FIRE-22: Tests for StateBuilder
 public class StateBuilder {
 
     private final Vector3i spaceSize;

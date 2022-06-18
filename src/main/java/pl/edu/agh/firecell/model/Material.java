@@ -1,8 +1,6 @@
 package pl.edu.agh.firecell.model;
 
 public enum Material {
-    // TODO:
-    // consider putting them into constant
     WOOD(MatterState.SOLID, 3, 4, 0),
     AIR(MatterState.FLUID, 0, 0, 0);
 
