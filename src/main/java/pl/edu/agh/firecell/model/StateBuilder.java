@@ -24,7 +24,19 @@ public class StateBuilder {
     public StateBuilder addCuboid(Vector3i position, Vector3i size, Material material) {
         IndexUtils.range(position, new Vector3i(-1).add(position).add(size))
                 .map(expandedIndex -> IndexUtils.flattenIndex(expandedIndex, spaceSize))
-                .forEach(flatIndex -> cells.set(flatIndex, new Cell(0, 0, 0, false, material)));
+                .forEach(flatIndex -> cells.set(flatIndex, new Cell(0, 0, 0, true, material)));
+        return this;
+    }
+
+    public StateBuilder igniteCuboid(Vector3i position, Vector3i size) {
+        IndexUtils.range(position, new Vector3i(-1).add(position).add(size))
+                .map(expandedIndex -> IndexUtils.flattenIndex(expandedIndex, spaceSize))
+                .filter(index -> !cells.get(index).flammable())
+                .forEach(index -> {
+                    var oldCell = cells.get(index);
+                    cells.set(index, new Cell(oldCell.temperature(), oldCell.conductivityCoefficient(),
+                            1, oldCell.flammable(), oldCell.material()));
+                });
         return this;
     }
 
