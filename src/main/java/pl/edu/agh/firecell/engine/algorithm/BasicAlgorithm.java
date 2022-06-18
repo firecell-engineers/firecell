@@ -31,9 +31,9 @@ public class BasicAlgorithm implements Algorithm {
 
         double averageTemp = DoubleStream.of(yTemp, zTemp, xTemp)
                 .average()
-                .orElseThrow(() -> new IllegalStateException("Empty stream while computing average temperature"));
+                .orElse(oldCell.temperature());
 
-        return new Cell(averageTemp, oldCell.conductivityCoefficient());
+        return new Cell(averageTemp, oldCell.conductivityCoefficient(), 0, false, oldCell.material());
     }
 
     private double computeConductivity(Cell former, Cell middle, Cell latter) {

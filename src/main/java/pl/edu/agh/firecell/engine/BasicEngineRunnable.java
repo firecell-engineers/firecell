@@ -28,21 +28,29 @@ public class BasicEngineRunnable implements Runnable {
 
     @Override
     public void run() {
+        logger.info("Engine run.");
         while (!Thread.currentThread().isInterrupted()) {
             storage.putState(currentState, currentStateIndex);
             currentState = computeNewState(currentState);
             currentStateIndex++;
         }
+        logger.info("Engine stopped.");
     }
 
     private State computeNewState(State oldState) {
         logger.debug("Computing state %s".formatted(currentStateIndex));
 
-        List<Cell> newCells = IntStream.range(0, oldState.cells().size())
-                .mapToObj(flatIndex -> IndexUtils.expandIndex(flatIndex, oldState.spaceSize()))
-                .map(expandedIndex -> algorithm.compute(oldState, expandedIndex))
-                .toList();
+        // TODO: handle illegal index exception inside algorithm.compute()
+//         List<Cell> newCells = IntStream.range(0, oldState.cells().size())
+//                 .mapToObj(flatIndex -> IndexUtils.expandIndex(flatIndex, oldState.spaceSize()))
+//                 .map(expandedIndex -> algorithm.compute(oldState, expandedIndex))
+//                 .toList();
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
 
-        return new State(newCells, oldState.spaceSize());
+        return new State(oldState.cells(), oldState.spaceSize());
     }
 }

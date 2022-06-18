@@ -3,6 +3,7 @@ package pl.edu.agh.firecell.core;
 import imgui.ImGui;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import pl.edu.agh.firecell.core.io.IOListener;
 import pl.edu.agh.firecell.engine.BasicEngine;
 import pl.edu.agh.firecell.engine.Engine;
 import pl.edu.agh.firecell.engine.algorithm.BasicAlgorithm;
@@ -13,7 +14,8 @@ import pl.edu.agh.firecell.renderer.Renderer;
 import pl.edu.agh.firecell.storage.BasicStorage;
 import pl.edu.agh.firecell.storage.Storage;
 
-import static org.lwjgl.glfw.GLFW.glfwGetTime;
+import java.io.IOException;
+import java.nio.file.InvalidPathException;
 
 public class SimulationScene implements Scene {
 
@@ -23,43 +25,21 @@ public class SimulationScene implements Scene {
     private final Storage storage;
     private final Renderer renderer;
     private final Runnable finishSimulationHandler;
-
-    private final double stepTime;
-
-    private int currentStateIndex = 0;
     private State currentState;
-    private double lastStepRenderTime = 0.0;
 
-    public SimulationScene(SimulationConfig config, Runnable finishSimulationHandler) {
+    public SimulationScene(SimulationConfig config, Runnable finishSimulationHandler, IOListener ioListener, float aspectRatio)
+            throws IOException, InvalidPathException, IllegalStateException {
         this.currentState = config.initialState();
-        this.stepTime = config.stepTime();
         this.finishSimulationHandler = finishSimulationHandler;
-        renderer = new BasicRenderer();
+        renderer = new BasicRenderer(aspectRatio, ioListener, config);
         storage = new BasicStorage();
         engine = new BasicEngine(config, storage, new BasicAlgorithm());
-
-//        engine.run(); TODO: index utils errors
     }
 
     @Override
     public void update(double frameTime) {
-        if (stepTimePassed()) {
-            storage.getState(currentStateIndex).ifPresent(state -> {
-                currentState = state;
-                currentStateIndex++;
-            });
-        }
-        renderer.render(currentState);
+        renderer.render(currentState, frameTime);
         renderGUI();
-    }
-
-    private boolean stepTimePassed() {
-        double now = glfwGetTime();
-        if (now - lastStepRenderTime >= stepTime) {
-            lastStepRenderTime = now;
-            return true;
-        }
-        return false;
     }
 
     private void renderGUI() {
@@ -76,6 +56,7 @@ public class SimulationScene implements Scene {
 
     @Override
     public void dispose() {
+        renderer.dispose();
         engine.stop();
     }
 }
