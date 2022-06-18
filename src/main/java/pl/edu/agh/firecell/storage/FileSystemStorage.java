@@ -10,6 +10,7 @@ import pl.edu.agh.firecell.model.State;
 import pl.edu.agh.firecell.storage.serialization.StateSerializer;
 
 import java.io.*;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
 
@@ -47,7 +48,8 @@ public class FileSystemStorage implements Storage {
         }
     }
 
-    public void initialize() {
+    public void initialize() throws IOException {
+        Files.createDirectories(path);
         subscription = stateSubject.subscribeOn(Schedulers.io())
                 .subscribe(this::saveState);
     }
