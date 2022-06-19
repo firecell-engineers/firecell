@@ -79,7 +79,7 @@ public class BasicAlgorithm implements Algorithm {
                     oldCell,
                     oldState.getCell(IndexUtils.west(cellIndex)));
 
-        } catch (IllegalArgumentException e) {
+        } catch (IndexOutOfBoundsException e) {
             logger.debug(String.valueOf(e));
             return oldCell.temperature();
         }
@@ -93,13 +93,13 @@ public class BasicAlgorithm implements Algorithm {
         double fromMeToUp = 0;
 
         try {
-            if (oldState.getCell(IndexUtils.south(cellIndex)).temperature() - oldCell.temperature() > 0) {
-                fromDownToMe = CONDUCTION_COEFFICIENT * tempDiff(oldCell, oldState.getCell(IndexUtils.south(cellIndex))) * deltaTime;
+            if (oldState.getCell(IndexUtils.down(cellIndex)).temperature() - oldCell.temperature() > 0) {
+                fromDownToMe = CONDUCTION_COEFFICIENT * tempDiff(oldCell, oldState.getCell(IndexUtils.down(cellIndex))) * deltaTime;
             }
-            if (oldState.getCell(IndexUtils.north(cellIndex)).temperature() - oldCell.temperature() < 0) {
-                fromMeToUp = -CONDUCTION_COEFFICIENT * tempDiff(oldCell, oldState.getCell(IndexUtils.north(cellIndex))) * deltaTime;
+            if (oldState.getCell(IndexUtils.up(cellIndex)).temperature() - oldCell.temperature() < 0) {
+                fromMeToUp = -CONDUCTION_COEFFICIENT * tempDiff(oldCell, oldState.getCell(IndexUtils.up(cellIndex))) * deltaTime;
             }
-        } catch (IllegalArgumentException e){
+        } catch (IndexOutOfBoundsException e){
             return oldCell.temperature();
         }
         return fromDownToMe + fromMeToUp;
