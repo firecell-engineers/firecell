@@ -148,7 +148,9 @@ public class Window {
         glfwSetKeyCallback(glfwWindow, ioListener::keyCallback);
         glfwSetWindowSizeCallback(glfwWindow, ioListener::windowSizeCallback);
         glfwSetFramebufferSizeCallback(glfwWindow, ioListener::windowSizeCallback);
-        glfwSwapInterval(1);
+        glfwSetCursorPosCallback(glfwWindow, ioListener::mousePositionCallback);
+        glfwSetMouseButtonCallback(glfwWindow, ioListener::mouseButtonCallback);
+        glfwSwapInterval(0);
         glfwShowWindow(glfwWindow);
     }
 
