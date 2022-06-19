@@ -16,11 +16,11 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class BasicAlgorithmTest {
 
-    @ParameterizedTest(name = "Index {0} should be flattened to {2} in {1} space.")
+    @ParameterizedTest(name = "Compute")
     @MethodSource("engineComputeTestCases")
-    public void flattenIndexTest(Cell expected, Cell resultCell) {
+    public void flattenIndexTest(State state, Vector3i cellIndex, Cell resultCell, BasicAlgorithm algorithm) {
         // given when then
-        assertEquals(expected, resultCell);
+        assertEquals(algorithm.compute(state, cellIndex), resultCell);
     }
 
     public static Stream<Arguments> engineComputeTestCases() {
@@ -43,12 +43,12 @@ class BasicAlgorithmTest {
         double coe = BasicAlgorithm.GAMMA_PRIM_N1;
 
         return Stream.of(
-                Arguments.of(algorithm.compute(initWoodenState, testCase1Wood), cell(initWoodenState.getCell(testCase1Wood).temperature() + deltaTime * coe * 400)),
-                Arguments.of(algorithm.compute(initWoodenState, testCase2Wood), cell(initWoodenState.getCell(testCase2Wood).temperature())),
-                Arguments.of(algorithm.compute(initWoodenState, testCase3Wood), cell(initWoodenState.getCell(testCase3Wood).temperature())),
-                Arguments.of(cell(initAirState.getCell(testCase1Air).temperature() + deltaTime * coe * (-300), Material.AIR), algorithm.compute(initAirState, testCase1Air)),
-                Arguments.of(cell(initAirState.getCell(testCase2Air).temperature(), Material.AIR), algorithm.compute(initAirState, testCase2Air)),
-                Arguments.of(cell(initAirState.getCell(testCase3Air).temperature(), Material.AIR), algorithm.compute(initAirState, testCase3Air))
+                Arguments.of(initWoodenState, testCase1Wood, cell(initWoodenState.getCell(testCase1Wood).temperature() + deltaTime * coe * 400), algorithm),
+                Arguments.of(initWoodenState, testCase2Wood, cell(initWoodenState.getCell(testCase2Wood).temperature()), algorithm),
+                Arguments.of(initWoodenState, testCase3Wood, cell(initWoodenState.getCell(testCase3Wood).temperature()), algorithm),
+                Arguments.of(initAirState, testCase1Air, cell(initAirState.getCell(testCase1Air).temperature() + deltaTime * coe * (-300), Material.AIR), algorithm),
+                Arguments.of(initAirState, testCase2Air, cell(initAirState.getCell(testCase2Air).temperature(), Material.AIR), algorithm),
+                Arguments.of(initAirState, testCase3Air, cell(initAirState.getCell(testCase3Air).temperature(), Material.AIR), algorithm)
         );
     }
 

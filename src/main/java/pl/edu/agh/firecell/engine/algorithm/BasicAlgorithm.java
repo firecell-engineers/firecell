@@ -50,8 +50,6 @@ public class BasicAlgorithm implements Algorithm {
     }
 
     private double computeConductivity(Cell former, Cell middle, Cell latter) {
-        // TODO: put them into class constants and give meaningful names
-
         return deltaTime * (
                 GAMMA_PRIM_N1 * (middle.temperature() - former.temperature()) -
                         GAMMA_PRIM_N1 * (latter.temperature() - middle.temperature())
