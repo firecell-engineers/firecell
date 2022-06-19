@@ -1,5 +1,6 @@
 package pl.edu.agh.firecell.model;
 
+
 import static pl.edu.agh.firecell.model.MatterState.FLUID;
 import static pl.edu.agh.firecell.model.MatterState.SOLID;
 
@@ -34,3 +35,4 @@ public enum Material {
     public MatterState getMatterState() {return matterState;}
 
 }
+
