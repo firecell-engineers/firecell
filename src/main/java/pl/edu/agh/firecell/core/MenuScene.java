@@ -51,20 +51,15 @@ public class MenuScene implements Scene {
     }
 
     @Override
-    public void dispose() {}
+    public void dispose() {
+    }
 
     private SimulationConfig createInitialSimulationConfig() {
         Random random = new Random();
         Vector3i spaceSize = new Vector3i(3, 3, 3);
         List<Cell> cells = IntStream.range(0, 9)
                 .mapToObj(flatIndex -> IndexUtils.expandIndex(flatIndex, spaceSize))
-                .map(cellIndex -> new Cell(
-                    22,
-                    0,
-                    false,
-                    MatterState.SOLID,
-                    Material.WOOD
-                ))
+                .map(cellIndex -> new Cell(22, 0, false, Material.WOOD))
                 .toList();
         State initialState = new State(cells, spaceSize);
 

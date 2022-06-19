@@ -36,7 +36,7 @@ public class SimulationScene implements Scene {
         this.finishSimulationHandler = finishSimulationHandler;
         renderer = new BasicRenderer();
         storage = new BasicStorage();
-        engine = new BasicEngine(config, storage, new BasicAlgorithm());
+        engine = new BasicEngine(config, storage, new BasicAlgorithm(stepTime));
 
 //        engine.run(); TODO: index utils errors
     }

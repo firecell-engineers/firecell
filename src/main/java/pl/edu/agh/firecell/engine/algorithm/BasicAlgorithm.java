@@ -3,21 +3,20 @@ package pl.edu.agh.firecell.engine.algorithm;
 import org.joml.Vector3i;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import pl.edu.agh.firecell.engine.BasicEngineRunnable;
 import pl.edu.agh.firecell.model.*;
 import pl.edu.agh.firecell.model.util.IndexUtils;
 
 
 public class BasicAlgorithm implements Algorithm {
 
-    private final Logger logger = LoggerFactory.getLogger(BasicEngineRunnable.class);
-    private final double deltaTime = 0.5;
-    public static final double convectionCoefficient = 1;
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
+    private final double deltaTime;
+    public static final double CONDUCTION_COEFFICIENT = 1;
+    // should be dependent on the material in the future
     public static final double GAMMA_PRIM_N1 = 1;
-    public static final double GAMMA_PRIM_N2 = 1;
 
-    public BasicAlgorithm() {
-
+    public BasicAlgorithm(double deltaTime) {
+        this.deltaTime = deltaTime;
     }
 
     @Override
@@ -27,35 +26,27 @@ public class BasicAlgorithm implements Algorithm {
 
         Cell oldCell = oldState.getCell(cellIndex);
 
-        double newTemperature = oldCell.temperature();
+        double newTemperature = computeNewTemperature(oldState, cellIndex, oldCell);
         boolean newFlammable = oldCell.flammable();
         int newBurningTime = oldCell.burningTime();
-        MatterState newType = oldCell.type();
         Material newMaterial = oldCell.material();
 
-        switch (oldCell.type()) {
-            case SOLID -> {
-                newTemperature = oldCell.temperature() + computeConductivityFromAll(oldState, oldCell, cellIndex);
-
-                if (!oldCell.flammable()) {
-                    break;
-                }
-                // is flammable
-
-
-            }
-            case FLUID -> {
-                newTemperature = oldCell.temperature() + computeConvectionForFluid(oldState, oldCell, cellIndex);
-            }
-        }
+        //computeFirePropagation();
+        //computeSmokePropagation();
 
         return new Cell(
                 newTemperature,
                 newBurningTime,
                 newFlammable,
-                newType,
                 newMaterial
         );
+    }
+
+    private double computeNewTemperature(State oldState, Vector3i cellIndex, Cell oldCell) {
+        return switch (oldCell.material().getMatterState()) {
+            case SOLID -> oldCell.temperature() + computeConductivityFromAll(oldState, oldCell, cellIndex);
+            case FLUID -> oldCell.temperature() + computeConvectionForFluid(oldState, oldCell, cellIndex);
+        };
     }
 
     private double computeConductivity(Cell former, Cell middle, Cell latter) {
@@ -63,7 +54,7 @@ public class BasicAlgorithm implements Algorithm {
 
         return deltaTime * (
                 GAMMA_PRIM_N1 * (middle.temperature() - former.temperature()) -
-                        GAMMA_PRIM_N2 * (latter.temperature() - middle.temperature())
+                        GAMMA_PRIM_N1 * (latter.temperature() - middle.temperature())
         );
     }
 
@@ -91,7 +82,7 @@ public class BasicAlgorithm implements Algorithm {
                     oldState.getCell(IndexUtils.west(cellIndex)));
 
         } catch (IllegalArgumentException e) {
-            logger.info(String.valueOf(e));
+            logger.debug(String.valueOf(e));
             return oldCell.temperature();
         }
 
@@ -105,10 +96,10 @@ public class BasicAlgorithm implements Algorithm {
 
         try {
             if (oldState.getCell(IndexUtils.south(cellIndex)).temperature() - oldCell.temperature() > 0) {
-                fromDownToMe = convectionCoefficient * tempDiff(oldCell, oldState.getCell(IndexUtils.south(cellIndex))) * deltaTime;
+                fromDownToMe = CONDUCTION_COEFFICIENT * tempDiff(oldCell, oldState.getCell(IndexUtils.south(cellIndex))) * deltaTime;
             }
             if (oldState.getCell(IndexUtils.north(cellIndex)).temperature() - oldCell.temperature() < 0) {
-                fromMeToUp = - convectionCoefficient * tempDiff(oldCell, oldState.getCell(IndexUtils.north(cellIndex))) * deltaTime;
+                fromMeToUp = -CONDUCTION_COEFFICIENT * tempDiff(oldCell, oldState.getCell(IndexUtils.north(cellIndex))) * deltaTime;
             }
         } catch (IllegalArgumentException e){
             return oldCell.temperature();
@@ -120,7 +111,4 @@ public class BasicAlgorithm implements Algorithm {
         return Math.abs(cellOne.temperature() - cellTwo.temperature());
     }
 
-    public double getDeltaTime() {
-        return deltaTime;
-    }
 }

@@ -4,7 +4,6 @@ import org.joml.Vector3i;
 import org.junit.jupiter.api.Test;
 import pl.edu.agh.firecell.model.Cell;
 import pl.edu.agh.firecell.model.Material;
-import pl.edu.agh.firecell.model.MatterState;
 import pl.edu.agh.firecell.model.State;
 
 import java.util.ArrayList;
@@ -18,6 +17,7 @@ class BasicAlgorithmTest {
     void compute() {
 
         // given
+        double deltaTime = 0.5;
         Vector3i spaceSize = new Vector3i(3, 3, 3);
 
         Vector3i testCase1Wood = new Vector3i(1, 1, 1);
@@ -27,23 +27,23 @@ class BasicAlgorithmTest {
         State initWoodenState = new State(
                 new ArrayList<>(
                         List.of(
-                            getCell(0), getCell(0), getCell(0),
-                            getCell(0), getCell(400), getCell(0),
-                            getCell(0), getCell(0), getCell(0),
+                            cell(0), cell(0), cell(0),
+                            cell(0), cell(400), cell(0),
+                            cell(0), cell(0), cell(0),
 
-                            getCell(0), getCell(200), getCell(0),
-                            getCell(600), getCell(400), getCell(400),
-                            getCell(0), getCell(100), getCell(0),
+                            cell(0), cell(200), cell(0),
+                            cell(600), cell(400), cell(400),
+                            cell(0), cell(100), cell(0),
 
-                            getCell(0), getCell(0), getCell(0),
-                            getCell(0), getCell(300), getCell(0),
-                            getCell(0), getCell(0), getCell(0)
+                            cell(0), cell(0), cell(0),
+                            cell(0), cell(300), cell(0),
+                            cell(0), cell(0), cell(0)
                         )
                 ),
                 spaceSize
         );
 
-        BasicAlgorithm algorithm = new BasicAlgorithm();
+        BasicAlgorithm algorithm = new BasicAlgorithm(deltaTime);
 
         // when
         Cell resultCell1Wood = algorithm.compute(initWoodenState, testCase1Wood);
@@ -52,11 +52,10 @@ class BasicAlgorithmTest {
 
         // then
         double coe = BasicAlgorithm.GAMMA_PRIM_N1;
-        double dt = algorithm.getDeltaTime();
 
-        Cell expected1 = getCell(initWoodenState.getCell(testCase1Wood).temperature() + dt * coe * 400);
-        Cell expected2 = getCell(initWoodenState.getCell(testCase2Wood).temperature());
-        Cell expected3 = getCell(initWoodenState.getCell(testCase3Wood).temperature());
+        Cell expected1 = cell(initWoodenState.getCell(testCase1Wood).temperature() + deltaTime * coe * 400);
+        Cell expected2 = cell(initWoodenState.getCell(testCase2Wood).temperature());
+        Cell expected3 = cell(initWoodenState.getCell(testCase3Wood).temperature());
 
         assertEquals(expected1, resultCell1Wood);
         assertEquals(expected2, resultCell2Wood);
@@ -68,6 +67,7 @@ class BasicAlgorithmTest {
     void compute2() {
 
         // given
+        double deltaTime = 0.5;
         Vector3i spaceSize = new Vector3i(3, 3, 3);
 
         Vector3i testCase1Air = new Vector3i(1, 1, 1);
@@ -77,23 +77,23 @@ class BasicAlgorithmTest {
         State initAirState = new State(
                 new ArrayList<>(
                         List.of(
-                                getCell(0,   Material.AIR, MatterState.FLUID), getCell(0,   Material.AIR, MatterState.FLUID), getCell(0,   Material.AIR, MatterState.FLUID),
-                                getCell(0,   Material.AIR, MatterState.FLUID), getCell(400, Material.AIR, MatterState.FLUID), getCell(0,   Material.AIR, MatterState.FLUID),
-                                getCell(0,   Material.AIR, MatterState.FLUID), getCell(0,   Material.AIR, MatterState.FLUID), getCell(0,   Material.AIR, MatterState.FLUID),
+                                cell(0,   Material.AIR), cell(0,   Material.AIR), cell(0,   Material.AIR),
+                                cell(0,   Material.AIR), cell(400, Material.AIR), cell(0,   Material.AIR),
+                                cell(0,   Material.AIR), cell(0,   Material.AIR), cell(0,   Material.AIR),
 
-                                getCell(0,   Material.AIR, MatterState.FLUID), getCell(200, Material.AIR, MatterState.FLUID), getCell(0,   Material.AIR, MatterState.FLUID),
-                                getCell(600, Material.AIR, MatterState.FLUID), getCell(400, Material.AIR, MatterState.FLUID), getCell(400, Material.AIR, MatterState.FLUID),
-                                getCell(0,   Material.AIR, MatterState.FLUID), getCell(100, Material.AIR, MatterState.FLUID), getCell(0,   Material.AIR, MatterState.FLUID),
+                                cell(0,   Material.AIR), cell(200, Material.AIR), cell(0,   Material.AIR),
+                                cell(600, Material.AIR), cell(400, Material.AIR), cell(400, Material.AIR),
+                                cell(0,   Material.AIR), cell(100, Material.AIR), cell(0,   Material.AIR),
 
-                                getCell(0,   Material.AIR, MatterState.FLUID), getCell(0,   Material.AIR, MatterState.FLUID), getCell(0,   Material.AIR, MatterState.FLUID),
-                                getCell(0,   Material.AIR, MatterState.FLUID), getCell(300, Material.AIR, MatterState.FLUID), getCell(0,   Material.AIR, MatterState.FLUID),
-                                getCell(0,   Material.AIR, MatterState.FLUID), getCell(0,   Material.AIR, MatterState.FLUID), getCell(0,   Material.AIR, MatterState.FLUID)
+                                cell(0,   Material.AIR), cell(0,   Material.AIR), cell(0,   Material.AIR),
+                                cell(0,   Material.AIR), cell(300, Material.AIR), cell(0,   Material.AIR),
+                                cell(0,   Material.AIR), cell(0,   Material.AIR), cell(0,   Material.AIR)
                         )
                 ),
                 spaceSize
         );
 
-        BasicAlgorithm algorithm = new BasicAlgorithm();
+        BasicAlgorithm algorithm = new BasicAlgorithm(deltaTime);
 
         Cell resultCell1Air = algorithm.compute(initAirState, testCase1Air);
         Cell resultCell2Air = algorithm.compute(initAirState, testCase2Air);
@@ -101,27 +101,20 @@ class BasicAlgorithmTest {
 
         // then
         double coe = BasicAlgorithm.GAMMA_PRIM_N1;
-        double dt = algorithm.getDeltaTime();
 
-        Cell expected11 = getCell(initAirState.getCell(testCase1Air).temperature() + dt * coe * (-300), Material.AIR, MatterState.FLUID);
-        Cell expected22 = getCell(initAirState.getCell(testCase2Air).temperature(), Material.AIR, MatterState.FLUID);
-        Cell expected33 = getCell(initAirState.getCell(testCase3Air).temperature(), Material.AIR, MatterState.FLUID);
+        Cell expected11 = cell(initAirState.getCell(testCase1Air).temperature() + deltaTime * coe * (-300), Material.AIR);
+        Cell expected22 = cell(initAirState.getCell(testCase2Air).temperature(), Material.AIR);
+        Cell expected33 = cell(initAirState.getCell(testCase3Air).temperature(), Material.AIR);
 
         assertEquals(expected11, resultCell1Air);
         assertEquals(expected22, resultCell2Air);
         assertEquals(expected33, resultCell3Air);
 
     }
-    private Cell getCell(double temp){
-        return getCell(temp, Material.WOOD, MatterState.SOLID);
+    private Cell cell(double temp){
+        return cell(temp, Material.WOOD);
     }
-    private Cell getCell(double temp, Material material, MatterState matterState){
-        return new Cell(
-                temp,
-                0,
-                true,
-                matterState,
-                material
-        );
+    private Cell cell(double temp, Material material){
+        return new Cell(temp, 0, true, material);
     }
 }

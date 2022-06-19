@@ -4,7 +4,6 @@ public record Cell(
         double temperature,
         int burningTime,
         boolean flammable,
-        MatterState type,
         Material material
         ) {
 
@@ -19,7 +18,6 @@ public record Cell(
                 return Double.compare(temperature, c.temperature) == 0 &&
                 burningTime == c.burningTime &&
                 flammable == c.flammable &&
-                type == c.type &&
                 material == c.material;
         }
 }
