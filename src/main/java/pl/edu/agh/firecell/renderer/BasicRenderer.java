@@ -114,8 +114,7 @@ public class BasicRenderer implements Renderer {
 
     private void initializeRendering(SimulationConfig config) {
         var spaceSize = new Vector3f(config.size().x, config.size().y, config.size().z);
-        camera.setPosition(new Vector3f(spaceSize).mul(1.2f));
-        camera.setDirection(new Vector3f(spaceSize).mul(0.5f).sub(camera.position()));
+        camera.setPosition(new Vector3f(spaceSize).mul(0.5f).add(new Vector3f(0.0f, 0.0f, spaceSize.z * 1.5f)));
         shader.bind();
         shader.setMatrix4("uProjection", camera.perspectiveMatrix());
         shader.setVector3("uLightDir", new Vector3f(-1.0f, -0.8f, 0.5f));
