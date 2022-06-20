@@ -26,6 +26,7 @@ public class FileSystemStorage implements StateProvider, StateConsumer {
     public FileSystemStorage(StateSerializer serializer, Path path) throws IOException {
         this.serializer = serializer;
         this.path = path;
+        initialize();
     }
 
 
@@ -48,7 +49,7 @@ public class FileSystemStorage implements StateProvider, StateConsumer {
         }
     }
 
-    public void initialize() throws IOException {
+    private void initialize() throws IOException {
         Files.createDirectories(path);
         subscription = stateSubject.subscribeOn(Schedulers.io())
                 .subscribe(this::saveState);
