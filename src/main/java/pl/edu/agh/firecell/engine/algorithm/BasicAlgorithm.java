@@ -11,9 +11,9 @@ public class BasicAlgorithm implements Algorithm {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private final double deltaTime;
-    public static final double CONDUCTION_COEFFICIENT = 1;
+    public static final double CONVECTION_COEFFICIENT = 1;
     // should be dependent on the material in the future
-    public static final double GAMMA_PRIM_N1 = 1;
+    public static final double CONDUCTIVITY_COEFFICIENT = 1;
 
     public BasicAlgorithm(double deltaTime) {
         this.deltaTime = deltaTime;
@@ -51,8 +51,8 @@ public class BasicAlgorithm implements Algorithm {
 
     private double computeConductivity(Cell former, Cell middle, Cell latter) {
         return deltaTime * (
-                GAMMA_PRIM_N1 * (middle.temperature() - former.temperature()) -
-                        GAMMA_PRIM_N1 * (latter.temperature() - middle.temperature())
+                CONDUCTIVITY_COEFFICIENT * (middle.temperature() - former.temperature()) -
+                        CONDUCTIVITY_COEFFICIENT * (latter.temperature() - middle.temperature())
         );
     }
 
@@ -81,7 +81,7 @@ public class BasicAlgorithm implements Algorithm {
 
         } catch (IndexOutOfBoundsException e) {
             logger.debug(String.valueOf(e));
-            return oldCell.temperature();
+            return 0;
         }
 
         return yTemp + zTemp + xTemp;
@@ -94,12 +94,12 @@ public class BasicAlgorithm implements Algorithm {
 
         try {
             if (oldState.getCell(IndexUtils.down(cellIndex)).temperature() - oldCell.temperature() > 0) {
-                fromDownToMe = CONDUCTION_COEFFICIENT * tempDiff(oldCell, oldState.getCell(IndexUtils.down(cellIndex))) * deltaTime;
+                fromDownToMe = CONVECTION_COEFFICIENT * tempDiff(oldCell, oldState.getCell(IndexUtils.down(cellIndex))) * deltaTime;
             }
             if (oldState.getCell(IndexUtils.up(cellIndex)).temperature() - oldCell.temperature() < 0) {
-                fromMeToUp = -CONDUCTION_COEFFICIENT * tempDiff(oldCell, oldState.getCell(IndexUtils.up(cellIndex))) * deltaTime;
+                fromMeToUp = -CONVECTION_COEFFICIENT * tempDiff(oldCell, oldState.getCell(IndexUtils.up(cellIndex))) * deltaTime;
             }
-        } catch (IndexOutOfBoundsException e){
+        } catch (IndexOutOfBoundsException e) {
             return oldCell.temperature();
         }
         return fromDownToMe + fromMeToUp;

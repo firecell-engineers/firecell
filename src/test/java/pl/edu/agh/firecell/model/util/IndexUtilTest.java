@@ -5,7 +5,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -24,6 +23,11 @@ public class IndexUtilTest {
 
     public static Stream<Arguments> flattenIndexTestCases() {
         return Stream.of(
+                Arguments.of(vec(0, 0, 1), vec(1, 2, 3), 2),
+                Arguments.of(vec(0, 1, 2), vec(1, 2, 3), 5),
+                Arguments.of(vec(0, 0, 0), vec(3, 3, 3), 0),
+                Arguments.of(vec(1, 1, 1), vec(3, 3, 3), 13),
+                Arguments.of(vec(0, 0, 0), vec(1, 2, 3), 0),
                 Arguments.of(vec(0, 0, 0), vec(3, 3, 3), 0),
                 Arguments.of(vec(0, 0, 1), vec(3, 3, 3), 9),
                 Arguments.of(vec(0, 1, 2), vec(3, 3, 3), 21)
@@ -67,9 +71,9 @@ public class IndexUtilTest {
 
     private static Stream<Vector3i> createRangeManually(Vector3i start, Vector3i end) {
         List<Vector3i> range = new LinkedList<>();
-        for (int x = start.x; x <= end.x; x ++) {
-            for (int y = start.y; y <= end.y; y ++) {
-                for (int z = start.z; z <= end.z; z ++) {
+        for (int x = start.x; x <= end.x; x++) {
+            for (int y = start.y; y <= end.y; y++) {
+                for (int z = start.z; z <= end.z; z++) {
                     range.add(vec(x, y, z));
                 }
             }
