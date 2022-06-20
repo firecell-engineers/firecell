@@ -10,6 +10,7 @@ import pl.edu.agh.firecell.model.SimulationConfig;
 import pl.edu.agh.firecell.model.State;
 import pl.edu.agh.firecell.model.StateBuilder;
 
+
 import java.util.function.Consumer;
 
 public class MenuScene implements Scene {
