@@ -3,6 +3,7 @@ package pl.edu.agh.firecell.storage.serialization;
 import org.joml.Vector3i;
 import org.junit.jupiter.api.Test;
 import pl.edu.agh.firecell.model.Cell;
+import pl.edu.agh.firecell.model.Material;
 import pl.edu.agh.firecell.model.State;
 
 import java.io.ByteArrayInputStream;
@@ -17,9 +18,9 @@ class BinaryStateSerializerTest {
     void testSerializeDeserialize() throws IOException {
         BinaryStateSerializer serializer = new BinaryStateSerializer();
         State state = new State(List.of(
-                new Cell(20.1, 4.4),
-                new Cell(21.2, 4.5),
-                new Cell(22.1, 5.0)
+                new Cell(20.1, 4.4, 10, true, Material.AIR),
+                new Cell(21.2, 4.5, 8, true, Material.WOOD),
+                new Cell(22.1, 5.0, 4, false, Material.WOOD)
         ), new Vector3i(3, 0, 0));
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 

@@ -2,8 +2,10 @@ package pl.edu.agh.firecell.storage.serialization;
 
 import org.joml.Vector3i;
 import pl.edu.agh.firecell.model.Cell;
+import pl.edu.agh.firecell.model.Material;
 import pl.edu.agh.firecell.model.State;
 import pl.edu.agh.firecell.storage.proto.ProtoCell;
+import pl.edu.agh.firecell.storage.proto.ProtoMaterial;
 import pl.edu.agh.firecell.storage.proto.ProtoState;
 import pl.edu.agh.firecell.storage.proto.ProtoVector3i;
 
@@ -21,14 +23,32 @@ public class ConversionUtils {
     }
 
     public static Cell convertFromProto(ProtoCell proto) {
-        return new Cell(proto.getTemperature(), proto.getConductivityCoefficient());
+        return new Cell(proto.getTemperature(), proto.getConductivityCoefficient(),
+                proto.getBurningTime(), proto.getFlammable(), convertFromProto(proto.getMaterial()));
+    }
+
+    public static Material convertFromProto(ProtoMaterial proto) {
+        return switch (proto) {
+            case AIR -> Material.AIR;
+            case WOOD -> Material.WOOD;
+        };
     }
 
     public static ProtoCell convertToProto(ProtoCell.Builder builder, Cell cell) {
         return builder
                 .setTemperature(cell.temperature())
                 .setConductivityCoefficient(cell.conductivityCoefficient())
+                .setBurningTime(cell.burningTime())
+                .setFlammable(cell.flammable())
+                .setMaterial(convertToProto(cell.material()))
                 .build();
+    }
+
+    public static ProtoMaterial convertToProto(Material material) {
+        return switch (material) {
+            case WOOD -> ProtoMaterial.WOOD;
+            case AIR -> ProtoMaterial.AIR;
+        };
     }
 
     public static ProtoVector3i convertToProto(Vector3i vector) {
