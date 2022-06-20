@@ -14,7 +14,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
 
-public class FileSystemStorage implements Storage {
+public class FileSystemStorage implements StateProvider, StateConsumer {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private final Subject<StateHolder> stateSubject = PublishSubject.create();
@@ -23,7 +23,7 @@ public class FileSystemStorage implements Storage {
 
     private Disposable subscription;
 
-    public FileSystemStorage(StateSerializer serializer, Path path) {
+    public FileSystemStorage(StateSerializer serializer, Path path) throws IOException {
         this.serializer = serializer;
         this.path = path;
     }
@@ -77,5 +77,6 @@ public class FileSystemStorage implements Storage {
         return path.resolve(String.valueOf(index)).toFile();
     }
 
-    private record StateHolder(State state, int index) {}
+    private record StateHolder(State state, int index) {
+    }
 }

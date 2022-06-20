@@ -11,8 +11,7 @@ import pl.edu.agh.firecell.model.SimulationConfig;
 import pl.edu.agh.firecell.model.State;
 import pl.edu.agh.firecell.renderer.BasicRenderer;
 import pl.edu.agh.firecell.renderer.Renderer;
-import pl.edu.agh.firecell.storage.BasicStorage;
-import pl.edu.agh.firecell.storage.Storage;
+import pl.edu.agh.firecell.storage.InMemoryStorage;
 
 import java.io.IOException;
 import java.nio.file.InvalidPathException;
@@ -22,17 +21,17 @@ public class SimulationScene implements Scene {
     private final Logger logger = LoggerFactory.getLogger(SimulationScene.class);
 
     private final Engine engine;
-    private final Storage storage;
+    private final InMemoryStorage storage;
     private final Renderer renderer;
     private final Runnable finishSimulationHandler;
-    private State currentState;
+    private final State currentState;
 
     public SimulationScene(SimulationConfig config, Runnable finishSimulationHandler, IOListener ioListener, float aspectRatio)
             throws IOException, InvalidPathException, IllegalStateException {
         this.currentState = config.initialState();
         this.finishSimulationHandler = finishSimulationHandler;
         renderer = new BasicRenderer(aspectRatio, ioListener, config);
-        storage = new BasicStorage();
+        storage = new InMemoryStorage();
         engine = new BasicEngine(config, storage, new BasicAlgorithm());
     }
 

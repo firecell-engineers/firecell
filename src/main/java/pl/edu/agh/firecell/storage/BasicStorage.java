@@ -4,7 +4,7 @@ import pl.edu.agh.firecell.model.State;
 
 import java.util.Optional;
 
-public class BasicStorage implements Storage {
+public class BasicStorage implements StateProvider, StateConsumer {
 
     @Override
     public void putState(State state, int index) {

@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class InMemoryStorage implements Storage {
+public class InMemoryStorage implements StateProvider, StateConsumer {
     private final List<State> cache = new ArrayList<>();
 
     @Override
