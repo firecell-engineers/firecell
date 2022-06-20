@@ -61,11 +61,16 @@ dependencies {
     // joml
     implementation("org.joml:joml:1.10.4")
 
+    // apache commons
+    implementation("org.apache.commons:commons-lang3:3.12.0")
+
 }
 
 tasks.getByName<Test>("test") {
     useJUnitPlatform()
 }
+
+tasks.withType<Jar> { duplicatesStrategy = DuplicatesStrategy.INHERIT }
 
 sourceSets {
     main {

@@ -20,7 +20,6 @@ public class BasicEngine implements Engine {
     @Override
     public void run() {
         engineThread.start();
-        logger.info("Engine run.");
     }
 
     @Override
@@ -31,6 +30,5 @@ public class BasicEngine implements Engine {
         } catch (InterruptedException e) {
             logger.warn(String.format("Interrupted while joining %s.", engineThread.getName()), e);
         }
-        logger.info("Engine stopped.");
     }
 }
