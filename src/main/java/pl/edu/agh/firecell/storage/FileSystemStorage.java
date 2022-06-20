@@ -12,9 +12,12 @@ import pl.edu.agh.firecell.storage.serialization.StateSerializer;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Objects;
 import java.util.Optional;
 
 public class FileSystemStorage implements StateProvider, StateConsumer {
+    private static final Path DEFAULT_PATH = Path.of("states");
+
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private final Subject<StateHolder> stateSubject = PublishSubject.create();
@@ -27,6 +30,11 @@ public class FileSystemStorage implements StateProvider, StateConsumer {
         this.serializer = serializer;
         this.path = path;
         initialize();
+    }
+
+    public FileSystemStorage(StateSerializer serializer) throws IOException {
+        this(serializer, DEFAULT_PATH);
+        clearDirectory();
     }
 
 
@@ -76,6 +84,27 @@ public class FileSystemStorage implements StateProvider, StateConsumer {
 
     private File getFile(int index) {
         return path.resolve(String.valueOf(index)).toFile();
+    }
+
+    public void clearDirectory() {
+        if (removeDirectoryContent(path.toFile())) {
+            logger.warn("Directory was not removed completely: {}", path);
+        }
+    }
+
+    private static boolean removeDirectoryContent(File directory) {
+        boolean failed = false;
+        for (File file : Objects.requireNonNull(directory.listFiles())) {
+            if (file.isDirectory()) {
+                if (removeDirectoryContent(file)) {
+                    failed = true;
+                }
+            }
+            if (!file.delete()) {
+                failed = true;
+            }
+        }
+        return failed;
     }
 
     private record StateHolder(State state, int index) {
