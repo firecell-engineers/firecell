@@ -19,10 +19,9 @@ enum ProtoMaterial {
 
 message ProtoCell {
   required double temperature = 1;
-  required double conductivityCoefficient = 2;
-  required int32 burningTime = 3;
-  required bool flammable = 4;
-  required ProtoMaterial material = 5;
+  required int32 burningTime = 2;
+  required bool flammable = 3;
+  required ProtoMaterial material = 4;
 }
 
 message ProtoState {

@@ -23,8 +23,7 @@ public class ConversionUtils {
     }
 
     public static Cell convertFromProto(ProtoCell proto) {
-        return new Cell(proto.getTemperature(), proto.getConductivityCoefficient(),
-                proto.getBurningTime(), proto.getFlammable(), convertFromProto(proto.getMaterial()));
+        return new Cell(proto.getTemperature(), proto.getBurningTime(), proto.getFlammable(), convertFromProto(proto.getMaterial()));
     }
 
     public static Material convertFromProto(ProtoMaterial proto) {
@@ -37,7 +36,6 @@ public class ConversionUtils {
     public static ProtoCell convertToProto(ProtoCell.Builder builder, Cell cell) {
         return builder
                 .setTemperature(cell.temperature())
-                .setConductivityCoefficient(cell.conductivityCoefficient())
                 .setBurningTime(cell.burningTime())
                 .setFlammable(cell.flammable())
                 .setMaterial(convertToProto(cell.material()))
