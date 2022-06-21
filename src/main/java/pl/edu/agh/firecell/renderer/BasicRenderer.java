@@ -6,6 +6,7 @@ import org.joml.Vector3f;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pl.edu.agh.firecell.core.io.IOListener;
+import pl.edu.agh.firecell.engine.algorithm.BasicAlgorithm;
 import pl.edu.agh.firecell.model.Cell;
 import pl.edu.agh.firecell.model.Material;
 import pl.edu.agh.firecell.model.SimulationConfig;
@@ -71,10 +72,23 @@ public class BasicRenderer implements Renderer {
 
     private void drawFire(List<ImmutablePair<Integer, Cell>> cells, State state) {
         var burningIndices = cells.stream()
-                .filter(indexCellPair -> indexCellPair.getRight().burningTime() > 0)
+                .filter(indexCellPair -> indexCellPair.getRight().burningTime() > 0 && indexCellPair.getRight().flammable())
                 .map(ImmutablePair::getLeft)
                 .toList();
         renderInstancedCube(new Vector3f(1.0f, 0.0f, 0.0f), createTransformations(burningIndices, state));
+    }
+
+    private void drawFire2(List<ImmutablePair<Integer, Cell>> cells, State state) {
+        cells.forEach(indexCellPair -> {
+            var color = resolveFireColor(indexCellPair.getRight());
+            var expendedIndex = IndexUtils.expandIndex(indexCellPair.getLeft(), state.spaceSize());
+            var tr = new Transformation(new Vector3f(expendedIndex), new Vector3f(), new Vector3f(1));
+            renderCube(color, tr);
+        });
+    }
+
+    private Vector3f resolveFireColor(Cell cell) {
+        return new Vector3f(BasicAlgorithm.maxBurningTime / (float) cell.burningTime(), 0, 0);
     }
 
     private List<Transformation> createTransformations(List<Integer> indices, State state) {

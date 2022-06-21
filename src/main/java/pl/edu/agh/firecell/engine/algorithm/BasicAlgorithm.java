@@ -14,6 +14,7 @@ public class BasicAlgorithm implements Algorithm {
     public static final double CONVECTION_COEFFICIENT = 1;
     // should be dependent on the material in the future
     public static final double CONDUCTIVITY_COEFFICIENT = 1;
+    public static final int maxBurningTime = 5;
 
     public BasicAlgorithm(double deltaTime) {
         this.deltaTime = deltaTime;
@@ -21,8 +22,6 @@ public class BasicAlgorithm implements Algorithm {
 
     @Override
     public Cell compute(State oldState, Vector3i cellIndex) {
-
-        logger.debug("Computing at position: " + cellIndex);
 
         Cell oldCell = oldState.getCell(cellIndex);
 
@@ -33,6 +32,14 @@ public class BasicAlgorithm implements Algorithm {
 
         //computeFirePropagation();
         //computeSmokePropagation();
+
+        if(newFlammable && newBurningTime>=0 && newTemperature > 100){
+            newBurningTime++;
+        }
+
+        if(newBurningTime>maxBurningTime){
+            newFlammable = false;
+        }
 
         return new Cell(
                 newTemperature,
@@ -80,7 +87,6 @@ public class BasicAlgorithm implements Algorithm {
                     oldState.getCell(IndexUtils.west(cellIndex)));
 
         } catch (IndexOutOfBoundsException e) {
-            logger.debug(String.valueOf(e));
             return 0;
         }
 
