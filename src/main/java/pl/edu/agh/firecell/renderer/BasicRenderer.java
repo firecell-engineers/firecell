@@ -27,7 +27,8 @@ public class BasicRenderer implements Renderer {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    private final Shader shader = new Shader("instanced.glsl.vert", "basic.glsl.frag");
+    private final Shader instancedShader = new Shader("instanced.glsl.vert", "basic.glsl.frag");
+    private final Shader basicShader = new Shader("basic.glsl.vert", "basic.glsl.frag");
     private final Camera camera;
     private final IOListener ioListener;
     private Disposable windowSizeSubscription;
@@ -42,7 +43,10 @@ public class BasicRenderer implements Renderer {
     @Override
     public void render(State state, double frameTime) {
         processCameraControl(frameTime);
-        shader.setMatrix4("uView", camera.viewMatrix());
+        instancedShader.bind();
+        instancedShader.setMatrix4("uView", camera.viewMatrix());
+        basicShader.bind();
+        basicShader.setMatrix4("uView", camera.viewMatrix());
         renderState(state);
     }
 
@@ -102,7 +106,16 @@ public class BasicRenderer implements Renderer {
 
     private void renderInstancedCube(Vector3f color, List<Transformation> transformations) {
         var mesh = MeshFactory.createInstancedCubeMesh(transformations);
-        shader.setVector3("uObjectColor", color);
+        instancedShader.bind();
+        instancedShader.setVector3("uObjectColor", color);
+        mesh.draw();
+    }
+
+    private void renderCube(Vector3f color, Transformation transformation) {
+        var mesh = MeshFactory.createCubeMesh();
+        basicShader.bind();
+        basicShader.setMatrix4("uModel", transformation.modelMatrix());
+        basicShader.setVector3("uObjectColor", color);
         mesh.draw();
     }
 
@@ -129,13 +142,21 @@ public class BasicRenderer implements Renderer {
         var spaceSize = new Vector3f(config.size().x, config.size().y, config.size().z);
         camera.setPosition(new Vector3f(spaceSize).mul(1.2f));
         camera.setDirection(new Vector3f(spaceSize).mul(0.5f).sub(camera.position()));
-        shader.bind();
-        shader.setMatrix4("uProjection", camera.perspectiveMatrix());
-        shader.setVector3("uLightDir", new Vector3f(-1.0f, -0.8f, 0.5f));
-        shader.setVector3("uLightColor", new Vector3f(1.0f, 1.0f, 1.0f));
+
+        instancedShader.bind();
+        instancedShader.setMatrix4("uProjection", camera.perspectiveMatrix());
+        instancedShader.setVector3("uLightDir", new Vector3f(-1.0f, -0.8f, 0.5f));
+        instancedShader.setVector3("uLightColor", new Vector3f(1.0f, 1.0f, 1.0f));
+
+        basicShader.bind();
+        basicShader.setMatrix4("uProjection", camera.perspectiveMatrix());
+        basicShader.setVector3("uLightDir", new Vector3f(-1.0f, -0.8f, 0.5f));
+        basicShader.setVector3("uLightColor", new Vector3f(1.0f, 1.0f, 1.0f));
+
         windowSizeSubscription = ioListener.windowSizeObservable().subscribe(size -> {
             camera.setAspectRatio(size.x / (float) size.y);
-            shader.setMatrix4("uProjection", camera.perspectiveMatrix());
+            instancedShader.setMatrix4("uProjection", camera.perspectiveMatrix());
+            basicShader.setMatrix4("uProjection", camera.perspectiveMatrix());
         });
     }
 
