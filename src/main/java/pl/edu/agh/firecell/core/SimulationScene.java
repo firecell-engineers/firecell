@@ -24,7 +24,8 @@ public class SimulationScene implements Scene {
     private final InMemoryStorage storage;
     private final Renderer renderer;
     private final Runnable finishSimulationHandler;
-    private final State currentState;
+    private State currentState;
+    private final double stepTime = 0.5;
 
     public SimulationScene(SimulationConfig config, Runnable finishSimulationHandler, IOListener ioListener, float aspectRatio)
             throws IOException, InvalidPathException, IllegalStateException {
@@ -32,7 +33,7 @@ public class SimulationScene implements Scene {
         this.finishSimulationHandler = finishSimulationHandler;
         renderer = new BasicRenderer(aspectRatio, ioListener, config);
         storage = new InMemoryStorage();
-        engine = new BasicEngine(config, storage, new BasicAlgorithm());
+        engine = new BasicEngine(config, storage, new BasicAlgorithm(stepTime));
     }
 
     @Override
