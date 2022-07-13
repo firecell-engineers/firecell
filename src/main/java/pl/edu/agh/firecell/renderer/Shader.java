@@ -9,6 +9,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.lwjgl.opengl.GL11.GL_FALSE;
 import static org.lwjgl.opengl.GL20.*;
@@ -18,6 +20,7 @@ public class Shader {
     private final static String SHADERS_DIR = "src/main/resources/shaders";
 
     private final int shaderProgramID;
+    private final Map<String, Integer> locationsCache = new HashMap<>();
 
     public Shader(String vertexSourceFilename, String fragmentSourceFilename)
             throws IOException, InvalidPathException, IllegalStateException {
@@ -60,7 +63,10 @@ public class Shader {
     }
 
     private int getLocation(String name) {
-        return glGetUniformLocation(shaderProgramID, name);
+        if (!locationsCache.containsKey(name)) {
+            locationsCache.put(name, glGetUniformLocation(shaderProgramID, name));
+        }
+        return locationsCache.get(name);
     }
 
     private String readShaderSource(String filename) throws IOException, InvalidPathException {
