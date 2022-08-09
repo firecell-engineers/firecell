@@ -33,7 +33,9 @@ public class BasicAlgorithm implements Algorithm {
         int newSmokeIndicator = computeNewSmokeIndicator(oldState, cellIndex, oldCell);
 
         //computeFirePropagation();
-        //computeSmokePropagation();
+        if(newFlammable){
+            newSmokeIndicator = Math.min(100, newSmokeIndicator + newMaterial.smokeCoe());
+        }
 
         return new Cell(
                 newTemperature,
