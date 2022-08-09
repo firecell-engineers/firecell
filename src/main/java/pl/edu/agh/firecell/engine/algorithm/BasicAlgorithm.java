@@ -6,6 +6,11 @@ import org.slf4j.LoggerFactory;
 import pl.edu.agh.firecell.model.*;
 import pl.edu.agh.firecell.model.util.IndexUtils;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import static pl.edu.agh.firecell.model.MatterState.FLUID;
+
 
 public class BasicAlgorithm implements Algorithm {
 
@@ -14,9 +19,25 @@ public class BasicAlgorithm implements Algorithm {
     public static final double CONVECTION_COEFFICIENT = 1;
     // should be dependent on the material in the future
     public static final double CONDUCTIVITY_COEFFICIENT = 1;
+    private final Map<String, Integer> smokeCoefficients = new HashMap<>();
+    private final Map<String, Integer> smokeCoefficientsHorizontalEscalation = new HashMap<>();
 
     public BasicAlgorithm(double deltaTime) {
         this.deltaTime = deltaTime;
+
+        smokeCoefficients.put("down", 25);
+        smokeCoefficients.put("up", 100);
+        smokeCoefficients.put("north", 50);
+        smokeCoefficients.put("south", 50);
+        smokeCoefficients.put("west", 50);
+        smokeCoefficients.put("east", 50);
+
+        smokeCoefficientsHorizontalEscalation.put("down", 100);
+        smokeCoefficientsHorizontalEscalation.put("up", 0);
+        smokeCoefficientsHorizontalEscalation.put("north", 50);
+        smokeCoefficientsHorizontalEscalation.put("south", 50);
+        smokeCoefficientsHorizontalEscalation.put("west", 50);
+        smokeCoefficientsHorizontalEscalation.put("east", 50);
     }
 
     @Override
@@ -48,26 +69,37 @@ public class BasicAlgorithm implements Algorithm {
 
     private int computeNewSmokeIndicator(State oldState, Vector3i cellIndex, Cell oldCell){
         int devotedSmoke, deliveredSmoke;
-        devotedSmoke = (int)
-                (
-                        DFunction(oldCell, oldState.getCell(IndexUtils.down(cellIndex)), 25) +
-                        DFunction(oldCell, oldState.getCell(IndexUtils.up(cellIndex)), 100) +
-                        DFunction(oldCell, oldState.getCell(IndexUtils.south(cellIndex)), 50) +
-                        DFunction(oldCell, oldState.getCell(IndexUtils.north(cellIndex)), 50) +
-                        DFunction(oldCell, oldState.getCell(IndexUtils.west(cellIndex)), 50) +
-                        DFunction(oldCell, oldState.getCell(IndexUtils.east(cellIndex)), 50)
-                );
-        deliveredSmoke = (int)
-                (
-                        DFunction(oldState.getCell(IndexUtils.down(cellIndex)), oldCell, 25) +
-                        DFunction(oldState.getCell(IndexUtils.up(cellIndex)), oldCell, 100) +
-                        DFunction(oldState.getCell(IndexUtils.south(cellIndex)), oldCell, 50) +
-                        DFunction(oldState.getCell(IndexUtils.north(cellIndex)), oldCell, 50) +
-                        DFunction(oldState.getCell(IndexUtils.west(cellIndex)), oldCell, 50) +
-                        DFunction(oldState.getCell(IndexUtils.east(cellIndex)), oldCell, 50)
-                );
+
+        Cell cellAbove = oldState.getCell(IndexUtils.up(cellIndex));
+        if(cellAbove.material().getMatterState() != FLUID || cellAbove.smokeIndicator()>=99){
+            devotedSmoke = getDevotedSmoke(oldCell, oldState, cellIndex, smokeCoefficientsHorizontalEscalation);
+            deliveredSmoke = getDeliveredSmoke(oldCell, oldState, cellIndex, smokeCoefficientsHorizontalEscalation);
+        } else {
+            devotedSmoke = getDevotedSmoke(oldCell, oldState, cellIndex, smokeCoefficients);
+            deliveredSmoke = getDeliveredSmoke(oldCell, oldState, cellIndex, smokeCoefficients);
+        }
 
         return oldCell.smokeIndicator() - devotedSmoke + deliveredSmoke;
+    }
+
+    private int getDevotedSmoke(Cell oldCell, State oldState, Vector3i cellIndex, Map<String, Integer> coe){
+        return (int) (
+                DFunction(oldCell, oldState.getCell(IndexUtils.down(cellIndex)), coe.get("down")) +
+                DFunction(oldCell, oldState.getCell(IndexUtils.up(cellIndex)), coe.get("up")) +
+                DFunction(oldCell, oldState.getCell(IndexUtils.south(cellIndex)), coe.get("south")) +
+                DFunction(oldCell, oldState.getCell(IndexUtils.north(cellIndex)), coe.get("north")) +
+                DFunction(oldCell, oldState.getCell(IndexUtils.west(cellIndex)), coe.get("west")) +
+                DFunction(oldCell, oldState.getCell(IndexUtils.east(cellIndex)), coe.get("east")));
+    }
+
+    private int getDeliveredSmoke(Cell oldCell, State oldState, Vector3i cellIndex, Map<String, Integer> coe){
+        return (int) (
+                DFunction(oldState.getCell(IndexUtils.down(cellIndex)), oldCell, coe.get("down")) +
+                DFunction(oldState.getCell(IndexUtils.up(cellIndex)), oldCell, coe.get("up")) +
+                DFunction(oldState.getCell(IndexUtils.south(cellIndex)), oldCell, coe.get("south")) +
+                DFunction(oldState.getCell(IndexUtils.north(cellIndex)), oldCell, coe.get("north")) +
+                DFunction(oldState.getCell(IndexUtils.west(cellIndex)), oldCell, coe.get("west")) +
+                DFunction(oldState.getCell(IndexUtils.east(cellIndex)), oldCell, coe.get("east")));
     }
 
     double DFunction(Cell from, Cell to, int coe){
