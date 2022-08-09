@@ -27,9 +27,10 @@ public class BasicAlgorithm implements Algorithm {
         Cell oldCell = oldState.getCell(cellIndex);
 
         double newTemperature = computeNewTemperature(oldState, cellIndex, oldCell);
-        boolean newFlammable = oldCell.flammable();
-        int newBurningTime = oldCell.burningTime();
-        Material newMaterial = oldCell.material();
+        boolean newFlammable  = oldCell.flammable();
+        int newBurningTime    = oldCell.burningTime();
+        Material newMaterial  = oldCell.material();
+        int newSmokeIndicator = computeNewSmokeIndicator(oldState, cellIndex, oldCell);
 
         //computeFirePropagation();
         //computeSmokePropagation();
@@ -38,8 +39,37 @@ public class BasicAlgorithm implements Algorithm {
                 newTemperature,
                 newBurningTime,
                 newFlammable,
-                newMaterial
+                newMaterial,
+                newSmokeIndicator
         );
+    }
+
+    private int computeNewSmokeIndicator(State oldState, Vector3i cellIndex, Cell oldCell){
+        int devotedSmoke, deliveredSmoke;
+        devotedSmoke = (int)
+                (
+                        DFunction(oldCell, oldState.getCell(IndexUtils.down(cellIndex)), 25) +
+                        DFunction(oldCell, oldState.getCell(IndexUtils.up(cellIndex)), 100) +
+                        DFunction(oldCell, oldState.getCell(IndexUtils.south(cellIndex)), 50) +
+                        DFunction(oldCell, oldState.getCell(IndexUtils.north(cellIndex)), 50) +
+                        DFunction(oldCell, oldState.getCell(IndexUtils.west(cellIndex)), 50) +
+                        DFunction(oldCell, oldState.getCell(IndexUtils.east(cellIndex)), 50)
+                );
+        deliveredSmoke = (int)
+                (
+                        DFunction(oldState.getCell(IndexUtils.down(cellIndex)), oldCell, 25) +
+                        DFunction(oldState.getCell(IndexUtils.up(cellIndex)), oldCell, 100) +
+                        DFunction(oldState.getCell(IndexUtils.south(cellIndex)), oldCell, 50) +
+                        DFunction(oldState.getCell(IndexUtils.north(cellIndex)), oldCell, 50) +
+                        DFunction(oldState.getCell(IndexUtils.west(cellIndex)), oldCell, 50) +
+                        DFunction(oldState.getCell(IndexUtils.east(cellIndex)), oldCell, 50)
+                );
+
+        return oldCell.smokeIndicator() - devotedSmoke + deliveredSmoke;
+    }
+
+    double DFunction(Cell from, Cell to, int coe){
+        return coe * Math.min((double) (1/6)*from.smokeIndicator(), (double) (1/6)*(100-to.smokeIndicator()));
     }
 
     private double computeNewTemperature(State oldState, Vector3i cellIndex, Cell oldCell) {

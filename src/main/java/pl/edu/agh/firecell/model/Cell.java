@@ -4,8 +4,16 @@ public record Cell(
         double temperature,
         int burningTime,
         boolean flammable,
-        Material material
+        Material material,
+        int smokeIndicator
         ) {
+
+        public Cell(double temperature,
+                    int burningTime,
+                    boolean flammable,
+                    Material material){
+                this(temperature, burningTime, flammable, material, 0);
+        }
 
         @Override
         public boolean equals(Object o) {
