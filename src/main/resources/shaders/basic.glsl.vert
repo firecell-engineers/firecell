@@ -13,5 +13,5 @@ void main()
 {
     fNormal = mat3(transpose(inverse(uModel))) * aNormal;
 
-    gl_Position = uProjection * uView * aInstanceModel * vec4(aPosition, 1.0);
+    gl_Position = uProjection * uView * uModel * vec4(aPosition, 1.0);
 }
