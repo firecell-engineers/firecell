@@ -44,9 +44,9 @@ class BasicAlgorithmTest {
         Vector3i testCase3Air = new Vector3i(2, 2, 2);
 
         return Stream.of(
-                Arguments.of(initWoodenState, testCase1Wood, cell(initWoodenState.getCell(testCase1Wood).temperature() + deltaTime * coe * 400)),
-                Arguments.of(initWoodenState, testCase2Wood, cell(initWoodenState.getCell(testCase2Wood).temperature())),
-                Arguments.of(initWoodenState, testCase3Wood, cell(initWoodenState.getCell(testCase3Wood).temperature())),
+                Arguments.of(initWoodenState, testCase1Wood, cell(initWoodenState.getCell(testCase1Wood).temperature() + deltaTime * coe * 400, 30)),
+                Arguments.of(initWoodenState, testCase2Wood, cell(initWoodenState.getCell(testCase2Wood).temperature(), 30)),
+                Arguments.of(initWoodenState, testCase3Wood, cell(initWoodenState.getCell(testCase3Wood).temperature(), 30)),
                 Arguments.of(initAirState, testCase1Air, cell(initAirState.getCell(testCase1Air).temperature() + deltaTime * coe * (-300), Material.AIR)),
                 Arguments.of(initAirState, testCase2Air, cell(initAirState.getCell(testCase2Air).temperature(), Material.AIR)),
                 Arguments.of(initAirState, testCase3Air, cell(initAirState.getCell(testCase3Air).temperature(), Material.AIR))
@@ -79,6 +79,14 @@ class BasicAlgorithmTest {
     }
 
     private static Cell cell(double temp, Material material) {
-        return new Cell(temp, 0, true, material);
+        return new Cell(temp, 0, true, material, 0);
+    }
+
+    private static Cell cell(double temp, Material material, int smokeIndicator){
+        return new Cell(temp, 0, true, material, smokeIndicator);
+    }
+
+    private static Cell cell(double temp, int smokeIndicator){
+        return new Cell(temp, 0, true, Material.WOOD, smokeIndicator);
     }
 }

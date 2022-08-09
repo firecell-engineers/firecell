@@ -70,13 +70,18 @@ public class BasicAlgorithm implements Algorithm {
     private int computeNewSmokeIndicator(State oldState, Vector3i cellIndex, Cell oldCell){
         int devotedSmoke, deliveredSmoke;
 
-        Cell cellAbove = oldState.getCell(IndexUtils.up(cellIndex));
-        if(cellAbove.material().getMatterState() != FLUID || cellAbove.smokeIndicator()>=99){
-            devotedSmoke = getDevotedSmoke(oldCell, oldState, cellIndex, smokeCoefficientsHorizontalEscalation);
-            deliveredSmoke = getDeliveredSmoke(oldCell, oldState, cellIndex, smokeCoefficientsHorizontalEscalation);
-        } else {
-            devotedSmoke = getDevotedSmoke(oldCell, oldState, cellIndex, smokeCoefficients);
-            deliveredSmoke = getDeliveredSmoke(oldCell, oldState, cellIndex, smokeCoefficients);
+        try {
+            Cell cellAbove = oldState.getCell(IndexUtils.up(cellIndex));
+            if (cellAbove.material().getMatterState() != FLUID || cellAbove.smokeIndicator() >= 99) {
+                devotedSmoke = getDevotedSmoke(oldCell, oldState, cellIndex, smokeCoefficientsHorizontalEscalation);
+                deliveredSmoke = getDeliveredSmoke(oldCell, oldState, cellIndex, smokeCoefficientsHorizontalEscalation);
+            } else {
+                devotedSmoke = getDevotedSmoke(oldCell, oldState, cellIndex, smokeCoefficients);
+                deliveredSmoke = getDeliveredSmoke(oldCell, oldState, cellIndex, smokeCoefficients);
+            }
+        } catch (IndexOutOfBoundsException e){
+            devotedSmoke = 0;
+            deliveredSmoke = 0;
         }
 
         return oldCell.smokeIndicator() - devotedSmoke + deliveredSmoke;
@@ -102,7 +107,7 @@ public class BasicAlgorithm implements Algorithm {
                 DFunction(oldState.getCell(IndexUtils.east(cellIndex)), oldCell, coe.get("east")));
     }
 
-    double DFunction(Cell from, Cell to, int coe){
+    private double DFunction(Cell from, Cell to, int coe){
         return coe * Math.min((double) (1/6)*from.smokeIndicator(), (double) (1/6)*(100-to.smokeIndicator()));
     }
 

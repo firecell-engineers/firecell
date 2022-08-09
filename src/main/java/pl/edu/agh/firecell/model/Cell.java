@@ -26,6 +26,7 @@ public record Cell(
                 return Double.compare(temperature, c.temperature) == 0 &&
                 burningTime == c.burningTime &&
                 flammable == c.flammable &&
-                material == c.material;
+                material == c.material &&
+                smokeIndicator == c.smokeIndicator;
         }
 }
