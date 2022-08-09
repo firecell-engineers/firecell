@@ -3,7 +3,8 @@ package pl.edu.agh.firecell.engine.algorithm;
 import org.joml.Vector3i;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import pl.edu.agh.firecell.model.*;
+import pl.edu.agh.firecell.model.Cell;
+import pl.edu.agh.firecell.model.State;
 import pl.edu.agh.firecell.model.util.IndexUtils;
 
 
@@ -14,7 +15,7 @@ public class BasicAlgorithm implements Algorithm {
     public static final double CONVECTION_COEFFICIENT = 1;
     // should be dependent on the material in the future
     public static final double CONDUCTIVITY_COEFFICIENT = 1;
-    public static final int maxBurningTime = 5;
+    public static final int MAX_BURNING_TIME = 5;
 
     public BasicAlgorithm(double deltaTime) {
         this.deltaTime = deltaTime;
@@ -28,16 +29,15 @@ public class BasicAlgorithm implements Algorithm {
         double newTemperature = computeNewTemperature(oldState, cellIndex, oldCell);
         boolean newFlammable = oldCell.flammable();
         int newBurningTime = oldCell.burningTime();
-        Material newMaterial = oldCell.material();
 
-        //computeFirePropagation();
-        //computeSmokePropagation();
+        // computeFirePropagation();
+        // computeSmokePropagation();
 
-        if(newFlammable && newBurningTime>=0 && newTemperature > 100){
-            newBurningTime++;
+        if (newFlammable && newBurningTime >= 0 && newTemperature > 100) {
+            newBurningTime ++;
         }
 
-        if(newBurningTime>maxBurningTime){
+        if (newBurningTime > MAX_BURNING_TIME) {
             newFlammable = false;
         }
 
@@ -45,7 +45,7 @@ public class BasicAlgorithm implements Algorithm {
                 newTemperature,
                 newBurningTime,
                 newFlammable,
-                newMaterial
+                oldCell.material()
         );
     }
 

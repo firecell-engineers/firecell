@@ -9,4 +9,8 @@ public record State(List<Cell> cells, Vector3i spaceSize) {
     public Cell getCell(Vector3i index) {
         return cells.get(IndexUtils.flattenIndex(index, spaceSize));
     }
+
+    public double getTemp(Vector3i index) {
+        return cells.get(IndexUtils.flattenIndex(index, spaceSize)).temperature();
+    }
 }

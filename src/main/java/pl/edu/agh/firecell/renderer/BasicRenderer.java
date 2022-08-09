@@ -92,7 +92,7 @@ public class BasicRenderer implements Renderer {
     }
 
     private Vector3f resolveFireColor(Cell cell) {
-        return new Vector3f(BasicAlgorithm.maxBurningTime / (float) cell.burningTime(), 0, 0);
+        return new Vector3f(BasicAlgorithm.MAX_BURNING_TIME / (float) cell.burningTime(), 0, 0);
     }
 
     private List<Transformation> createTransformations(List<Integer> indices, State state) {
