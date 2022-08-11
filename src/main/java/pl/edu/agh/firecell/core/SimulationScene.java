@@ -26,19 +26,31 @@ public class SimulationScene implements Scene {
     private final Renderer renderer;
     private final Runnable finishSimulationHandler;
     private State currentState;
-    private final double stepTime = 0.5;
+    private final double stepTime;
+    private int indexStep = 0;
+    private long lastFrameTime = now();
 
     public SimulationScene(SimulationConfig config, Runnable finishSimulationHandler, IOListener ioListener, float aspectRatio)
             throws IOException, InvalidPathException, IllegalStateException {
         this.currentState = config.initialState();
         this.finishSimulationHandler = finishSimulationHandler;
+        this.stepTime = config.stepTime();
         renderer = new BasicRenderer(aspectRatio, ioListener, config);
         storage = new FileSystemStorage(new BinaryStateSerializer());
         engine = new BasicEngine(config, storage, new BasicAlgorithm(stepTime));
+        engine.run();
     }
 
     @Override
     public void update(double frameTime) {
+        if(now() - lastFrameTime > stepTime*1000){
+            lastFrameTime = now();
+            storage.getState(indexStep).ifPresent(state -> {
+                currentState = state;
+                indexStep++;
+            });
+            logger.info("Getting next state with index: " + indexStep);
+        }
         renderer.render(currentState, frameTime);
         renderGUI();
     }
@@ -59,5 +71,9 @@ public class SimulationScene implements Scene {
     public void dispose() {
         renderer.dispose();
         engine.stop();
+    }
+
+    private long now(){
+        return System.currentTimeMillis();
     }
 }
