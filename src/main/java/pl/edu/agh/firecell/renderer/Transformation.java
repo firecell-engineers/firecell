@@ -12,14 +12,22 @@ public class Transformation {
     private Matrix4f modelMatrix;
     private boolean modelMatrixDirty = true;
 
+    private static final Vector3f DEFAULT_POSITION = new Vector3f(0);
+    private static final Vector3f DEFAULT_ROTATION = new Vector3f(0);
+    private static final Vector3f DEFAULT_SCALE    = new Vector3f(1);
+
     public Transformation(Vector3f position, Vector3f rotation, Vector3f scale) {
         this.position = position;
         this.rotation = rotation;
         this.scale = scale;
     }
 
+    public Transformation(Vector3f position) {
+        this(position, DEFAULT_ROTATION, DEFAULT_SCALE);
+    }
+
     public Transformation() {
-        this(new Vector3f(0), new Vector3f(0), new Vector3f(1));
+        this(DEFAULT_POSITION, DEFAULT_ROTATION, DEFAULT_SCALE);
     }
 
     public Vector3f position() {
