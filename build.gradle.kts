@@ -1,6 +1,8 @@
+import com.google.protobuf.gradle.*
 
 plugins {
     id("java")
+    id("com.google.protobuf") version "0.8.18"
 }
 
 group = "pl.edu.agh"
@@ -50,11 +52,14 @@ dependencies {
     implementation("org.apache.logging.log4j", "log4j-core", "2.7")
     implementation("org.apache.logging.log4j", "log4j-slf4j-impl", "2.7")
 
+    // protobuf
+    implementation("com.google.protobuf", "protobuf-java", "3.21.1")
+
+    // rxjava
+    implementation("io.reactivex.rxjava3", "rxjava", "3.1.5")
+
     // joml
     implementation("org.joml:joml:1.10.4")
-
-    // rx java
-    implementation("io.reactivex.rxjava3:rxjava:3.1.5")
 
     // apache commons
     implementation("org.apache.commons:commons-lang3:3.12.0")
@@ -66,3 +71,19 @@ tasks.getByName<Test>("test") {
 }
 
 tasks.withType<Jar> { duplicatesStrategy = DuplicatesStrategy.INHERIT }
+
+sourceSets {
+    main {
+        java {
+            srcDirs("build/generated/source/proto/main/java")
+        }
+    }
+}
+
+protobuf {
+    // Configure the protoc executable
+    protoc {
+        // Download from repositories
+        artifact = "com.google.protobuf:protoc:3.0.0"
+    }
+}

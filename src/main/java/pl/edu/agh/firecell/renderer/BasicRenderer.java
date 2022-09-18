@@ -6,6 +6,7 @@ import org.joml.Vector3f;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pl.edu.agh.firecell.core.io.IOListener;
+import pl.edu.agh.firecell.engine.algorithm.BasicAlgorithm;
 import pl.edu.agh.firecell.model.Cell;
 import pl.edu.agh.firecell.model.Material;
 import pl.edu.agh.firecell.model.SimulationConfig;
@@ -24,7 +25,8 @@ public class BasicRenderer implements Renderer {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    private final Shader shader = new Shader("instanced.glsl.vert", "basic.glsl.frag");
+    private final Shader instancedShader = new Shader("instanced.glsl.vert", "basic.glsl.frag");
+    private final Shader basicShader = new Shader("basic.glsl.vert", "basic.glsl.frag");
     private final Camera camera;
     private final IOListener ioListener;
     private final CameraController cameraController;
@@ -41,7 +43,11 @@ public class BasicRenderer implements Renderer {
     @Override
     public void render(State state, double frameTime) {
         cameraController.update(frameTime);
-        shader.setMatrix4("uView", camera.viewMatrix());
+        processCameraControl(frameTime);
+        instancedShader.bind();
+        instancedShader.setMatrix4("uView", camera.viewMatrix());
+        basicShader.bind();
+        basicShader.setMatrix4("uView", camera.viewMatrix());
         renderState(state);
     }
 
@@ -72,10 +78,23 @@ public class BasicRenderer implements Renderer {
 
     private void drawFire(List<ImmutablePair<Integer, Cell>> cells, State state) {
         var burningIndices = cells.stream()
-                .filter(indexCellPair -> indexCellPair.getRight().burningTime() > 0)
+                .filter(indexCellPair -> indexCellPair.getRight().burningTime() > 0 && indexCellPair.getRight().flammable())
                 .map(ImmutablePair::getLeft)
                 .toList();
         renderInstancedCube(new Vector3f(1.0f, 0.0f, 0.0f), createTransformations(burningIndices, state));
+    }
+
+    private void drawFire2(List<ImmutablePair<Integer, Cell>> cells, State state) {
+        cells.forEach(indexCellPair -> {
+            var color = resolveFireColor(indexCellPair.getRight());
+            var expendedIndex = IndexUtils.expandIndex(indexCellPair.getLeft(), state.spaceSize());
+            var tr = new Transformation(new Vector3f(expendedIndex), new Vector3f(), new Vector3f(1));
+            renderCube(color, tr);
+        });
+    }
+
+    private Vector3f resolveFireColor(Cell cell) {
+        return new Vector3f(BasicAlgorithm.MAX_BURNING_TIME / (float) cell.burningTime(), 0, 0);
     }
 
     private List<Transformation> createTransformations(List<Integer> indices, State state) {
@@ -89,7 +108,16 @@ public class BasicRenderer implements Renderer {
 
     private void renderInstancedCube(Vector3f color, List<Transformation> transformations) {
         var mesh = MeshFactory.createInstancedCubeMesh(transformations);
-        shader.setVector3("uObjectColor", color);
+        instancedShader.bind();
+        instancedShader.setVector3("uObjectColor", color);
+        mesh.draw();
+    }
+
+    private void renderCube(Vector3f color, Transformation transformation) {
+        var mesh = MeshFactory.createCubeMesh();
+        basicShader.bind();
+        basicShader.setMatrix4("uModel", transformation.modelMatrix());
+        basicShader.setVector3("uObjectColor", color);
         mesh.draw();
     }
 
@@ -115,13 +143,22 @@ public class BasicRenderer implements Renderer {
     private void initializeRendering(SimulationConfig config) {
         var spaceSize = new Vector3f(config.size().x, config.size().y, config.size().z);
         camera.setPosition(new Vector3f(spaceSize).mul(0.5f).add(new Vector3f(0.0f, 0.0f, spaceSize.z * 1.5f)));
-        shader.bind();
-        shader.setMatrix4("uProjection", camera.perspectiveMatrix());
-        shader.setVector3("uLightDir", new Vector3f(-1.0f, -0.8f, 0.5f));
-        shader.setVector3("uLightColor", new Vector3f(1.0f, 1.0f, 1.0f));
+        camera.setDirection(new Vector3f(spaceSize).mul(0.5f).sub(camera.position()));
+
+        instancedShader.bind();
+        instancedShader.setMatrix4("uProjection", camera.perspectiveMatrix());
+        instancedShader.setVector3("uLightDir", new Vector3f(-1.0f, -0.8f, 0.5f));
+        instancedShader.setVector3("uLightColor", new Vector3f(1.0f, 1.0f, 1.0f));
+
+        basicShader.bind();
+        basicShader.setMatrix4("uProjection", camera.perspectiveMatrix());
+        basicShader.setVector3("uLightDir", new Vector3f(-1.0f, -0.8f, 0.5f));
+        basicShader.setVector3("uLightColor", new Vector3f(1.0f, 1.0f, 1.0f));
+
         windowSizeSubscription = ioListener.windowSizeObservable().subscribe(size -> {
             camera.setAspectRatio(size.x / (float) size.y);
-            shader.setMatrix4("uProjection", camera.perspectiveMatrix());
+            instancedShader.setMatrix4("uProjection", camera.perspectiveMatrix());
+            basicShader.setMatrix4("uProjection", camera.perspectiveMatrix());
         });
     }
 }

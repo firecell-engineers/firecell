@@ -25,7 +25,9 @@ public class StateBuilder {
     public StateBuilder addCuboid(Vector3i position, Vector3i size, Material material) {
         IndexUtils.range(position, new Vector3i(-1).add(position).add(size))
                 .map(expandedIndex -> IndexUtils.flattenIndex(expandedIndex, spaceSize))
-                .forEach(flatIndex -> cells.set(flatIndex, new Cell(0, 0, 0, true, material)));
+                .forEach(flatIndex -> {
+                    cells.set(flatIndex, new Cell(15, 0, true, material));
+                });
         return this;
     }
 
@@ -35,8 +37,8 @@ public class StateBuilder {
                 .filter(index -> !cells.get(index).flammable())
                 .forEach(index -> {
                     var oldCell = cells.get(index);
-                    cells.set(index, new Cell(oldCell.temperature(), oldCell.conductivityCoefficient(),
-                            1, oldCell.flammable(), oldCell.material()));
+                    cells.set(index, new Cell(600,
+                            0, oldCell.flammable(), oldCell.material()));
                 });
         return this;
     }
@@ -48,7 +50,7 @@ public class StateBuilder {
 
     private List<Cell> entireAir() {
         return new ArrayList<>(IntStream.range(0, spaceSize.x * spaceSize.y * spaceSize.z)
-                .mapToObj(idx -> new Cell(0, 0, 0, false, Material.AIR))
+                .mapToObj(idx -> new Cell(20, 0, true, Material.AIR))
                 .toList());
     }
 }

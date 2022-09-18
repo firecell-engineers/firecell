@@ -4,7 +4,6 @@ import pl.edu.agh.firecell.model.State;
 
 import java.util.Optional;
 
-public interface Storage {
-    void putState(State state, int index);
+public interface StateProvider {
     Optional<State> getState(int index);
 }

@@ -11,8 +11,8 @@ import pl.edu.agh.firecell.model.SimulationConfig;
 import pl.edu.agh.firecell.model.State;
 import pl.edu.agh.firecell.renderer.BasicRenderer;
 import pl.edu.agh.firecell.renderer.Renderer;
-import pl.edu.agh.firecell.storage.BasicStorage;
-import pl.edu.agh.firecell.storage.Storage;
+import pl.edu.agh.firecell.storage.FileSystemStorage;
+import pl.edu.agh.firecell.storage.serialization.BinaryStateSerializer;
 
 import java.io.IOException;
 import java.nio.file.InvalidPathException;
@@ -22,22 +22,35 @@ public class SimulationScene implements Scene {
     private final Logger logger = LoggerFactory.getLogger(SimulationScene.class);
 
     private final Engine engine;
-    private final Storage storage;
+    private final FileSystemStorage storage;
     private final Renderer renderer;
     private final Runnable finishSimulationHandler;
     private State currentState;
+    private final double stepTime;
+    private int indexStep = 0;
+    private long lastFrameTime = now();
 
     public SimulationScene(SimulationConfig config, Runnable finishSimulationHandler, IOListener ioListener, float aspectRatio)
             throws IOException, InvalidPathException, IllegalStateException {
         this.currentState = config.initialState();
         this.finishSimulationHandler = finishSimulationHandler;
+        this.stepTime = config.stepTime();
         renderer = new BasicRenderer(aspectRatio, ioListener, config);
-        storage = new BasicStorage();
-        engine = new BasicEngine(config, storage, new BasicAlgorithm());
+        storage = new FileSystemStorage(new BinaryStateSerializer());
+        engine = new BasicEngine(config, storage, new BasicAlgorithm(stepTime));
+        engine.run();
     }
 
     @Override
     public void update(double frameTime) {
+        if(now() - lastFrameTime > stepTime*1000){
+            lastFrameTime = now();
+            storage.getState(indexStep).ifPresent(state -> {
+                currentState = state;
+                indexStep++;
+            });
+            logger.info("Getting next state with index: " + indexStep);
+        }
         renderer.render(currentState, frameTime);
         renderGUI(frameTime);
     }
@@ -62,5 +75,9 @@ public class SimulationScene implements Scene {
     public void dispose() {
         renderer.dispose();
         engine.stop();
+    }
+
+    private long now(){
+        return System.currentTimeMillis();
     }
 }
