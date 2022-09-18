@@ -43,7 +43,6 @@ public class BasicRenderer implements Renderer {
     @Override
     public void render(State state, double frameTime) {
         cameraController.update(frameTime);
-        processCameraControl(frameTime);
         instancedShader.bind();
         instancedShader.setMatrix4("uView", camera.viewMatrix());
         basicShader.bind();
@@ -143,7 +142,6 @@ public class BasicRenderer implements Renderer {
     private void initializeRendering(SimulationConfig config) {
         var spaceSize = new Vector3f(config.size().x, config.size().y, config.size().z);
         camera.setPosition(new Vector3f(spaceSize).mul(0.5f).add(new Vector3f(0.0f, 0.0f, spaceSize.z * 1.5f)));
-        camera.setDirection(new Vector3f(spaceSize).mul(0.5f).sub(camera.position()));
 
         instancedShader.bind();
         instancedShader.setMatrix4("uProjection", camera.perspectiveMatrix());
