@@ -35,17 +35,16 @@ vec4 transformPosition(vec3 position, mat4 mvp)
 vec4 resolveColor(int material, float temperature)
 {
     if (material == 0) return vec4(0.349, 0.227, 0.101, 1.0); // wood
-    return vec4(0.0);
+    else return vec4(1.0, 1.0, 0.0, 0.01);
 }
 
 void main()
 {
-    if (aInstanceMaterial == 1) return; // don't render air
-
     mat4 model = modelFromPosition(aInstancePosition);
+    mat4 mvp   = uProjection * uView * model;
 
     fNormal = transformNormal(aNormal, model);
     fColor = resolveColor(aInstanceMaterial, aInstanceTemperature);
-    gl_Position = transformPosition(aPosition, uProjection * uView * model);
+    gl_Position = transformPosition(aPosition, mvp);
 }
 

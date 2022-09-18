@@ -22,6 +22,7 @@ import static org.lwjgl.opengl.GL33.glVertexAttribDivisor;
 public class StateMesh extends Mesh {
 
     private final int cellCount;
+    private int lastAttributeIndex = 1;
 
     public StateMesh(float[] vertices, State state) {
         super(vertices);
@@ -45,35 +46,37 @@ public class StateMesh extends Mesh {
 
         glBindVertexArray(vaoID);
 
-        addInstancedFloatAttribute(positionBuffer, 3, 2);
-        addInstancedFloatAttribute(temperatureBuffer, 1, 3);
-        addInstancedIntAttribute(materialBuffer, 3, 4);
+        addInstancedFloatAttribute(positionBuffer, 3);
+        addInstancedFloatAttribute(temperatureBuffer, 1);
+        addInstancedIntAttribute(materialBuffer, 1);
 
         glBindVertexArray(0);
     }
 
-    private void addInstancedFloatAttribute(FloatBuffer buffer, int componentCount, int attributeIndex) {
+    private void addInstancedFloatAttribute(FloatBuffer buffer, int componentCount) {
         int instanceVboID = glGenBuffers();
         glBindBuffer(GL_ARRAY_BUFFER, instanceVboID);
         glBufferData(GL_ARRAY_BUFFER, buffer, GL_STATIC_DRAW);
 
         int stride = componentCount * Float.BYTES;
         int offset = 0;
-        glVertexAttribPointer(attributeIndex, componentCount, GL_FLOAT, false, stride, offset);
-        glVertexAttribDivisor(attributeIndex, 1);
-        glEnableVertexAttribArray(attributeIndex);
+        lastAttributeIndex ++;
+        glVertexAttribPointer(lastAttributeIndex, componentCount, GL_FLOAT, false, stride, offset);
+        glVertexAttribDivisor(lastAttributeIndex, 1);
+        glEnableVertexAttribArray(lastAttributeIndex);
     }
 
-    private void addInstancedIntAttribute(IntBuffer buffer, int componentCount, int attributeIndex) {
+    private void addInstancedIntAttribute(IntBuffer buffer, int componentCount) {
         int instanceVboID = glGenBuffers();
         glBindBuffer(GL_ARRAY_BUFFER, instanceVboID);
         glBufferData(GL_ARRAY_BUFFER, buffer, GL_STATIC_DRAW);
 
         int stride = componentCount * Integer.BYTES;
         int offset = 0;
-        glVertexAttribPointer(attributeIndex, componentCount, GL_INT, false, stride, offset);
-        glVertexAttribDivisor(attributeIndex, 1);
-        glEnableVertexAttribArray(attributeIndex);
+        lastAttributeIndex ++;
+        glVertexAttribPointer(lastAttributeIndex, componentCount, GL_INT, false, stride, offset);
+        glVertexAttribDivisor(lastAttributeIndex, 1);
+        glEnableVertexAttribArray(lastAttributeIndex);
     }
 
     @Override
