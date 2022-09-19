@@ -21,8 +21,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.IntStream;
 
-import static org.lwjgl.glfw.GLFW.*;
-
 public class BasicRenderer implements Renderer {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -31,18 +29,20 @@ public class BasicRenderer implements Renderer {
     private final Shader basicShader = new Shader("basic.glsl.vert", "basic.glsl.frag");
     private final Camera camera;
     private final IOListener ioListener;
+    private final CameraController cameraController;
     private Disposable windowSizeSubscription;
 
     public BasicRenderer(float aspectRatio, IOListener ioListener, SimulationConfig config)
             throws IOException, InvalidPathException, IllegalStateException {
-        this.ioListener = ioListener;
         camera = new Camera(aspectRatio);
+        cameraController = new CameraController(camera, ioListener);
+        this.ioListener = ioListener;
         initializeRendering(config);
     }
 
     @Override
     public void render(State state, double frameTime) {
-        processCameraControl(frameTime);
+        cameraController.update(frameTime);
         instancedShader.bind();
         instancedShader.setMatrix4("uView", camera.viewMatrix());
         basicShader.bind();
@@ -53,6 +53,7 @@ public class BasicRenderer implements Renderer {
     @Override
     public void dispose() {
         windowSizeSubscription.dispose();
+        cameraController.dispose();
     }
 
     private void renderState(State state) {
@@ -140,8 +141,7 @@ public class BasicRenderer implements Renderer {
 
     private void initializeRendering(SimulationConfig config) {
         var spaceSize = new Vector3f(config.size().x, config.size().y, config.size().z);
-        camera.setPosition(new Vector3f(spaceSize).mul(1.2f));
-        camera.setDirection(new Vector3f(spaceSize).mul(0.5f).sub(camera.position()));
+        camera.setPosition(new Vector3f(spaceSize).mul(0.5f).add(new Vector3f(0.0f, 0.0f, spaceSize.z * 1.5f)));
 
         instancedShader.bind();
         instancedShader.setMatrix4("uProjection", camera.perspectiveMatrix());
@@ -158,26 +158,5 @@ public class BasicRenderer implements Renderer {
             instancedShader.setMatrix4("uProjection", camera.perspectiveMatrix());
             basicShader.setMatrix4("uProjection", camera.perspectiveMatrix());
         });
-    }
-
-    private void processCameraControl(double deltaTime) {
-        if (ioListener.isPressed(GLFW_KEY_D)) {
-            camera.moveRight((float) deltaTime);
-        }
-        if (ioListener.isPressed(GLFW_KEY_A)) {
-            camera.moveRight((float) -deltaTime);
-        }
-        if (ioListener.isPressed(GLFW_KEY_W)) {
-            camera.moveForward((float) deltaTime);
-        }
-        if (ioListener.isPressed(GLFW_KEY_S)) {
-            camera.moveForward((float) -deltaTime);
-        }
-        if (ioListener.isPressed(GLFW_KEY_SPACE)) {
-            camera.moveUp((float) deltaTime);
-        }
-        if (ioListener.isPressed(GLFW_KEY_LEFT_SHIFT)) {
-            camera.moveUp((float) -deltaTime);
-        }
     }
 }
