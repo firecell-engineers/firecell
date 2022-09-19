@@ -54,15 +54,19 @@ public class SimulationScene implements Scene {
             logger.info("Getting next state with index: " + indexStep);
         }
         renderer.render(currentState, frameTime);
-        renderGUI();
+        renderGUI(frameTime);
     }
 
-    private void renderGUI() {
+    private void renderGUI(double frameTime) {
         if (ImGui.beginMainMenuBar()) {
             if (ImGui.beginMenu("Simulation")) {
                 if (ImGui.menuItem("Finish simulation")) {
                     finishSimulationHandler.run();
                 }
+                ImGui.endMenu();
+            }
+            if (ImGui.beginMenu("Diagnostics")) {
+                ImGui.text("Framerate: %s".formatted(String.valueOf(Math.round(1 / frameTime))));
                 ImGui.endMenu();
             }
             ImGui.endMainMenuBar();
