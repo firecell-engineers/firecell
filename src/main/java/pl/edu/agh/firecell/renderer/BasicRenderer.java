@@ -20,6 +20,7 @@ public class BasicRenderer implements Renderer {
     private final IOListener ioListener;
     private final CameraController cameraController;
     private Disposable windowSizeSubscription;
+    private RenderMode renderMode = RenderMode.STANDARD;
 
     public BasicRenderer(float aspectRatio, IOListener ioListener, SimulationConfig config)
             throws IOException, InvalidPathException, IllegalStateException {
@@ -35,6 +36,11 @@ public class BasicRenderer implements Renderer {
         shader.bind();
         shader.setMatrix4("uView", camera.viewMatrix());
         renderState(state);
+    }
+
+    @Override
+    public void setRenderMode(RenderMode renderMode) {
+        this.renderMode = renderMode;
     }
 
     @Override
