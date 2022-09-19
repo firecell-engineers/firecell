@@ -62,6 +62,14 @@ public class Shader {
         }
     }
 
+    public void setInt(String name, int value) {
+        glUniform1i(getLocation(name), value);
+    }
+
+    public void setFloat(String name, float value) {
+        glUniform1f(getLocation(name), value);
+    }
+
     private int getLocation(String name) {
         if (!locationsCache.containsKey(name)) {
             locationsCache.put(name, glGetUniformLocation(shaderProgramID, name));

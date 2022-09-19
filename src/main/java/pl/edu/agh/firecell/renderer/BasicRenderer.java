@@ -41,6 +41,7 @@ public class BasicRenderer implements Renderer {
     @Override
     public void setRenderMode(RenderMode renderMode) {
         this.renderMode = renderMode;
+        shader.setInt("uRenderMode", renderMode.ordinal());
     }
 
     @Override
@@ -63,6 +64,7 @@ public class BasicRenderer implements Renderer {
         shader.setMatrix4("uProjection", camera.perspectiveMatrix());
         shader.setVector3("uLightDir", new Vector3f(-1.0f, -0.8f, 0.5f));
         shader.setVector3("uLightColor", new Vector3f(1.0f, 1.0f, 1.0f));
+        shader.setInt("uRenderMode", renderMode.ordinal());
 
         windowSizeSubscription = ioListener.windowSizeObservable().subscribe(size -> {
             camera.setAspectRatio(size.x / (float) size.y);

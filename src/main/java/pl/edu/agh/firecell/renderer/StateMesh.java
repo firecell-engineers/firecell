@@ -32,7 +32,7 @@ public class StateMesh extends Mesh {
         var temperatureBuffer = MemoryUtil.memAllocFloat(cellCount);
         var materialBuffer = MemoryUtil.memAllocInt(cellCount);
 
-        IntStream.range(0, state.cells().size())
+        IntStream.range(0, cellCount)
             .forEach(flatIndex -> {
                 Vector3i expandedIndex = IndexUtils.expandIndex(flatIndex, state.spaceSize());
                 Cell cell = state.cells().get(flatIndex);
