@@ -35,7 +35,7 @@ vec4 transformPosition(vec3 position, mat4 mvp)
 vec4 resolveColor(int material, float temperature)
 {
     if (material == 0) return vec4(0.349, 0.227, 0.101, 1.0); // wood
-    else return vec4(1.0, 1.0, 0.0, 0.01);
+    return vec4(0.67, 0.827, 0.87, 0.01); // air
 }
 
 void main()
