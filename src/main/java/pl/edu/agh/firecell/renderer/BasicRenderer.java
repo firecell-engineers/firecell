@@ -31,7 +31,7 @@ public class BasicRenderer implements Renderer {
 
     @Override
     public void render(State state, double frameTime) {
-        processCameraControl(frameTime);
+        cameraController.update(frameTime);
         shader.bind();
         shader.setMatrix4("uView", camera.viewMatrix());
         renderState(state);

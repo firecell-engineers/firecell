@@ -86,6 +86,7 @@ public class IOListener {
     }
 
     public void mouseButtonCallback(long window, int button, int action, int mods) {
+        if (button > 2) return;
         if (action == GLFW_PRESS) {
             mouseButtons.set(button, true);
         }
