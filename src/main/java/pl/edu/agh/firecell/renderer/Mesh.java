@@ -15,7 +15,6 @@ import static org.lwjgl.opengl.GL30.glGenVertexArrays;
 public class Mesh {
 
     protected final float[] vertices;
-
     protected final int vaoID;
 
     public Mesh(float[] vertices) {

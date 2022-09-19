@@ -14,7 +14,7 @@ public class MeshFactory {
         return new InstancedMesh(cubeVertices(), transformations);
     }
 
-    private static float[] cubeVertices() {
+    public static float[] cubeVertices() {
         return new float[]{
                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f,
                 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f,

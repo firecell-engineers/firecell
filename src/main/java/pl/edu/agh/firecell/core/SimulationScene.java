@@ -12,6 +12,7 @@ import pl.edu.agh.firecell.model.State;
 import pl.edu.agh.firecell.renderer.BasicRenderer;
 import pl.edu.agh.firecell.renderer.Renderer;
 import pl.edu.agh.firecell.storage.FileSystemStorage;
+import pl.edu.agh.firecell.storage.InMemoryStorage;
 import pl.edu.agh.firecell.storage.serialization.BinaryStateSerializer;
 
 import java.io.IOException;
@@ -22,7 +23,7 @@ public class SimulationScene implements Scene {
     private final Logger logger = LoggerFactory.getLogger(SimulationScene.class);
 
     private final Engine engine;
-    private final FileSystemStorage storage;
+    private final InMemoryStorage storage;
     private final Renderer renderer;
     private final Runnable finishSimulationHandler;
     private State currentState;
@@ -30,24 +31,25 @@ public class SimulationScene implements Scene {
     private int indexStep = 0;
     private long lastFrameTime = now();
 
-    public SimulationScene(SimulationConfig config, Runnable finishSimulationHandler, IOListener ioListener, float aspectRatio)
+    public SimulationScene(SimulationConfig config, Runnable finishSimulationHandler,
+                           IOListener ioListener, float aspectRatio)
             throws IOException, InvalidPathException, IllegalStateException {
         this.currentState = config.initialState();
         this.finishSimulationHandler = finishSimulationHandler;
         this.stepTime = config.stepTime();
         renderer = new BasicRenderer(aspectRatio, ioListener, config);
-        storage = new FileSystemStorage(new BinaryStateSerializer());
+        storage = new InMemoryStorage();
         engine = new BasicEngine(config, storage, new BasicAlgorithm(stepTime));
         engine.run();
     }
 
     @Override
     public void update(double frameTime) {
-        if(now() - lastFrameTime > stepTime*1000){
+        if(now() - lastFrameTime > stepTime * 1000){
             lastFrameTime = now();
             storage.getState(indexStep).ifPresent(state -> {
                 currentState = state;
-                indexStep++;
+                indexStep ++;
             });
             logger.info("Getting next state with index: " + indexStep);
         }

@@ -2,7 +2,6 @@ package pl.edu.agh.firecell.renderer;
 
 import org.lwjgl.system.MemoryUtil;
 
-import java.nio.FloatBuffer;
 import java.util.List;
 import java.util.stream.IntStream;
 
