@@ -10,6 +10,7 @@ import pl.edu.agh.firecell.engine.algorithm.BasicAlgorithm;
 import pl.edu.agh.firecell.model.SimulationConfig;
 import pl.edu.agh.firecell.model.State;
 import pl.edu.agh.firecell.renderer.BasicRenderer;
+import pl.edu.agh.firecell.renderer.RenderMode;
 import pl.edu.agh.firecell.renderer.Renderer;
 import pl.edu.agh.firecell.storage.FileSystemStorage;
 import pl.edu.agh.firecell.storage.InMemoryStorage;
@@ -67,6 +68,21 @@ public class SimulationScene implements Scene {
             }
             if (ImGui.beginMenu("Diagnostics")) {
                 ImGui.text("Framerate: %s".formatted(String.valueOf(Math.round(1 / frameTime))));
+                ImGui.endMenu();
+            }
+            if (ImGui.beginMenu("Render mode")) {
+                if (ImGui.menuItem("Normal")) {
+                    renderer.setRenderMode(RenderMode.Normal);
+                    logger.info("Render mode set to Normal");
+                }
+                if (ImGui.menuItem("Air temperature")) {
+                    renderer.setRenderMode(RenderMode.Air_Temperature);
+                    logger.info("Render mode set to Air temperature");
+                }
+                if (ImGui.menuItem("Solid temperature")) {
+                    renderer.setRenderMode(RenderMode.Solid_Temperature);
+                    logger.info("Render mode set to Solid");
+                }
                 ImGui.endMenu();
             }
             ImGui.endMainMenuBar();

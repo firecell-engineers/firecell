@@ -20,6 +20,7 @@ public class BasicRenderer implements Renderer {
     private final IOListener ioListener;
     private final CameraController cameraController;
     private Disposable windowSizeSubscription;
+    private RenderMode mode = RenderMode.Normal;
 
     public BasicRenderer(float aspectRatio, IOListener ioListener, SimulationConfig config)
             throws IOException, InvalidPathException, IllegalStateException {
@@ -41,6 +42,11 @@ public class BasicRenderer implements Renderer {
     public void dispose() {
         windowSizeSubscription.dispose();
         cameraController.dispose();
+    }
+
+    @Override
+    public void setRenderMode(RenderMode mode) {
+        this.mode = mode;
     }
 
     private void renderState(State state) {
