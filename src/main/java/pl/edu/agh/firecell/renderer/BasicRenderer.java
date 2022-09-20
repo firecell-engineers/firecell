@@ -46,7 +46,7 @@ public class BasicRenderer implements Renderer {
 
     @Override
     public void setRenderMode(RenderMode mode) {
-        this.mode = mode;
+        this.renderMode = mode;
     }
 
     private void renderState(State state) {
