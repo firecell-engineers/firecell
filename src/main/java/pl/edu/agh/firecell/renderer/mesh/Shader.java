@@ -1,4 +1,4 @@
-package pl.edu.agh.firecell.renderer;
+package pl.edu.agh.firecell.renderer.mesh;
 
 import org.joml.Matrix4f;
 import org.joml.Vector3f;

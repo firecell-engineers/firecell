@@ -7,6 +7,11 @@ import org.slf4j.LoggerFactory;
 import pl.edu.agh.firecell.core.io.IOListener;
 import pl.edu.agh.firecell.model.SimulationConfig;
 import pl.edu.agh.firecell.model.State;
+import pl.edu.agh.firecell.renderer.camera.Camera;
+import pl.edu.agh.firecell.renderer.camera.CameraController;
+import pl.edu.agh.firecell.renderer.mesh.MeshUtils;
+import pl.edu.agh.firecell.renderer.mesh.Shader;
+import pl.edu.agh.firecell.renderer.mesh.StateMesh;
 
 import java.io.IOException;
 import java.nio.file.InvalidPathException;
@@ -51,7 +56,7 @@ public class BasicRenderer implements Renderer {
     }
 
     private void renderState(State state) {
-        var stateMesh = new StateMesh(MeshFactory.cubeVertices(), state);
+        var stateMesh = new StateMesh(MeshUtils.CUBE_VERTICES, state);
         shader.bind();
         stateMesh.draw();
     }

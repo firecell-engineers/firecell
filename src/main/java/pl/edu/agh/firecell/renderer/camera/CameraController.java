@@ -1,4 +1,4 @@
-package pl.edu.agh.firecell.renderer;
+package pl.edu.agh.firecell.renderer.camera;
 
 import io.reactivex.rxjava3.disposables.Disposable;
 import org.joml.Vector2f;

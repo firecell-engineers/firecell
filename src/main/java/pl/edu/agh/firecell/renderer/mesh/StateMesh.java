@@ -1,4 +1,4 @@
-package pl.edu.agh.firecell.renderer;
+package pl.edu.agh.firecell.renderer.mesh;
 
 import org.joml.Vector3i;
 import org.lwjgl.system.MemoryUtil;
@@ -12,7 +12,6 @@ import java.util.stream.IntStream;
 
 import static org.lwjgl.opengl.GL11.GL_FLOAT;
 import static org.lwjgl.opengl.GL15.*;
-import static org.lwjgl.opengl.GL15.GL_STATIC_DRAW;
 import static org.lwjgl.opengl.GL20.glEnableVertexAttribArray;
 import static org.lwjgl.opengl.GL20.glVertexAttribPointer;
 import static org.lwjgl.opengl.GL30.glBindVertexArray;
@@ -33,16 +32,16 @@ public class StateMesh extends Mesh {
         var materialBuffer = MemoryUtil.memAllocInt(cellCount);
 
         IntStream.range(0, cellCount)
-            .forEach(flatIndex -> {
-                Vector3i expandedIndex = IndexUtils.expandIndex(flatIndex, state.spaceSize());
-                Cell cell = state.cells().get(flatIndex);
+                .forEach(flatIndex -> {
+                    Vector3i expandedIndex = IndexUtils.expandIndex(flatIndex, state.spaceSize());
+                    Cell cell = state.cells().get(flatIndex);
 
-                positionBuffer.put(flatIndex * 3,     (float)expandedIndex.x);
-                positionBuffer.put(flatIndex * 3 + 1, (float)expandedIndex.y);
-                positionBuffer.put(flatIndex * 3 + 2, (float)expandedIndex.z);
-                temperatureBuffer.put(flatIndex, (float) cell.temperature());
-                materialBuffer.put(flatIndex, cell.material().ordinal());
-            });
+                    positionBuffer.put(flatIndex * 3, (float) expandedIndex.x);
+                    positionBuffer.put(flatIndex * 3 + 1, (float) expandedIndex.y);
+                    positionBuffer.put(flatIndex * 3 + 2, (float) expandedIndex.z);
+                    temperatureBuffer.put(flatIndex, (float) cell.temperature());
+                    materialBuffer.put(flatIndex, cell.material().ordinal());
+                });
 
         glBindVertexArray(vaoID);
 
@@ -60,7 +59,7 @@ public class StateMesh extends Mesh {
 
         int stride = componentCount * Float.BYTES;
         int offset = 0;
-        lastAttributeIndex ++;
+        lastAttributeIndex++;
         glVertexAttribPointer(lastAttributeIndex, componentCount, GL_FLOAT, false, stride, offset);
         glVertexAttribDivisor(lastAttributeIndex, 1);
         glEnableVertexAttribArray(lastAttributeIndex);
@@ -73,7 +72,7 @@ public class StateMesh extends Mesh {
 
         int stride = componentCount * Integer.BYTES;
         int offset = 0;
-        lastAttributeIndex ++;
+        lastAttributeIndex++;
         glVertexAttribPointer(lastAttributeIndex, componentCount, GL_INT, false, stride, offset);
         glVertexAttribDivisor(lastAttributeIndex, 1);
         glEnableVertexAttribArray(lastAttributeIndex);
