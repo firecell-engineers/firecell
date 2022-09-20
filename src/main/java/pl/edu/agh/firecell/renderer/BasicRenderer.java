@@ -20,7 +20,7 @@ public class BasicRenderer implements Renderer {
     private final IOListener ioListener;
     private final CameraController cameraController;
     private Disposable windowSizeSubscription;
-    private RenderMode mode = RenderMode.Normal;
+    private RenderMode renderMode = RenderMode.Normal;
 
     public BasicRenderer(float aspectRatio, IOListener ioListener, SimulationConfig config)
             throws IOException, InvalidPathException, IllegalStateException {
