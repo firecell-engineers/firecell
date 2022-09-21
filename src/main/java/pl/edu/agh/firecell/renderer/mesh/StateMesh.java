@@ -1,5 +1,6 @@
 package pl.edu.agh.firecell.renderer.mesh;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.joml.Vector3i;
 import org.lwjgl.system.MemoryUtil;
 import pl.edu.agh.firecell.model.Cell;
@@ -8,7 +9,8 @@ import pl.edu.agh.firecell.model.util.IndexUtils;
 
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
-import java.util.stream.IntStream;
+import java.util.List;
+import java.util.function.Predicate;
 
 import static org.lwjgl.opengl.GL11.GL_FLOAT;
 import static org.lwjgl.opengl.GL15.*;
@@ -23,31 +25,38 @@ public class StateMesh extends Mesh {
     private final int cellCount;
     private int lastAttributeIndex = 1;
 
-    public StateMesh(float[] vertices, State state) {
+    public StateMesh(float[] vertices, State state, Predicate<Cell> cellPredicate) {
         super(vertices);
-        cellCount = state.cells().size();
 
+        List<Pair<Vector3i, Cell>> filteredIndexedCellsList = state.getIndexedCellsStream()
+                .filter(indexedCell -> cellPredicate.test(indexedCell.getRight()))
+                .toList();
+
+        cellCount = filteredIndexedCellsList.size();
         var positionBuffer = MemoryUtil.memAllocFloat(cellCount * 3);
         var temperatureBuffer = MemoryUtil.memAllocFloat(cellCount);
         var materialBuffer = MemoryUtil.memAllocInt(cellCount);
+        var burningTimeBuffer = MemoryUtil.memAllocInt(cellCount);
 
-        IntStream.range(0, cellCount)
-                .forEach(flatIndex -> {
-                    Vector3i expandedIndex = IndexUtils.expandIndex(flatIndex, state.spaceSize());
-                    Cell cell = state.cells().get(flatIndex);
+        filteredIndexedCellsList.forEach(indexedCell -> {
+            Vector3i expandedIndex = indexedCell.getLeft();
+            Cell cell = indexedCell.getRight();
+            int flatIndex = IndexUtils.flattenIndex(indexedCell.getLeft(), state.spaceSize());
 
-                    positionBuffer.put(flatIndex * 3, (float) expandedIndex.x);
-                    positionBuffer.put(flatIndex * 3 + 1, (float) expandedIndex.y);
-                    positionBuffer.put(flatIndex * 3 + 2, (float) expandedIndex.z);
-                    temperatureBuffer.put(flatIndex, (float) cell.temperature());
-                    materialBuffer.put(flatIndex, cell.material().ordinal());
-                });
+            positionBuffer.put(flatIndex * 3, (float) expandedIndex.x);
+            positionBuffer.put(flatIndex * 3 + 1, (float) expandedIndex.y);
+            positionBuffer.put(flatIndex * 3 + 2, (float) expandedIndex.z);
+            temperatureBuffer.put(flatIndex, (float) cell.temperature());
+            materialBuffer.put(flatIndex, cell.material().ordinal());
+            burningTimeBuffer.put(flatIndex, cell.burningTime());
+        });
 
         glBindVertexArray(vaoID);
 
         addInstancedFloatAttribute(positionBuffer, 3);
         addInstancedFloatAttribute(temperatureBuffer, 1);
         addInstancedIntAttribute(materialBuffer, 1);
+        addInstancedIntAttribute(burningTimeBuffer, 1);
 
         glBindVertexArray(0);
     }
@@ -81,11 +90,7 @@ public class StateMesh extends Mesh {
     @Override
     public void draw() {
         glBindVertexArray(vaoID);
-        glEnableVertexAttribArray(0);
-        glEnableVertexAttribArray(1);
-        glEnableVertexAttribArray(2);
-        glEnableVertexAttribArray(3);
-        glEnableVertexAttribArray(4);
+        enableAttributes();
         glDrawArraysInstanced(GL_TRIANGLES, 0, vertices.length, cellCount);
         glBindVertexArray(0);
     }
