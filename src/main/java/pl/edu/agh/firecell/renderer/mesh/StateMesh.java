@@ -21,9 +21,7 @@ import static org.lwjgl.opengl.GL31.glDrawArraysInstanced;
 import static org.lwjgl.opengl.GL33.glVertexAttribDivisor;
 
 public class StateMesh extends Mesh {
-
     private final int cellCount;
-    private int lastAttributeIndex = 1;
 
     public StateMesh(float[] vertices, State state, Predicate<Cell> cellPredicate) {
         super(vertices);
@@ -68,10 +66,10 @@ public class StateMesh extends Mesh {
 
         int stride = componentCount * Float.BYTES;
         int offset = 0;
-        lastAttributeIndex++;
-        glVertexAttribPointer(lastAttributeIndex, componentCount, GL_FLOAT, false, stride, offset);
-        glVertexAttribDivisor(lastAttributeIndex, 1);
-        glEnableVertexAttribArray(lastAttributeIndex);
+        glVertexAttribPointer(attributeCount, componentCount, GL_FLOAT, false, stride, offset);
+        glVertexAttribDivisor(attributeCount, 1);
+        glEnableVertexAttribArray(attributeCount);
+        attributeCount ++;
     }
 
     private void addInstancedIntAttribute(IntBuffer buffer, int componentCount) {
@@ -81,10 +79,10 @@ public class StateMesh extends Mesh {
 
         int stride = componentCount * Integer.BYTES;
         int offset = 0;
-        lastAttributeIndex++;
-        glVertexAttribPointer(lastAttributeIndex, componentCount, GL_INT, false, stride, offset);
-        glVertexAttribDivisor(lastAttributeIndex, 1);
-        glEnableVertexAttribArray(lastAttributeIndex);
+        glVertexAttribPointer(attributeCount, componentCount, GL_INT, false, stride, offset);
+        glVertexAttribDivisor(attributeCount, 1);
+        glEnableVertexAttribArray(attributeCount);
+        attributeCount ++;
     }
 
     @Override
