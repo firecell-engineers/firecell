@@ -36,18 +36,18 @@ public class StateMesh extends Mesh {
         var materialBuffer = MemoryUtil.memAllocInt(cellCount);
         var burningTimeBuffer = MemoryUtil.memAllocInt(cellCount);
 
-        filteredIndexedCellsList.forEach(indexedCell -> {
+        for (int i = 0; i < cellCount; i ++) {
+            var indexedCell = filteredIndexedCellsList.get(i);
             Vector3i expandedIndex = indexedCell.getLeft();
             Cell cell = indexedCell.getRight();
-            int flatIndex = IndexUtils.flattenIndex(indexedCell.getLeft(), state.spaceSize());
 
-            positionBuffer.put(flatIndex * 3, (float) expandedIndex.x);
-            positionBuffer.put(flatIndex * 3 + 1, (float) expandedIndex.y);
-            positionBuffer.put(flatIndex * 3 + 2, (float) expandedIndex.z);
-            temperatureBuffer.put(flatIndex, (float) cell.temperature());
-            materialBuffer.put(flatIndex, cell.material().ordinal());
-            burningTimeBuffer.put(flatIndex, cell.burningTime());
-        });
+            positionBuffer.put(i * 3,     (float) expandedIndex.x);
+            positionBuffer.put(i * 3 + 1, (float) expandedIndex.y);
+            positionBuffer.put(i * 3 + 2, (float) expandedIndex.z);
+            temperatureBuffer.put(i, (float) cell.temperature());
+            materialBuffer.put(i, cell.material().ordinal());
+            burningTimeBuffer.put(i, cell.burningTime());
+        }
 
         glBindVertexArray(vaoID);
 
