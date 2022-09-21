@@ -59,6 +59,10 @@ public class StateMesh extends Mesh {
         glBindVertexArray(0);
     }
 
+    public StateMesh(float[] vertices, State state) {
+        this(vertices, state, cell -> true);
+    }
+
     private void addInstancedFloatAttribute(FloatBuffer buffer, int componentCount) {
         int instanceVboID = glGenBuffers();
         glBindBuffer(GL_ARRAY_BUFFER, instanceVboID);
