@@ -7,6 +7,14 @@ public record Cell(
         Material material
         ) {
 
+        public boolean isSolid() {
+                return material.getMatterState().equals(MatterState.SOLID);
+        }
+
+        public boolean isFluid() {
+                return material.getMatterState().equals(MatterState.FLUID);
+        }
+
         @Override
         public boolean equals(Object o) {
         if (o == this) {

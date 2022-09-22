@@ -5,7 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pl.edu.agh.firecell.model.Cell;
 import pl.edu.agh.firecell.model.State;
-import pl.edu.agh.firecell.model.util.IndexUtils;
+import pl.edu.agh.firecell.model.util.NeighbourUtils;
 
 
 public class BasicAlgorithm implements Algorithm {
@@ -34,7 +34,7 @@ public class BasicAlgorithm implements Algorithm {
         // computeSmokePropagation();
 
         if (newFlammable && newBurningTime >= 0 && newTemperature > 100) {
-            newBurningTime ++;
+            newBurningTime++;
         }
 
         if (newBurningTime > MAX_BURNING_TIME) {
@@ -50,69 +50,35 @@ public class BasicAlgorithm implements Algorithm {
     }
 
     private double computeNewTemperature(State oldState, Vector3i cellIndex, Cell oldCell) {
-        return switch (oldCell.material().getMatterState()) {
-            case SOLID -> oldCell.temperature() + computeConductivityFromAll(oldState, oldCell, cellIndex);
-            case FLUID -> oldCell.temperature() + computeConvectionForFluid(oldState, oldCell, cellIndex);
-        };
+        return oldCell.temperature() + deltaTime *
+                switch (oldCell.material().getMatterState()) {
+                    case SOLID -> computeConductivity(oldState, oldCell, cellIndex);
+                    case FLUID -> computeConvection(oldState, oldCell, cellIndex);
+                };
     }
 
-    private double computeConductivity(Cell former, Cell middle, Cell latter) {
-        return deltaTime * (
-                CONDUCTIVITY_COEFFICIENT * (middle.temperature() - former.temperature()) -
-                        CONDUCTIVITY_COEFFICIENT * (latter.temperature() - middle.temperature())
-        );
+    private double computeConductivity(State oldState, Cell oldCell, Vector3i cellIndex) {
+        return NeighbourUtils.neighboursStream(cellIndex)
+                .filter(oldState::hasCell)
+                .map(oldState::getCell)
+                .mapToDouble(neighbour -> computeConductivityWithNeighbour(oldCell, neighbour))
+                .sum();
     }
 
-    private double computeConductivityFromAll(State oldState, Cell oldCell, Vector3i cellIndex) {
-
-        double yTemp;
-        double zTemp;
-        double xTemp;
-
-        try {
-
-            yTemp = computeConductivity(
-                    oldState.getCell(IndexUtils.north(cellIndex)),
-                    oldCell,
-                    oldState.getCell(IndexUtils.south(cellIndex)));
-
-            zTemp = computeConductivity(
-                    oldState.getCell(IndexUtils.up(cellIndex)),
-                    oldCell,
-                    oldState.getCell(IndexUtils.down(cellIndex)));
-
-            xTemp = computeConductivity(
-                    oldState.getCell(IndexUtils.east(cellIndex)),
-                    oldCell,
-                    oldState.getCell(IndexUtils.west(cellIndex)));
-
-        } catch (IndexOutOfBoundsException e) {
-            return 0;
-        }
-
-        return yTemp + zTemp + xTemp;
+    private double computeConvection(State oldState, Cell oldCell, Vector3i cellIndex) {
+        return NeighbourUtils.neighboursStream(cellIndex, NeighbourUtils.Axis.Y)
+                .filter(oldState::hasCell)
+                .map(oldState::getCell)
+                .filter(Cell::isFluid)
+                .mapToDouble(neighbour -> computeConvectionWithNeighbour(oldCell, neighbour))
+                .sum();
     }
 
-    private double computeConvectionForFluid(State oldState, Cell oldCell, Vector3i cellIndex) {
-
-        double fromDownToMe = 0;
-        double fromMeToUp = 0;
-
-        try {
-            if (oldState.getCell(IndexUtils.down(cellIndex)).temperature() - oldCell.temperature() > 0) {
-                fromDownToMe = CONVECTION_COEFFICIENT * tempDiff(oldCell, oldState.getCell(IndexUtils.down(cellIndex))) * deltaTime;
-            }
-            if (oldState.getCell(IndexUtils.up(cellIndex)).temperature() - oldCell.temperature() < 0) {
-                fromMeToUp = -CONVECTION_COEFFICIENT * tempDiff(oldCell, oldState.getCell(IndexUtils.up(cellIndex))) * deltaTime;
-            }
-        } catch (IndexOutOfBoundsException e) {
-            return oldCell.temperature();
-        }
-        return fromDownToMe + fromMeToUp;
+    private static double computeConductivityWithNeighbour(Cell oldCell, Cell neighbour) {
+        return CONDUCTIVITY_COEFFICIENT * (oldCell.temperature() - neighbour.temperature());
     }
 
-    private static double tempDiff(Cell cellOne, Cell cellTwo) {
-        return Math.abs(cellOne.temperature() - cellTwo.temperature());
+    private static double computeConvectionWithNeighbour(Cell oldCell, Cell neighbour) {
+        return CONVECTION_COEFFICIENT * (oldCell.temperature() - neighbour.temperature());
     }
-
 }
