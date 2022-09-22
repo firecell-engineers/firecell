@@ -6,5 +6,4 @@ public interface Renderer {
     void render(State state, double frameTime);
     void setRenderMode(RenderMode renderMode);
     void dispose();
-    void setRenderMode(RenderMode mode);
 }
