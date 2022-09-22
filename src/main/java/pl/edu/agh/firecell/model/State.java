@@ -1,7 +1,5 @@
 package pl.edu.agh.firecell.model;
 
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
 import org.joml.Vector3i;
 import pl.edu.agh.firecell.model.util.IndexUtils;
 
@@ -19,9 +17,9 @@ public record State(List<Cell> cells, Vector3i spaceSize) {
         return cells.get(IndexUtils.flattenIndex(index, spaceSize)).temperature();
     }
 
-    public Stream<Pair<Vector3i, Cell>> getIndexedCellsStream() {
+    public Stream<IndexedCell> getIndexedCellsStream() {
         return IntStream.range(0, cells.size())
                 .mapToObj(flatIndex -> IndexUtils.expandIndex(flatIndex, spaceSize))
-                .map(expandedIndex -> new ImmutablePair<>(expandedIndex, getCell(expandedIndex)));
+                .map(expandedIndex -> new IndexedCell(expandedIndex, getCell(expandedIndex)));
     }
 }

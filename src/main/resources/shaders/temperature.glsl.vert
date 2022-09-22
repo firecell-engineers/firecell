@@ -15,8 +15,8 @@ out vec4 fColor;
 
 const vec4 DEBUG_COLOR = vec4(1.0, 0.0, 1.0, 0.5);
 const vec4 TRANSPARENT_COLOR = vec4(0.0);
-const vec4 COLD_COLOR = vec4(0.5, 0.5, 1.0, 0.05);
-const vec4 HOT_COLOR  = vec4(1.0, 0.5, 0.5, 0.05);
+const vec4 COLD_COLOR = vec4(0.5, 0.5, 1.0, 0.01);
+const vec4 HOT_COLOR  = vec4(1.0, 0.2, 0.1, 0.3);
 
 const float TEMP_MIN_TRESHOLD = 25.0;
 const float TEMP_MAX_TRESHOLD = 300.0;
@@ -37,8 +37,11 @@ vec4 transformPosition(vec3 position, mat4 mvp) {
     return mvp * vec4(aPosition, 1.0);
 }
 
-vec4 resolveColor(float temperature) {
-    float tempInterpolant = (temperature - TEMP_MIN_TRESHOLD) /
+vec4 resolveColor() {
+    if (aInstanceTemperature < 25)  return COLD_COLOR;
+    if (aInstanceTemperature > 300) return HOT_COLOR;
+
+    float tempInterpolant = (aInstanceTemperature - TEMP_MIN_TRESHOLD) /
                             (TEMP_MAX_TRESHOLD - TEMP_MIN_TRESHOLD);
     return mix(COLD_COLOR, HOT_COLOR, tempInterpolant);
 }
@@ -49,7 +52,7 @@ void main()
     mat4 mvp   = uProjection * uView * model;
 
     fNormal = transformNormal(aNormal, model);
-    fColor = resolveColor(aInstanceTemperature);
+    fColor = resolveColor();
     gl_Position = transformPosition(aPosition, mvp);
 }
 

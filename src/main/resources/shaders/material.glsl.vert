@@ -33,11 +33,11 @@ vec4 transformPosition(vec3 position, mat4 mvp) {
     return mvp * vec4(aPosition, 1.0);
 }
 
-vec4 resolveColor(int material) {
-    if (material == 1) {      // wood
+vec4 resolveColor() {
+    if (aInstanceMaterial == 1) {      // wood
         return WOOD_COLOR;
     }
-    return TRANSPARENT_COLOR; // air
+    return WOOD_COLOR; // air
 }
 
 void main() {
@@ -45,7 +45,7 @@ void main() {
     mat4 mvp   = uProjection * uView * model;
 
     fNormal = transformNormal(aNormal, model);
-    fColor = resolveColor(aInstanceMaterial);
+    fColor = resolveColor();
     gl_Position = transformPosition(aPosition, mvp);
 }
 
