@@ -1,18 +1,14 @@
-package pl.edu.agh.firecell.renderer;
+package pl.edu.agh.firecell.renderer.mesh;
 
-import org.joml.Vector3i;
 import org.lwjgl.system.MemoryUtil;
-import pl.edu.agh.firecell.model.Cell;
-import pl.edu.agh.firecell.model.State;
-import pl.edu.agh.firecell.model.util.IndexUtils;
+import pl.edu.agh.firecell.model.IndexedCell;
 
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
-import java.util.stream.IntStream;
+import java.util.List;
 
 import static org.lwjgl.opengl.GL11.GL_FLOAT;
 import static org.lwjgl.opengl.GL15.*;
-import static org.lwjgl.opengl.GL15.GL_STATIC_DRAW;
 import static org.lwjgl.opengl.GL20.glEnableVertexAttribArray;
 import static org.lwjgl.opengl.GL20.glVertexAttribPointer;
 import static org.lwjgl.opengl.GL30.glBindVertexArray;
@@ -20,35 +16,34 @@ import static org.lwjgl.opengl.GL31.glDrawArraysInstanced;
 import static org.lwjgl.opengl.GL33.glVertexAttribDivisor;
 
 public class StateMesh extends Mesh {
-
     private final int cellCount;
-    private int lastAttributeIndex = 1;
 
-    public StateMesh(float[] vertices, State state) {
+    public StateMesh(float[] vertices, List<IndexedCell> indexedCellsList) {
         super(vertices);
-        cellCount = state.cells().size();
+        cellCount = indexedCellsList.size();
 
         var positionBuffer = MemoryUtil.memAllocFloat(cellCount * 3);
         var temperatureBuffer = MemoryUtil.memAllocFloat(cellCount);
         var materialBuffer = MemoryUtil.memAllocInt(cellCount);
+        var burningTimeBuffer = MemoryUtil.memAllocInt(cellCount);
 
-        IntStream.range(0, state.cells().size())
-            .forEach(flatIndex -> {
-                Vector3i expandedIndex = IndexUtils.expandIndex(flatIndex, state.spaceSize());
-                Cell cell = state.cells().get(flatIndex);
-
-                positionBuffer.put(flatIndex * 3,     (float)expandedIndex.x);
-                positionBuffer.put(flatIndex * 3 + 1, (float)expandedIndex.y);
-                positionBuffer.put(flatIndex * 3 + 2, (float)expandedIndex.z);
-                temperatureBuffer.put(flatIndex, (float) cell.temperature());
-                materialBuffer.put(flatIndex, cell.material().ordinal());
-            });
+        int bufferIndex = 0;
+        for (IndexedCell indexedCell : indexedCellsList) {
+            positionBuffer.put(bufferIndex * 3, (float) indexedCell.index().x);
+            positionBuffer.put(bufferIndex * 3 + 1, (float) indexedCell.index().y);
+            positionBuffer.put(bufferIndex * 3 + 2, (float) indexedCell.index().z);
+            temperatureBuffer.put(bufferIndex, (float) indexedCell.cell().temperature());
+            materialBuffer.put(bufferIndex, indexedCell.cell().material().ordinal());
+            burningTimeBuffer.put(bufferIndex, indexedCell.cell().burningTime());
+            bufferIndex++;
+        }
 
         glBindVertexArray(vaoID);
 
         addInstancedFloatAttribute(positionBuffer, 3);
         addInstancedFloatAttribute(temperatureBuffer, 1);
         addInstancedIntAttribute(materialBuffer, 1);
+        addInstancedIntAttribute(burningTimeBuffer, 1);
 
         glBindVertexArray(0);
     }
@@ -60,10 +55,10 @@ public class StateMesh extends Mesh {
 
         int stride = componentCount * Float.BYTES;
         int offset = 0;
-        lastAttributeIndex ++;
-        glVertexAttribPointer(lastAttributeIndex, componentCount, GL_FLOAT, false, stride, offset);
-        glVertexAttribDivisor(lastAttributeIndex, 1);
-        glEnableVertexAttribArray(lastAttributeIndex);
+        glVertexAttribPointer(attributeCount, componentCount, GL_FLOAT, false, stride, offset);
+        glVertexAttribDivisor(attributeCount, 1);
+        glEnableVertexAttribArray(attributeCount);
+        attributeCount++;
     }
 
     private void addInstancedIntAttribute(IntBuffer buffer, int componentCount) {
@@ -73,20 +68,16 @@ public class StateMesh extends Mesh {
 
         int stride = componentCount * Integer.BYTES;
         int offset = 0;
-        lastAttributeIndex ++;
-        glVertexAttribPointer(lastAttributeIndex, componentCount, GL_INT, false, stride, offset);
-        glVertexAttribDivisor(lastAttributeIndex, 1);
-        glEnableVertexAttribArray(lastAttributeIndex);
+        glVertexAttribPointer(attributeCount, componentCount, GL_INT, false, stride, offset);
+        glVertexAttribDivisor(attributeCount, 1);
+        glEnableVertexAttribArray(attributeCount);
+        attributeCount++;
     }
 
     @Override
     public void draw() {
         glBindVertexArray(vaoID);
-        glEnableVertexAttribArray(0);
-        glEnableVertexAttribArray(1);
-        glEnableVertexAttribArray(2);
-        glEnableVertexAttribArray(3);
-        glEnableVertexAttribArray(4);
+        enableAttributes();
         glDrawArraysInstanced(GL_TRIANGLES, 0, vertices.length, cellCount);
         glBindVertexArray(0);
     }
