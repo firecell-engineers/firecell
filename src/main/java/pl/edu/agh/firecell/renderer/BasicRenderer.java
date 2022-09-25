@@ -83,8 +83,7 @@ public class BasicRenderer implements Renderer {
     private void renderFire(State state) {
         glDepthMask(false);
         var burningCellsList = state.getIndexedCellsStream()
-                .filter(indexedCell -> indexedCell.cell().burningTime() > 0
-                        && indexedCell.cell().material().equals(Material.AIR))
+                .filter(indexedCell -> indexedCell.cell().burningTime() > 0)
                 .sorted(cameraDistanceCellComparator(camera.position()))
                 .toList();
         var mesh = new StateMesh(MeshUtils.CUBE_VERTICES, burningCellsList);
