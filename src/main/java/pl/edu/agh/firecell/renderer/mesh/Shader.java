@@ -1,4 +1,4 @@
-package pl.edu.agh.firecell.renderer;
+package pl.edu.agh.firecell.renderer.mesh;
 
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
@@ -60,6 +60,14 @@ public class Shader {
             var buffer = vector.get(stack.mallocFloat(4));
             glUniform4fv(getLocation(name), buffer);
         }
+    }
+
+    public void setInt(String name, int value) {
+        glUniform1i(getLocation(name), value);
+    }
+
+    public void setFloat(String name, float value) {
+        glUniform1f(getLocation(name), value);
     }
 
     private int getLocation(String name) {

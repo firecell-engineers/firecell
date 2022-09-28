@@ -5,6 +5,7 @@ layout (location = 1) in vec3  aNormal;
 layout (location = 2) in vec3  aInstancePosition;
 layout (location = 3) in float aInstanceTemperature;
 layout (location = 4) in int   aInstanceMaterial;
+layout (location = 5) in int   aInstanceBurningTime;
 
 uniform mat4 uProjection;
 uniform mat4 uView;
@@ -12,9 +13,11 @@ uniform mat4 uView;
 out vec3 fNormal;
 out vec4 fColor;
 
+const vec4 DEBUG_COLOR = vec4(1.0, 0.0, 1.0, 0.5);
+const vec4 WOOD_COLOR  = vec4(0.349, 0.227, 0.101, 1.0);
+const vec4 TRANSPARENT_COLOR = vec4(0.0);
 
-mat4 modelFromPosition(vec3 position)
-{
+mat4 modelFromPosition(vec3 position) {
     mat4 model = mat4(1.0);
     model[3][0] = position.x;
     model[3][1] = position.y;
@@ -22,30 +25,27 @@ mat4 modelFromPosition(vec3 position)
     return model;
 }
 
-vec3 transformNormal(vec3 normal, mat4 model)
-{
+vec3 transformNormal(vec3 normal, mat4 model) {
     return mat3(transpose(inverse(model))) * aNormal;
 }
 
-vec4 transformPosition(vec3 position, mat4 mvp)
-{
+vec4 transformPosition(vec3 position, mat4 mvp) {
     return mvp * vec4(aPosition, 1.0);
 }
 
-vec4 resolveColor(int material, float temperature)
-{
-    if (material == 0)    return vec4(0.349, 0.227, 0.101, 1.0); // wood
-    if (temperature < 25) return vec4(0.67, 0.827, 0.87, 0.01);  // cold air
-    return vec4(temperature / 200.0, 0.4, 0.4, 0.07);            // hot colored air
+vec4 resolveColor() {
+    if (aInstanceMaterial == 1) {      // wood
+        return WOOD_COLOR;
+    }
+    return WOOD_COLOR; // air
 }
 
-void main()
-{
+void main() {
     mat4 model = modelFromPosition(aInstancePosition);
     mat4 mvp   = uProjection * uView * model;
 
     fNormal = transformNormal(aNormal, model);
-    fColor = resolveColor(aInstanceMaterial, aInstanceTemperature);
+    fColor = resolveColor();
     gl_Position = transformPosition(aPosition, mvp);
 }
 

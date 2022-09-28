@@ -1,4 +1,4 @@
-package pl.edu.agh.firecell.renderer;
+package pl.edu.agh.firecell.renderer.camera;
 
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
