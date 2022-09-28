@@ -16,6 +16,7 @@ public class BasicAlgorithm implements Algorithm {
     // should be dependent on the material in the future
     public static final double CONDUCTIVITY_COEFFICIENT = 0.1;
     public static final int MAX_BURNING_TIME = 5;
+    public static final double MIN_BURNING_TEMPERATURE = 100;
 
     public BasicAlgorithm(double deltaTime) {
         this.deltaTime = deltaTime;
@@ -32,7 +33,7 @@ public class BasicAlgorithm implements Algorithm {
         // fire propagation
         boolean newFlammable = oldCell.flammable();
         int newBurningTime = oldCell.burningTime();
-        if (oldCell.flammable() && oldCell.burningTime() >= 0 && newTemperature > 100) {
+        if (oldCell.flammable() && oldCell.burningTime() >= 0 && newTemperature > MIN_BURNING_TEMPERATURE) {
             newBurningTime++;
         }
         if (newBurningTime > MAX_BURNING_TIME) {
@@ -68,7 +69,6 @@ public class BasicAlgorithm implements Algorithm {
         return NeighbourUtils.neighboursStream(cellIndex, NeighbourUtils.Axis.Y)
                 .filter(oldState::hasCell)
                 .map(oldState::getCell)
-//                .filter(Cell::isFluid)
                 .mapToDouble(neighbourCell -> computeConvectionWithNeighbour(oldCell, neighbourCell))
                 .sum();
     }
