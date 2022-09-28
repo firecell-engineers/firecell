@@ -1,4 +1,4 @@
-package pl.edu.agh.firecell.renderer;
+package pl.edu.agh.firecell.renderer.rendermode;
 
 public enum RenderMode {
     STANDARD,
