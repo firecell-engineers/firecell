@@ -1,4 +1,4 @@
-package pl.edu.agh.firecell.renderer;
+package pl.edu.agh.firecell.renderer.camera;
 
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
@@ -17,7 +17,8 @@ public class Camera {
     private float aspectRatio;
     private Vector3f position = new Vector3f(0);
     private Vector3f direction = new Vector3f(0, 0, -1);
-    private Vector3f up = new Vector3f(0, 1, 0);
+    private final Vector3f up = new Vector3f(0, 1, 0);
+    private final Vector3f eulerAngles = new Vector3f(0.0f, (float) (- Math.PI / 2.0f), 0.0f);
 
     private Matrix4f viewMatrix;
     private Matrix4f perspectiveMatrix;
@@ -38,8 +39,15 @@ public class Camera {
         updateViewMatrix();
     }
 
-    public void setDirection(Vector3f direction) {
-        this.direction = direction;
+    public void addYaw(float yawChange) {
+        eulerAngles.y += yawChange;
+        updateDirection();
+        updateViewMatrix();
+    }
+
+    public void addPitch(float pitchChange) {
+        eulerAngles.x += pitchChange;
+        updateDirection();
         updateViewMatrix();
     }
 
@@ -87,5 +95,13 @@ public class Camera {
 
     private void updateProjectionMatrix() {
         perspectiveMatrix = new Matrix4f().perspective((float) Math.toRadians(FOV), aspectRatio, Z_NEAR, Z_FAR);
+    }
+
+    private void updateDirection() {
+        direction = new Vector3f(
+                (float) (Math.cos(eulerAngles.y) * Math.cos(eulerAngles.x)),
+                (float) (Math.sin(eulerAngles.x)),
+                (float) (Math.sin(eulerAngles.y) * Math.cos(eulerAngles.x))
+        ).normalize();
     }
 }

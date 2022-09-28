@@ -7,8 +7,8 @@ import static pl.edu.agh.firecell.model.MatterState.SOLID;
 public enum Material {
     // TODO:
     // consider putting them into constant
-    WOOD(3, 4, 0, SOLID, 30),
-    AIR(0, 0, 0, FLUID, 0);
+    AIR(0, 0, 0, FLUID, 30),
+    WOOD(3, 4, 0, SOLID, 0);
 
     private final double ignitionTemperature;
     private final double autoIgnitionTemperature;

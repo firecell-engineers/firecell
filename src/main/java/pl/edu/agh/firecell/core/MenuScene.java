@@ -70,6 +70,6 @@ public class MenuScene implements Scene {
                 .igniteCuboid(new Vector3i(14, 4, 14), new Vector3i(2, 2, 2)) // fire source
                 .getResult();
 
-        return new SimulationConfig(spaceSize, initialState, 0.001);
+        return new SimulationConfig(spaceSize, initialState, 0.5);
     }
 }

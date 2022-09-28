@@ -148,6 +148,8 @@ public class Window {
         glfwSetKeyCallback(glfwWindow, ioListener::keyCallback);
         glfwSetWindowSizeCallback(glfwWindow, ioListener::windowSizeCallback);
         glfwSetFramebufferSizeCallback(glfwWindow, ioListener::windowSizeCallback);
+        glfwSetCursorPosCallback(glfwWindow, ioListener::mousePositionCallback);
+        glfwSetMouseButtonCallback(glfwWindow, ioListener::mouseButtonCallback);
         glfwSwapInterval(1);
         glfwShowWindow(glfwWindow);
     }
@@ -156,9 +158,12 @@ public class Window {
         logger.info(String.format("Using LWJGL %s.", Version.getVersion()));
         GL.createCapabilities();
         glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
+        glViewport(0, 0, size.x, size.y);
+
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_LEQUAL);
-        glViewport(0, 0, size.x, size.y);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     }
 
     private void initializeImGui() {

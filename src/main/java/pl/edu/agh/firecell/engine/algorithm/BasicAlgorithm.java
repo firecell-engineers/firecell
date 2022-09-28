@@ -3,7 +3,9 @@ package pl.edu.agh.firecell.engine.algorithm;
 import org.joml.Vector3i;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import pl.edu.agh.firecell.model.*;
+import pl.edu.agh.firecell.model.Cell;
+import pl.edu.agh.firecell.model.MatterState;
+import pl.edu.agh.firecell.model.State;
 import pl.edu.agh.firecell.model.util.IndexUtils;
 
 import java.util.HashMap;
@@ -21,6 +23,7 @@ public class BasicAlgorithm implements Algorithm {
     public static final double CONDUCTIVITY_COEFFICIENT = 1;
     private final Map<String, Integer> smokeCoefficients = new HashMap<>();
     private final Map<String, Integer> smokeCoefficientsHorizontalEscalation = new HashMap<>();
+    public static final int MAX_BURNING_TIME = 5;
 
     public BasicAlgorithm(double deltaTime) {
         this.deltaTime = deltaTime;
@@ -43,8 +46,6 @@ public class BasicAlgorithm implements Algorithm {
     @Override
     public Cell compute(State oldState, Vector3i cellIndex) {
 
-        logger.debug("Computing at position: " + cellIndex);
-
         Cell oldCell = oldState.getCell(cellIndex);
 
         double newTemperature = computeNewTemperature(oldState, cellIndex, oldCell);
@@ -53,9 +54,19 @@ public class BasicAlgorithm implements Algorithm {
         Material newMaterial  = oldCell.material();
         int newSmokeIndicator = computeNewSmokeIndicator(oldState, cellIndex, oldCell);
 
+        // computeFirePropagation();
+        // computeSmokePropagation();
         //computeFirePropagation();
         if(newFlammable){
             newSmokeIndicator = Math.min(100, newSmokeIndicator + newMaterial.smokeCoe());
+        }
+
+        if (newFlammable && newBurningTime >= 0 && newTemperature > 100) {
+            newBurningTime ++;
+        }
+
+        if (newBurningTime > MAX_BURNING_TIME) {
+            newFlammable = false;
         }
 
         return new Cell(
@@ -126,33 +137,33 @@ public class BasicAlgorithm implements Algorithm {
     }
 
     private double computeConductivityFromAll(State oldState, Cell oldCell, Vector3i cellIndex) {
-
-        double yTemp;
-        double zTemp;
-        double xTemp;
+        double yTemp = 0;
+        double zTemp = 0;
+        double xTemp = 0;
 
         try {
+            Cell northCell = oldState.getCell(IndexUtils.north(cellIndex));
+            MatterState northMatter = northCell.material().getMatterState();
+            Cell southCell = oldState.getCell(IndexUtils.south(cellIndex));
+            MatterState southMatter = southCell.material().getMatterState();
 
-            yTemp = computeConductivity(
-                    oldState.getCell(IndexUtils.north(cellIndex)),
-                    oldCell,
-                    oldState.getCell(IndexUtils.south(cellIndex)));
+            Cell upCell = oldState.getCell(IndexUtils.up(cellIndex));
+            MatterState upMatter = upCell.material().getMatterState();
+            Cell downCell = oldState.getCell(IndexUtils.down(cellIndex));
+            MatterState downMatter = downCell.material().getMatterState();
 
-            zTemp = computeConductivity(
-                    oldState.getCell(IndexUtils.up(cellIndex)),
-                    oldCell,
-                    oldState.getCell(IndexUtils.down(cellIndex)));
+            Cell eastCell = oldState.getCell(IndexUtils.east(cellIndex));
+            MatterState eastMatter = eastCell.material().getMatterState();
+            Cell westCell = oldState.getCell(IndexUtils.west(cellIndex));
+            MatterState westMatter = westCell.material().getMatterState();
 
-            xTemp = computeConductivity(
-                    oldState.getCell(IndexUtils.east(cellIndex)),
-                    oldCell,
-                    oldState.getCell(IndexUtils.west(cellIndex)));
-
-        } catch (IndexOutOfBoundsException e) {
-            logger.debug(String.valueOf(e));
-            return 0;
-        }
-
+            if (northMatter == MatterState.SOLID && southMatter == MatterState.SOLID)
+                yTemp = computeConductivity(northCell, oldCell, southCell);
+            if (upMatter == MatterState.SOLID && downMatter == MatterState.SOLID)
+                zTemp = computeConductivity(upCell, oldCell, downCell);
+            if (eastMatter == MatterState.SOLID && westMatter == MatterState.SOLID)
+                xTemp = computeConductivity(eastCell, oldCell, westCell);
+        } catch (IndexOutOfBoundsException ignored) {}
         return yTemp + zTemp + xTemp;
     }
 
@@ -162,15 +173,15 @@ public class BasicAlgorithm implements Algorithm {
         double fromMeToUp = 0;
 
         try {
-            if (oldState.getCell(IndexUtils.down(cellIndex)).temperature() - oldCell.temperature() > 0) {
-                fromDownToMe = CONVECTION_COEFFICIENT * tempDiff(oldCell, oldState.getCell(IndexUtils.down(cellIndex))) * deltaTime;
+            Cell cellUnder = oldState.getCell(IndexUtils.down(cellIndex));
+            Cell cellAbove = oldState.getCell(IndexUtils.up(cellIndex));
+            if (cellUnder.temperature() - oldCell.temperature() > 0) {
+                fromDownToMe = CONVECTION_COEFFICIENT * tempDiff(oldCell, cellUnder) * deltaTime;
             }
-            if (oldState.getCell(IndexUtils.up(cellIndex)).temperature() - oldCell.temperature() < 0) {
-                fromMeToUp = -CONVECTION_COEFFICIENT * tempDiff(oldCell, oldState.getCell(IndexUtils.up(cellIndex))) * deltaTime;
+            if (cellAbove.temperature() - oldCell.temperature() < 0) {
+                fromMeToUp = -CONVECTION_COEFFICIENT * tempDiff(oldCell, cellAbove) * deltaTime;
             }
-        } catch (IndexOutOfBoundsException e) {
-            return oldCell.temperature();
-        }
+        } catch (IndexOutOfBoundsException ignored) {}
         return fromDownToMe + fromMeToUp;
     }
 
