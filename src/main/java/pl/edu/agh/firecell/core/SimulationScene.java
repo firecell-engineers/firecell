@@ -10,7 +10,7 @@ import pl.edu.agh.firecell.engine.algorithm.BasicAlgorithm;
 import pl.edu.agh.firecell.model.SimulationConfig;
 import pl.edu.agh.firecell.model.State;
 import pl.edu.agh.firecell.renderer.BasicRenderer;
-import pl.edu.agh.firecell.renderer.RenderMode;
+import pl.edu.agh.firecell.renderer.rendermode.RenderMode;
 import pl.edu.agh.firecell.renderer.Renderer;
 import pl.edu.agh.firecell.storage.FileSystemStorage;
 import pl.edu.agh.firecell.storage.serialization.BinaryStateSerializer;

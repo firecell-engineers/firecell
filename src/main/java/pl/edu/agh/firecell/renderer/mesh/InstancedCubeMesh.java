@@ -15,12 +15,12 @@ import static org.lwjgl.opengl.GL30.glBindVertexArray;
 import static org.lwjgl.opengl.GL31.glDrawArraysInstanced;
 import static org.lwjgl.opengl.GL33.glVertexAttribDivisor;
 
-public class StateMesh extends Mesh {
+public class InstancedCubeMesh extends Mesh {
     private final int cellCount;
 
-    public StateMesh(float[] vertices, List<IndexedCell> indexedCellsList) {
+    public InstancedCubeMesh(float[] vertices, List<IndexedCell> indexedCells) {
         super(vertices);
-        cellCount = indexedCellsList.size();
+        cellCount = indexedCells.size();
 
         var positionBuffer = MemoryUtil.memAllocFloat(cellCount * 3);
         var temperatureBuffer = MemoryUtil.memAllocFloat(cellCount);
@@ -28,7 +28,7 @@ public class StateMesh extends Mesh {
         var burningTimeBuffer = MemoryUtil.memAllocInt(cellCount);
 
         int bufferIndex = 0;
-        for (IndexedCell indexedCell : indexedCellsList) {
+        for (IndexedCell indexedCell : indexedCells) {
             positionBuffer.put(bufferIndex * 3, (float) indexedCell.index().x);
             positionBuffer.put(bufferIndex * 3 + 1, (float) indexedCell.index().y);
             positionBuffer.put(bufferIndex * 3 + 2, (float) indexedCell.index().z);
