@@ -13,6 +13,13 @@ public record State(List<Cell> cells, Vector3i spaceSize) {
         return cells.get(IndexUtils.flattenIndex(index, spaceSize));
     }
 
+    public boolean hasCell(Vector3i index) {
+        return 0 <= index.x && index.x < spaceSize.x &&
+                0 <= index.y && index.y < spaceSize.y &&
+                0 <= index.z && index.z < spaceSize.z;
+
+    }
+
     public double getTemp(Vector3i index) {
         return cells.get(IndexUtils.flattenIndex(index, spaceSize)).temperature();
     }
