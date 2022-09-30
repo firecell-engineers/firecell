@@ -4,6 +4,7 @@ import org.joml.Vector3i;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pl.edu.agh.firecell.model.Cell;
+import pl.edu.agh.firecell.model.Material;
 import pl.edu.agh.firecell.model.MatterState;
 import pl.edu.agh.firecell.model.State;
 import pl.edu.agh.firecell.model.util.IndexUtils;
@@ -13,9 +14,9 @@ public class BasicAlgorithm implements Algorithm {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private final double deltaTime;
-    public static final double CONVECTION_COEFFICIENT = 1;
+    public static final double CONVECTION_COEFFICIENT = 1.25;
     // should be dependent on the material in the future
-    public static final double CONDUCTIVITY_COEFFICIENT = 1;
+    public static final double CONDUCTIVITY_COEFFICIENT = 0.02;
     public static final int MAX_BURNING_TIME = 5;
 
     public BasicAlgorithm(double deltaTime) {
@@ -30,11 +31,44 @@ public class BasicAlgorithm implements Algorithm {
         double newTemperature = computeNewTemperature(oldState, cellIndex, oldCell);
         boolean newFlammable = oldCell.flammable();
         int newBurningTime = oldCell.burningTime();
+        int newRemainingHeightOfFirePillar = oldCell.remainingHeightOfFirePillar();
+        boolean newPossibleToGoUp = oldCell.possibleToGoUp();
 
-        // computeFirePropagation();
-        // computeSmokePropagation();
+        try {
+            if (oldState.getCell(IndexUtils.up(cellIndex)).material().equals(Material.WOOD)) {
+                newPossibleToGoUp = false;
+            }
+        } catch (IndexOutOfBoundsException ignored){
+            newPossibleToGoUp = false;
+        }
 
-        if (newFlammable && newBurningTime >= 0 && newTemperature > 100) {
+        if(oldCell.material().equals(Material.WOOD) && newTemperature > 250) {
+            newBurningTime ++;
+        }
+        if(oldCell.material().equals(Material.AIR)){
+            try {
+                Cell underCell = oldState.getCell(IndexUtils.down(cellIndex));
+                if (underCell.flammable() && underCell.burningTime() > 0) {
+                    newRemainingHeightOfFirePillar = underCell.remainingHeightOfFirePillar() - 1;
+                    if (newRemainingHeightOfFirePillar > 0) {
+                        // Rethink it
+                        newTemperature = Math.max(newTemperature, 600);
+                        newBurningTime++;
+                    }
+                } else {
+                    Cell neighbourOnFire = doesNeighbourOnFire(oldState, cellIndex);
+                    if (neighbourOnFire!=null) {
+                        newRemainingHeightOfFirePillar = neighbourOnFire.remainingHeightOfFirePillar() - 1;
+                        if (newRemainingHeightOfFirePillar > 0) {
+                            newTemperature = Math.max(newTemperature, 600);
+                            newBurningTime++;
+                        }
+                    }
+                }
+            }catch (IndexOutOfBoundsException ignored){}
+        }
+
+        if (newFlammable && newBurningTime > 0) {
             newBurningTime ++;
         }
 
@@ -46,8 +80,30 @@ public class BasicAlgorithm implements Algorithm {
                 newTemperature,
                 newBurningTime,
                 newFlammable,
-                oldCell.material()
+                oldCell.material(),
+                newRemainingHeightOfFirePillar,
+                newPossibleToGoUp
         );
+    }
+
+    private Cell doesNeighbourOnFire(State oldState, Vector3i cellIndex){
+        Cell northCell = oldState.getCell(IndexUtils.north(cellIndex));
+        Cell southCell = oldState.getCell(IndexUtils.south(cellIndex));
+        Cell westCell = oldState.getCell(IndexUtils.west(cellIndex));
+        Cell eastCell = oldState.getCell(IndexUtils.east(cellIndex));
+        if(doesHorizontalFire(northCell))
+            return northCell;
+        if(doesHorizontalFire(southCell))
+            return southCell;
+        if(doesHorizontalFire(westCell))
+            return westCell;
+        if(doesHorizontalFire(eastCell))
+            return eastCell;
+        return null;
+    }
+
+    private boolean doesHorizontalFire(Cell cell){
+        return cell.burningTime() > 0 && cell.remainingHeightOfFirePillar() > 0 && !cell.possibleToGoUp();
     }
 
     private double computeNewTemperature(State oldState, Vector3i cellIndex, Cell oldCell) {
@@ -58,9 +114,8 @@ public class BasicAlgorithm implements Algorithm {
     }
 
     private double computeConductivity(Cell former, Cell middle, Cell latter) {
-        return deltaTime * (
-                CONDUCTIVITY_COEFFICIENT * (middle.temperature() - former.temperature()) -
-                        CONDUCTIVITY_COEFFICIENT * (latter.temperature() - middle.temperature())
+        return - deltaTime * CONDUCTIVITY_COEFFICIENT * (
+                 2 * middle.temperature() - former.temperature() - latter.temperature()
         );
     }
 
@@ -87,10 +142,24 @@ public class BasicAlgorithm implements Algorithm {
 
             if (northMatter == MatterState.SOLID && southMatter == MatterState.SOLID)
                 yTemp = computeConductivity(northCell, oldCell, southCell);
+            else if (northMatter == MatterState.SOLID)
+                yTemp = computeConductivity(northCell, oldCell, oldCell.getCopy());
+            else if (southMatter == MatterState.SOLID)
+                yTemp = computeConductivity(oldCell.getCopy(), oldCell, southCell);
+
             if (upMatter == MatterState.SOLID && downMatter == MatterState.SOLID)
                 zTemp = computeConductivity(upCell, oldCell, downCell);
+            else if (upMatter == MatterState.SOLID)
+                zTemp = computeConductivity(upCell, oldCell, oldCell.getCopy());
+            else if (downMatter == MatterState.SOLID)
+                zTemp = computeConductivity(oldCell.getCopy(), oldCell, downCell);
+
             if (eastMatter == MatterState.SOLID && westMatter == MatterState.SOLID)
                 xTemp = computeConductivity(eastCell, oldCell, westCell);
+            else if (eastMatter == MatterState.SOLID)
+                xTemp = computeConductivity(eastCell, oldCell, oldCell.getCopy());
+            else if (westMatter == MatterState.SOLID)
+                xTemp = computeConductivity(oldCell.getCopy(), oldCell, westCell);
         } catch (IndexOutOfBoundsException ignored) {}
         return yTemp + zTemp + xTemp;
     }

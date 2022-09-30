@@ -4,8 +4,22 @@ public record Cell(
         double temperature,
         int burningTime,
         boolean flammable,
-        Material material
+        Material material,
+        int remainingHeightOfFirePillar,
+        boolean possibleToGoUp
         ) {
+
+        public Cell(double temperature, int burningTime, boolean flammable, Material material){
+                this(temperature, burningTime, flammable, material, 0, true);
+        }
+
+        public Cell(double temperature, int burningTime, boolean flammable, Material material, int remainingHeightOfFirePillar){
+                this(temperature, burningTime, flammable, material, remainingHeightOfFirePillar, true);
+        }
+
+        public Cell getCopy(){
+                return new Cell(temperature, burningTime, flammable, material, remainingHeightOfFirePillar, possibleToGoUp);
+        }
 
         @Override
         public boolean equals(Object o) {
