@@ -41,7 +41,6 @@ public class BasicEngineRunnable implements Runnable {
     private State computeNewState(State oldState) {
         logger.debug("Computing state %s".formatted(currentStateIndex));
 
-        // TODO: handle illegal index exception inside algorithm.compute()
          List<Cell> newCells = IntStream.range(0, oldState.cells().size())
                  .mapToObj(flatIndex -> IndexUtils.expandIndex(flatIndex, oldState.spaceSize()))
                  .map(expandedIndex -> algorithm.compute(oldState, expandedIndex))

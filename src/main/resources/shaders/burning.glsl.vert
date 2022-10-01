@@ -39,11 +39,11 @@ vec4 transformPosition(vec3 position, mat4 mvp) {
 
 vec4 resolveColor() {
     // discard everything but burning air
-    if (aInstanceBurningTime <= 0 || aInstanceMaterial > 0)
+    if (aInstanceBurningTime <= 0)
         return TRANSPARENT_COLOR;
 
     if (aInstanceTemperature < 25)  return FIRE_COLD_COLOR;
-    if (aInstanceTemperature > 300) return FIRE_HOT_COLOR;
+    if (aInstanceTemperature > 400) return FIRE_HOT_COLOR;
 
     float tempInterpolant = (aInstanceTemperature - TEMP_MIN_TRESHOLD) /
                             (TEMP_MAX_TRESHOLD - TEMP_MIN_TRESHOLD);
