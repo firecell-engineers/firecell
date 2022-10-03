@@ -25,6 +25,7 @@ public class BasicRenderer implements Renderer {
     private final Shader opaqueMaterialShader = new Shader("material.glsl.vert", "ambientDiffuse.glsl.frag");
     private final Shader transparentTempShader = new Shader("temperature.glsl.vert", "ambientDiffuse.glsl.frag");
     private final Shader fireShader = new Shader("burning.glsl.vert", "ambientDiffuse.glsl.frag");
+    private final Shader smokeShader = new Shader("smoke.glsl.vert", "ambientDiffuse.glsl.frag");
 
     private final Camera camera;
     private final IOListener ioListener;
@@ -43,7 +44,7 @@ public class BasicRenderer implements Renderer {
         this.camera = new Camera(aspectRatio);
         this.cameraController = new CameraController(camera, ioListener);
         this.renderMode = RenderMode.STANDARD;
-        this.renderStrategy = new StandardRenderStrategy(camera, opaqueMaterialShader, fireShader);
+        this.renderStrategy = new StandardRenderStrategy(camera, opaqueMaterialShader, fireShader, smokeShader);
         this.projection = new Uniform<>("uProjection", camera.perspectiveMatrix());
         this.lightDirection = new Uniform<>("uLightDir", new Vector3f(-1.0f, -0.8f, 0.5f));
         this.lightColor = new Uniform<>("uLightColor", new Vector3f(1.0f, 1.0f, 1.0f));
@@ -59,6 +60,8 @@ public class BasicRenderer implements Renderer {
         transparentTempShader.setMatrix4("uView", camera.viewMatrix());
         fireShader.bind();
         fireShader.setMatrix4("uView", camera.viewMatrix());
+        smokeShader.bind();
+        smokeShader.setMatrix4("uView", camera.viewMatrix());
 
         renderStrategy.renderState(state);
     }
@@ -67,7 +70,7 @@ public class BasicRenderer implements Renderer {
     public void setRenderMode(RenderMode renderMode) {
         this.renderMode = renderMode;
         switch (renderMode) {
-            case STANDARD -> renderStrategy = new StandardRenderStrategy(camera, opaqueMaterialShader, fireShader);
+            case STANDARD -> renderStrategy = new StandardRenderStrategy(camera, opaqueMaterialShader, fireShader, smokeShader);
             case TEMPERATURE_AIR ->
                     renderStrategy = new TemperatureAirRenderStrategy(camera, opaqueMaterialShader, transparentTempShader);
             case TEMPERATURE_SOLID ->
@@ -85,7 +88,7 @@ public class BasicRenderer implements Renderer {
         var spaceSize = new Vector3f(config.size().x, config.size().y, config.size().z);
         camera.setPosition(new Vector3f(spaceSize).mul(0.5f).add(new Vector3f(0.0f, 0.0f, spaceSize.z * 1.5f)));
 
-        Stream.of(opaqueMaterialShader, transparentTempShader, fireShader)
+        Stream.of(opaqueMaterialShader, transparentTempShader, fireShader, smokeShader)
                 .forEach(shader -> {
                     shader.bind();
                     projection.populateShader(shader);
@@ -96,7 +99,7 @@ public class BasicRenderer implements Renderer {
         windowSizeSubscription = ioListener.windowSizeObservable().subscribe(size -> {
             camera.setAspectRatio(size.x / (float) size.y);
             projection = new Uniform<>("uProjection", camera.perspectiveMatrix());
-            Stream.of(opaqueMaterialShader, transparentTempShader, fireShader)
+            Stream.of(opaqueMaterialShader, transparentTempShader, fireShader, smokeShader)
                     .forEach(projection::populateShader);
         });
     }

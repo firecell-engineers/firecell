@@ -6,7 +6,7 @@ layout (location = 2) in vec3  aInstancePosition;
 layout (location = 3) in float aInstanceTemperature;
 layout (location = 4) in int   aInstanceMaterial;
 layout (location = 5) in int   aInstanceBurningTime;
-layout (location = 6) in int   aInstanceSmokeIndicator;
+layout (location = 6) in float aInstanceSmokeIndicator;
 
 uniform mat4 uProjection;
 uniform mat4 uView;
@@ -16,11 +16,11 @@ out vec4 fColor;
 
 const vec4 DEBUG_COLOR = vec4(1.0, 0.0, 1.0, 0.5);
 const vec4 TRANSPARENT_COLOR = vec4(0.0);
-const vec4 COLD_COLOR = vec4(0.5, 0.5, 1.0, 0.01);
-const vec4 HOT_COLOR  = vec4(1.0, 0.2, 0.1, 0.3);
+const vec4 THIN_COLOR = vec4(0.7, 0.7, 0.7, 0.01);
+const vec4 DENSE_COLOR  = vec4(0.0, 0.0, 0.0, 0.3);
 
-const float TEMP_MIN_TRESHOLD = 25.0;
-const float TEMP_MAX_TRESHOLD = 300.0;
+const float SMOKE_MIN_TRESHOLD = 0.0;
+const float SMOKE_MAX_TRESHOLD = 100.0;
 
 mat4 modelFromPosition(vec3 position) {
     mat4 model = mat4(1.0);
@@ -39,12 +39,12 @@ vec4 transformPosition(vec3 position, mat4 mvp) {
 }
 
 vec4 resolveColor() {
-    if (aInstanceTemperature < 25)  return COLD_COLOR;
-    if (aInstanceTemperature > 300) return HOT_COLOR;
+    if (aInstanceSmokeIndicator > 0) return DEBUG_COLOR;
 
-    float tempInterpolant = (aInstanceTemperature - TEMP_MIN_TRESHOLD) /
-                            (TEMP_MAX_TRESHOLD - TEMP_MIN_TRESHOLD);
-    return mix(COLD_COLOR, HOT_COLOR, tempInterpolant);
+    float smokeInterpolant = (aInstanceSmokeIndicator - SMOKE_MIN_TRESHOLD) /
+                            (SMOKE_MAX_TRESHOLD - SMOKE_MIN_TRESHOLD);
+
+    return mix(THIN_COLOR, DENSE_COLOR, smokeInterpolant);
 }
 
 void main()
