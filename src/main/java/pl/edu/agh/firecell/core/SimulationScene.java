@@ -29,9 +29,10 @@ public class SimulationScene implements Scene {
     private final FileSystemStorage storage;
     private final Renderer renderer;
     private final Runnable finishSimulationHandler;
-    private DiagnosticsManager diagnosticsManager;
+    private final DiagnosticsManager diagnosticsManager;
     private State currentState;
     private final double stepTime;
+    private double frameRate;
     private int indexStep = 0;
     private double lastStateUpdateTime = glfwGetTime();
 
@@ -41,7 +42,8 @@ public class SimulationScene implements Scene {
         this.currentState = config.initialState();
         this.finishSimulationHandler = finishSimulationHandler;
         this.stepTime = config.stepTime();
-        this.diagnosticsManager = new DiagnosticsManager(this.currentState, 0);
+        this.frameRate = 0;
+        this.diagnosticsManager = new DiagnosticsManager(this.currentState);
         this.renderer = new BasicRenderer(aspectRatio, ioListener, config);
         this.storage = new FileSystemStorage(new BinaryStateSerializer());
         this.engine = new BasicEngine(config, this.storage, new BasicAlgorithm(this.stepTime));
@@ -50,7 +52,8 @@ public class SimulationScene implements Scene {
 
     @Override
     public void update(double frameTime) {
-        updateCurrentState(frameTime);
+        frameRate = 1.0 / frameTime;
+        updateCurrentState();
         renderer.render(currentState, frameTime);
         renderGUI();
     }
@@ -61,13 +64,13 @@ public class SimulationScene implements Scene {
         engine.stop();
     }
 
-    private void updateCurrentState(double frameTime) {
+    private void updateCurrentState() {
         double currentStepTime = glfwGetTime() - lastStateUpdateTime;
-        if (currentStepTime > stepTime) {
+        if (currentStepTime >= stepTime) {
             lastStateUpdateTime = glfwGetTime();
             storage.getState(indexStep).ifPresent(state -> {
                 currentState = state;
-                diagnosticsManager = new DiagnosticsManager(state, frameTime);
+                diagnosticsManager.updateState(state);
                 indexStep++;
             });
             logger.info("Getting next state with index: " + indexStep);
@@ -83,7 +86,7 @@ public class SimulationScene implements Scene {
                 ImGui.endMenu();
             }
             if (ImGui.beginMenu("Diagnostics")) {
-                ImGui.text("Framerate: %s".formatted(String.valueOf(Math.round(diagnosticsManager.framerate()))));
+                ImGui.text("Framerate: %s".formatted(String.valueOf(Math.round(frameRate))));
 
                 ImGui.text("Total burning cells: %s".formatted(String.valueOf(Math.round(diagnosticsManager.burningCellsCount()))));
 

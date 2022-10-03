@@ -5,8 +5,7 @@ import pl.edu.agh.firecell.model.State;
 
 public class DiagnosticsManager {
 
-    private final State state;
-    private final double frameTime;
+    private State state;
 
     private double totalTemperature;
     private double solidsTemperature;
@@ -16,14 +15,13 @@ public class DiagnosticsManager {
     private int airCellsCount;
     private int burningCellsCount;
 
-    public DiagnosticsManager(State state, double frameTime) {
-        this.frameTime = frameTime;
-        this.state = state;
-        processState();
+    public DiagnosticsManager(State state) {
+        updateState(state);
     }
 
-    public double framerate() {
-        return 1.0 / frameTime;
+    public void updateState(State state) {
+        this.state = state;
+        processState();
     }
 
     public double totalTemperature() {
