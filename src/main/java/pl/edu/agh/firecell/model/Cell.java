@@ -15,15 +15,23 @@ public record Cell(
                 this(temperature, burningTime, flammable, material, 0);
         }
 
-        @Override
-        public boolean equals(Object o) {
+    public boolean isSolid() {
+        return material.getMatterState().equals(MatterState.SOLID);
+    }
+
+    public boolean isFluid() {
+        return material.getMatterState().equals(MatterState.FLUID);
+    }
+
+    @Override
+    public boolean equals(Object o) {
         if (o == this) {
-                return true;
+            return true;
         }
         if (!(o instanceof Cell c)) {
-                return false;
+            return false;
         }
-                return Double.compare(temperature, c.temperature) == 0 &&
+        return Double.compare(temperature, c.temperature) == 0 &&
                 burningTime == c.burningTime &&
                 flammable == c.flammable &&
                 material == c.material &&
