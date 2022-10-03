@@ -84,7 +84,7 @@ public class BasicAlgorithm implements Algorithm {
         int devotedSmoke, deliveredSmoke;
 
         try {
-            Cell cellAbove = oldState.getCell(IndexUtils.up(cellIndex));
+            Cell cellAbove = oldState.getCell(NeighbourUtils.up(cellIndex));
             if (cellAbove.material().getMatterState() != FLUID || cellAbove.smokeIndicator() >= 99) {
                 devotedSmoke = getDevotedSmoke(oldCell, oldState, cellIndex, smokeCoefficientsHorizontalEscalation);
                 deliveredSmoke = getDeliveredSmoke(oldCell, oldState, cellIndex, smokeCoefficientsHorizontalEscalation);
@@ -102,22 +102,22 @@ public class BasicAlgorithm implements Algorithm {
 
     private int getDevotedSmoke(Cell oldCell, State oldState, Vector3i cellIndex, Map<String, Integer> coe){
         return (int) (
-                DFunction(oldCell, oldState.getCell(IndexUtils.down(cellIndex)), coe.get("down")) +
-                DFunction(oldCell, oldState.getCell(IndexUtils.up(cellIndex)), coe.get("up")) +
-                DFunction(oldCell, oldState.getCell(IndexUtils.south(cellIndex)), coe.get("south")) +
-                DFunction(oldCell, oldState.getCell(IndexUtils.north(cellIndex)), coe.get("north")) +
-                DFunction(oldCell, oldState.getCell(IndexUtils.west(cellIndex)), coe.get("west")) +
-                DFunction(oldCell, oldState.getCell(IndexUtils.east(cellIndex)), coe.get("east")));
+                DFunction(oldCell, oldState.getCell(NeighbourUtils.down(cellIndex)), coe.get("down")) +
+                DFunction(oldCell, oldState.getCell(NeighbourUtils.up(cellIndex)), coe.get("up")) +
+                DFunction(oldCell, oldState.getCell(NeighbourUtils.south(cellIndex)), coe.get("south")) +
+                DFunction(oldCell, oldState.getCell(NeighbourUtils.north(cellIndex)), coe.get("north")) +
+                DFunction(oldCell, oldState.getCell(NeighbourUtils.west(cellIndex)), coe.get("west")) +
+                DFunction(oldCell, oldState.getCell(NeighbourUtils.east(cellIndex)), coe.get("east")));
     }
 
     private int getDeliveredSmoke(Cell oldCell, State oldState, Vector3i cellIndex, Map<String, Integer> coe){
         return (int) (
-                DFunction(oldState.getCell(IndexUtils.down(cellIndex)), oldCell, coe.get("down")) +
-                DFunction(oldState.getCell(IndexUtils.up(cellIndex)), oldCell, coe.get("up")) +
-                DFunction(oldState.getCell(IndexUtils.south(cellIndex)), oldCell, coe.get("south")) +
-                DFunction(oldState.getCell(IndexUtils.north(cellIndex)), oldCell, coe.get("north")) +
-                DFunction(oldState.getCell(IndexUtils.west(cellIndex)), oldCell, coe.get("west")) +
-                DFunction(oldState.getCell(IndexUtils.east(cellIndex)), oldCell, coe.get("east")));
+                DFunction(oldState.getCell(NeighbourUtils.down(cellIndex)), oldCell, coe.get("down")) +
+                DFunction(oldState.getCell(NeighbourUtils.up(cellIndex)), oldCell, coe.get("up")) +
+                DFunction(oldState.getCell(NeighbourUtils.south(cellIndex)), oldCell, coe.get("south")) +
+                DFunction(oldState.getCell(NeighbourUtils.north(cellIndex)), oldCell, coe.get("north")) +
+                DFunction(oldState.getCell(NeighbourUtils.west(cellIndex)), oldCell, coe.get("west")) +
+                DFunction(oldState.getCell(NeighbourUtils.east(cellIndex)), oldCell, coe.get("east")));
     }
 
     private double DFunction(Cell from, Cell to, int coe){
