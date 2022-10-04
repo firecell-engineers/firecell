@@ -9,6 +9,8 @@ import pl.edu.agh.firecell.model.MatterState;
 import pl.edu.agh.firecell.model.State;
 import pl.edu.agh.firecell.model.util.NeighbourUtils;
 
+import java.util.Optional;
+
 
 public class BasicAlgorithm implements Algorithm {
 
@@ -36,49 +38,62 @@ public class BasicAlgorithm implements Algorithm {
         boolean newPossibleToGoUp = oldCell.possibleToGoUp();
         boolean isBurned = false;
 
+        // should be calculated only once
         newPossibleToGoUp = isPossibleToGoUp(oldState, cellIndex, newPossibleToGoUp);
 
         // wood section
-        if(oldCell.material().equals(Material.WOOD)) {
-            //set wood on fire
-            if (newBurningTime == 0 && newTemperature > 250 && MAX_BURNING_TIME != 0) {
-                newBurningTime++;
-                newTemperature = 550;
+        switch (oldCell.material()) {
+            case WOOD -> {
+                //set wood on fire
+                if (newTemperature > Material.WOOD.autoIgnitionTemperature() && newBurningTime == 0 && MAX_BURNING_TIME != 0 && newFlammable) {
+                    newBurningTime++;
+                    newTemperature = Material.WOOD.getBurningTemperature();
+                }
+                //keep wood on fire
+                if (newBurningTime > 0 && newBurningTime <= MAX_BURNING_TIME) {
+                    newBurningTime++;
+                    newTemperature = Math.max(Material.WOOD.getBurningTemperature(), newTemperature);
+                }
+                //wood is carbonated
+                if (newBurningTime > MAX_BURNING_TIME) {
+                    isBurned = true;
+                    newFlammable = false;
+                    newBurningTime = 0;
+                }
             }
-            //keep wood on fire
-            if (newBurningTime > 0 && newBurningTime <= MAX_BURNING_TIME) {
-                newBurningTime++;
-                newTemperature = Math.max(550, newTemperature);
-            }
-            //wood is carbonated
-            if (newBurningTime > MAX_BURNING_TIME) {
-                isBurned = true;
-                newFlammable = false;
-            }
-        }
-
-        // air section
-        if(oldCell.material().equals(Material.AIR)){
-            try {
-                Cell underCell = oldState.getCell(NeighbourUtils.down(cellIndex));
-                if (underCell.flammable() && underCell.burningTime() > 0) {
-                    newRemainingHeightOfFirePillar = underCell.remainingHeightOfFirePillar() - 1;
-                    if (newRemainingHeightOfFirePillar > 0) {
+            case AIR -> {
+                newBurningTime = 0;
+                try {
+                    Cell underCell = oldState.getCell(NeighbourUtils.down(cellIndex));
+                    // set air into fire
+                    if (underCell.burningTime() > 0 && underCell.flammable() && underCell.remainingHeightOfFirePillar() - 1 > 0) {
+                        newRemainingHeightOfFirePillar = underCell.remainingHeightOfFirePillar() - 1;
                         // Rethink it
-                        newTemperature = Math.max(newTemperature, 600);
+                        newTemperature = Math.max(newTemperature, Material.AIR.getBurningTemperature());
                         newBurningTime++;
                     }
-                } else {
-                    Cell neighbourOnFire = doesNeighbourOnFire(oldState, cellIndex);
-                    if (neighbourOnFire!=null && !neighbourOnFire.possibleToGoUp()) {
-                        newRemainingHeightOfFirePillar = neighbourOnFire.remainingHeightOfFirePillar() - 1;
-                        if (newRemainingHeightOfFirePillar > 0) {
-                            newTemperature = Math.max(newTemperature, 600);
-                            newBurningTime++;
-                        }
+                } catch (IndexOutOfBoundsException ignored) {}
+                if (!oldState.hasCell(NeighbourUtils.down(cellIndex)) ||
+                        oldState.getCell(NeighbourUtils.down(cellIndex)).burningTime() == 0 ||
+                        !oldState.getCell(NeighbourUtils.down(cellIndex)).flammable()) {
+
+                    Optional<Cell> neighbourOnFire = doesNeighbourOnFire(oldState, cellIndex);
+                    if (neighbourOnFire.isPresent() &&
+                            !neighbourOnFire.get().possibleToGoUp() &&
+                            neighbourOnFire.get().remainingHeightOfFirePillar() - 1 > 0)
+                    {
+                        newRemainingHeightOfFirePillar = neighbourOnFire.get().remainingHeightOfFirePillar() - 1;
+                        newTemperature = Math.max(newTemperature, 600);
+                        newBurningTime++;
+                    } else { // there is no neighbour on fire
                     }
                 }
-            }catch (IndexOutOfBoundsException ignored){}
+
+                // keep air on fire
+                if (oldCell.burningTime() > 0) {
+                    newTemperature = Math.max(newTemperature, 600);
+                }
+            }
         }
 
         return new Cell(
@@ -102,20 +117,22 @@ public class BasicAlgorithm implements Algorithm {
         return newPossibleToGoUp;
     }
 
-    private Cell doesNeighbourOnFire(State oldState, Vector3i cellIndex){
-        Cell northCell = oldState.getCell(NeighbourUtils.north(cellIndex));
-        Cell southCell = oldState.getCell(NeighbourUtils.south(cellIndex));
-        Cell westCell = oldState.getCell(NeighbourUtils.west(cellIndex));
-        Cell eastCell = oldState.getCell(NeighbourUtils.east(cellIndex));
-        if(doesHorizontalFire(northCell))
-            return northCell;
-        if(doesHorizontalFire(southCell))
-            return southCell;
-        if(doesHorizontalFire(westCell))
-            return westCell;
-        if(doesHorizontalFire(eastCell))
-            return eastCell;
-        return null;
+    private Optional<Cell> doesNeighbourOnFire(State oldState, Vector3i cellIndex){
+        try {
+            Cell northCell = oldState.getCell(NeighbourUtils.north(cellIndex));
+            Cell southCell = oldState.getCell(NeighbourUtils.south(cellIndex));
+            Cell westCell = oldState.getCell(NeighbourUtils.west(cellIndex));
+            Cell eastCell = oldState.getCell(NeighbourUtils.east(cellIndex));
+            if (doesHorizontalFire(northCell))
+                return Optional.of(northCell);
+            if (doesHorizontalFire(southCell))
+                return Optional.of(southCell);
+            if (doesHorizontalFire(westCell))
+                return Optional.of(westCell);
+            if (doesHorizontalFire(eastCell))
+                return Optional.of(eastCell);
+        } catch (IndexOutOfBoundsException ignored) {}
+        return Optional.empty();
     }
 
     private boolean doesHorizontalFire(Cell cell){

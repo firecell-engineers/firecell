@@ -30,17 +30,6 @@ public class TemperatureCalculation {
         };
     }
 
-
-    //    private double computeConduction(State oldState, Cell oldCell, Vector3i cellIndex) {
-    //        return NeighbourUtils.neighboursStream(cellIndex)
-    //                .filter(oldState::hasCell)
-    //                .map(oldState::getCell)
-    //                .filter(Cell::isSolid)
-    //                .mapToDouble(neighbour -> computeConductivityWithNeighbour(oldCell, neighbour))
-    //                .sum();
-    //    }
-
-
     private double computeConduction(State oldState, Cell oldCell, Vector3i cellIndex) {
         double yTemp = 0;
         double zTemp = 0;
