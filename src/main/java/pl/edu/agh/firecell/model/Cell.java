@@ -1,6 +1,6 @@
 package pl.edu.agh.firecell.model;
 
-public record Cell(
+public record Cell (
         double temperature,
         int burningTime,
         boolean flammable,
@@ -17,8 +17,9 @@ public record Cell(
                 this(temperature, burningTime, flammable, material, remainingHeightOfFirePillar, true);
         }
 
-        public Cell getCopy(){
-                return new Cell(temperature, burningTime, flammable, material, remainingHeightOfFirePillar, possibleToGoUp);
+        public Cell(Cell other){
+            this(other.temperature, other.burningTime, other.flammable, other.material,
+                    other.remainingHeightOfFirePillar, other.possibleToGoUp);
         }
 
     public boolean isSolid() {

@@ -54,27 +54,27 @@ public class TemperatureCalculation {
             if (northMatter == MatterState.SOLID && southMatter == MatterState.SOLID)
                 yTemp = computeConductivity(northCell, oldCell, southCell);
             else if (northMatter == MatterState.SOLID)
-                yTemp = computeConductivity(northCell, oldCell, oldCell.getCopy());
+                yTemp = computeConductivity(northCell, oldCell, new Cell(oldCell));
             else if (southMatter == MatterState.SOLID)
-                yTemp = computeConductivity(oldCell.getCopy(), oldCell, southCell);
+                yTemp = computeConductivity(new Cell(oldCell), oldCell, southCell);
 
             if (upMatter == MatterState.SOLID && downMatter == MatterState.SOLID)
                 zTemp = computeConductivity(upCell, oldCell, downCell);
             else if (upMatter == MatterState.SOLID)
-                zTemp = computeConductivity(upCell, oldCell, oldCell.getCopy());
+                zTemp = computeConductivity(upCell, oldCell, new Cell(oldCell));
             else if (downMatter == MatterState.SOLID)
-                zTemp = computeConductivity(oldCell.getCopy(), oldCell, downCell);
+                zTemp = computeConductivity(new Cell(oldCell), oldCell, downCell);
 
             if (eastMatter == MatterState.SOLID && westMatter == MatterState.SOLID)
                 xTemp = computeConductivity(eastCell, oldCell, westCell);
             else if (eastMatter == MatterState.SOLID)
-                xTemp = computeConductivity(eastCell, oldCell, oldCell.getCopy());
+                xTemp = computeConductivity(eastCell, oldCell, new Cell(oldCell));
             else if (westMatter == MatterState.SOLID)
-                xTemp = computeConductivity(oldCell.getCopy(), oldCell, westCell);
+                xTemp = computeConductivity(new Cell(oldCell), oldCell, westCell);
 
         } catch (IndexOutOfBoundsException ignored) {
             if (oldState.hasCell(NeighbourUtils.up(cellIndex))){
-                zTemp = computeConductivity(oldState.getCell(NeighbourUtils.up(cellIndex)), oldCell, oldCell.getCopy());
+                zTemp = computeConductivity(oldState.getCell(NeighbourUtils.up(cellIndex)), oldCell, new Cell(oldCell));
             }
         }
         return yTemp + zTemp + xTemp;
