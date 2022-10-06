@@ -3,7 +3,6 @@ package pl.edu.agh.firecell.engine.algorithm;
 import org.joml.Vector3i;
 import pl.edu.agh.firecell.model.Cell;
 import pl.edu.agh.firecell.model.Material;
-import pl.edu.agh.firecell.model.MatterState;
 import pl.edu.agh.firecell.model.State;
 import pl.edu.agh.firecell.model.util.NeighbourUtils;
 
@@ -31,53 +30,28 @@ public class TemperaturePropagator {
     }
 
     private double computeConduction(State oldState, Cell oldCell, Vector3i cellIndex) {
-        double yTemp = 0;
-        double zTemp = 0;
-        double xTemp = 0;
+        return calculateAxisDifference(oldState, NeighbourUtils.north(cellIndex), oldCell, NeighbourUtils.south(cellIndex)) +
+                calculateAxisDifference(oldState, NeighbourUtils.up(cellIndex), oldCell, NeighbourUtils.down(cellIndex)) +
+                calculateAxisDifference(oldState, NeighbourUtils.east(cellIndex), oldCell, NeighbourUtils.west(cellIndex));
+    }
 
-        try {
-            Cell northCell = oldState.getCell(NeighbourUtils.north(cellIndex));
-            MatterState northMatter = northCell.material().getMatterState();
-            Cell southCell = oldState.getCell(NeighbourUtils.south(cellIndex));
-            MatterState southMatter = southCell.material().getMatterState();
+    private double calculateAxisDifference(State oldState, Vector3i formerIndex, Cell middleCell, Vector3i furtherIndex) {
+        double result = 0.0;
+        if(oldState.hasCell(formerIndex) && oldState.hasCell(furtherIndex)){
+            Cell formerCell = oldState.getCell(formerIndex);
+            Cell furtherCell = oldState.getCell(furtherIndex);
+            if (formerCell.isSolid() && formerCell.isSolid())
+                result = computeConductivity(formerCell, middleCell, furtherCell);
+            else if (formerCell.isSolid())
+                result = computeConductivity(formerCell, middleCell, new Cell(middleCell));
+            else if (furtherCell.isSolid())
+                result = computeConductivity(new Cell(middleCell), middleCell, furtherCell);
+        } else if(oldState.hasCell(formerIndex) && oldState.getCell(formerIndex).isSolid())
+            result = computeConductivity(oldState.getCell(formerIndex), middleCell, new Cell(middleCell));
+        else if(oldState.hasCell(furtherIndex) && oldState.getCell(furtherIndex).isSolid())
+            result = computeConductivity(new Cell(middleCell), middleCell, oldState.getCell(furtherIndex));
 
-            Cell upCell = oldState.getCell(NeighbourUtils.up(cellIndex));
-            MatterState upMatter = upCell.material().getMatterState();
-            Cell downCell = oldState.getCell(NeighbourUtils.down(cellIndex));
-            MatterState downMatter = downCell.material().getMatterState();
-
-            Cell eastCell = oldState.getCell(NeighbourUtils.east(cellIndex));
-            MatterState eastMatter = eastCell.material().getMatterState();
-            Cell westCell = oldState.getCell(NeighbourUtils.west(cellIndex));
-            MatterState westMatter = westCell.material().getMatterState();
-
-            if (northMatter == MatterState.SOLID && southMatter == MatterState.SOLID)
-                yTemp = computeConductivity(northCell, oldCell, southCell);
-            else if (northMatter == MatterState.SOLID)
-                yTemp = computeConductivity(northCell, oldCell, new Cell(oldCell));
-            else if (southMatter == MatterState.SOLID)
-                yTemp = computeConductivity(new Cell(oldCell), oldCell, southCell);
-
-            if (upMatter == MatterState.SOLID && downMatter == MatterState.SOLID)
-                zTemp = computeConductivity(upCell, oldCell, downCell);
-            else if (upMatter == MatterState.SOLID)
-                zTemp = computeConductivity(upCell, oldCell, new Cell(oldCell));
-            else if (downMatter == MatterState.SOLID)
-                zTemp = computeConductivity(new Cell(oldCell), oldCell, downCell);
-
-            if (eastMatter == MatterState.SOLID && westMatter == MatterState.SOLID)
-                xTemp = computeConductivity(eastCell, oldCell, westCell);
-            else if (eastMatter == MatterState.SOLID)
-                xTemp = computeConductivity(eastCell, oldCell, new Cell(oldCell));
-            else if (westMatter == MatterState.SOLID)
-                xTemp = computeConductivity(new Cell(oldCell), oldCell, westCell);
-
-        } catch (IndexOutOfBoundsException ignored) {
-            if (oldState.hasCell(NeighbourUtils.up(cellIndex))){
-                zTemp = computeConductivity(oldState.getCell(NeighbourUtils.up(cellIndex)), oldCell, new Cell(oldCell));
-            }
-        }
-        return yTemp + zTemp + xTemp;
+        return result;
     }
 
     private double computeConductivity(Cell former, Cell middle, Cell latter) {
