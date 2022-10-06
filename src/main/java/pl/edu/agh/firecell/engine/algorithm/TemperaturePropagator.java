@@ -14,11 +14,11 @@ import java.util.Optional;
 import static pl.edu.agh.firecell.engine.algorithm.BasicAlgorithm.CONDUCTIVITY_COEFFICIENT;
 import static pl.edu.agh.firecell.engine.algorithm.BasicAlgorithm.CONVECTION_COEFFICIENT;
 
-public class TemperatureCalculation {
+public class TemperaturePropagator {
 
     private final double deltaTime;
 
-    public TemperatureCalculation(double deltaTime){
+    public TemperaturePropagator(double deltaTime){
         this.deltaTime = deltaTime;
     }
 
@@ -93,34 +93,27 @@ public class TemperatureCalculation {
     }
 
     private double computeConvection(State oldState, Cell oldCell, Vector3i cellIndex) {
-
-        final int HOTTER = 0;
-        final int COLDER = 1;
-
-        double fromDownToMe = 0;
-        double fromMeToUp = 0;
-
-        double fromMeToNeighbour = 0;
-        double toMeFromNeighbour = 0;
+        double temperatureDifference = 0;
 
         try {
             Cell cellUnder = oldState.getCell(NeighbourUtils.down(cellIndex));
-            if (cellUnder.material().equals(Material.AIR) && cellUnder.temperature() > oldCell.temperature()) {
-                fromDownToMe += CONVECTION_COEFFICIENT * tempDiffAbs(oldCell, cellUnder);
-            }
+            if (cellUnder.material().equals(Material.AIR) && cellUnder.temperature() > oldCell.temperature())
+                temperatureDifference += CONVECTION_COEFFICIENT * tempDiffAbs(oldCell, cellUnder);
+
         } catch (IndexOutOfBoundsException ignored) {}
 
         try {
             Cell cellAbove = oldState.getCell(NeighbourUtils.up(cellIndex));
-            if (cellAbove.material().equals(Material.AIR)) {
-                if(cellAbove.temperature() < oldCell.temperature()) {
-                    fromMeToUp -= CONVECTION_COEFFICIENT * tempDiffAbs(oldCell, cellAbove);
-                } else {
-                    // cell above me is hotter
-                }
+            if (cellAbove.material().equals(Material.AIR) &&
+                    cellAbove.temperature() < oldCell.temperature()) {
+                temperatureDifference -= CONVECTION_COEFFICIENT * tempDiffAbs(oldCell, cellAbove);
             }
         } catch (IndexOutOfBoundsException ignored) {}
 
+        return getLetterTRuleTemperatureUpdate(oldState, oldCell, cellIndex, temperatureDifference);
+    }
+
+    private double getLetterTRuleTemperatureUpdate(State oldState, Cell oldCell, Vector3i cellIndex, double temperatureDifference) {
         if (!oldState.hasCell(NeighbourUtils.up(cellIndex)) || oldState.getCell(NeighbourUtils.up(cellIndex)).temperature() > 100) {
             // cell above me is ceiling
             try {
@@ -137,29 +130,28 @@ public class TemperatureCalculation {
                         .map(Optional::get)
                         .forEach(cell -> {
                             if (cell.temperature() > oldCell.temperature())
-                                counter[HOTTER]++;
+                                counter[0]++;
                             else
-                                counter[COLDER]++;
+                                counter[1]++;
                         });
 
                 // give to other
-                fromMeToNeighbour -= neighbours.stream()
+                temperatureDifference -= neighbours.stream()
                         .filter(Optional::isPresent)
                         .filter(cell -> cell.get().temperature() < oldCell.temperature())
-                        .mapToDouble(cell -> tempDiffAbs(oldCell, cell.get()) / counter[COLDER])
+                        .mapToDouble(cell -> tempDiffAbs(oldCell, cell.get()) / counter[1])
                         .sum();
 
                 // take from other
-                fromMeToNeighbour += neighbours.stream()
+                temperatureDifference += neighbours.stream()
                         .filter(Optional::isPresent)
                         .filter(cell -> cell.get().temperature() > oldCell.temperature())
-                        .mapToDouble(cell -> tempDiffAbs(oldCell, cell.get()) / counter[HOTTER])
+                        .mapToDouble(cell -> tempDiffAbs(oldCell, cell.get()) / counter[0])
                         .sum();
 
             } catch (IndexOutOfBoundsException ignored){}
         }
-
-        return fromDownToMe + fromMeToUp + fromMeToNeighbour + toMeFromNeighbour;
+        return temperatureDifference;
     }
 
 }

@@ -41,7 +41,7 @@ public class StateBuilder {
                 .forEach(index -> {
                     var oldCell = cells.get(index);
                     cells.set(index, new Cell(600,
-                            0, oldCell.flammable(), oldCell.material(), oldCell.remainingHeightOfFirePillar()));
+                            0, oldCell.flammable(), oldCell.material(), oldCell.remainingFirePillar()));
                 });
         return this;
     }
