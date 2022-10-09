@@ -5,21 +5,16 @@ public record Cell (
         int burningTime,
         boolean flammable,
         Material material,
-        int remainingFirePillar,
-        boolean possibleToGoUp
+        int remainingFirePillar
         ) {
 
         public Cell(double temperature, int burningTime, boolean flammable, Material material){
-                this(temperature, burningTime, flammable, material, 0, true);
-        }
-
-        public Cell(double temperature, int burningTime, boolean flammable, Material material, int remainingHeightOfFirePillar){
-                this(temperature, burningTime, flammable, material, remainingHeightOfFirePillar, true);
+                this(temperature, burningTime, flammable, material, 0);
         }
 
         public Cell(Cell other){
             this(other.temperature, other.burningTime, other.flammable, other.material,
-                    other.remainingFirePillar, other.possibleToGoUp);
+                    other.remainingFirePillar);
         }
 
     public boolean isSolid() {

@@ -10,8 +10,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static pl.edu.agh.firecell.engine.algorithm.BasicAlgorithm.CONDUCTIVITY_COEFFICIENT;
-import static pl.edu.agh.firecell.engine.algorithm.BasicAlgorithm.CONVECTION_COEFFICIENT;
+import static pl.edu.agh.firecell.engine.algorithm.BasicAlgorithm.*;
+import static pl.edu.agh.firecell.engine.algorithm.BasicAlgorithm.MAX_BURNING_TIME;
+import static pl.edu.agh.firecell.engine.algorithm.FirePropagator.doesNeighbourOnFire;
+import static pl.edu.agh.firecell.model.Material.AIR;
+import static pl.edu.agh.firecell.model.Material.WOOD;
 
 public class TemperaturePropagator {
 
@@ -29,6 +32,59 @@ public class TemperaturePropagator {
         };
     }
 
+    public double updateTemperatureBasedOnFire(State oldState, Cell oldCell, Vector3i cellIndex, double currentTemperature, int burningTime){
+
+        double newTemperature = currentTemperature;
+
+        switch (oldCell.material()) {
+            case WOOD -> newTemperature = newWoodTemperature(oldCell, currentTemperature, burningTime, newTemperature);
+            case AIR -> newTemperature = newAirTemperature(oldState, oldCell, cellIndex, currentTemperature, newTemperature);
+        }
+        return newTemperature;
+    }
+
+    private double newAirTemperature(State oldState, Cell oldCell, Vector3i cellIndex, double currentTemperature, double newTemperature) {
+        if (oldState.hasCell(NeighbourUtils.down(cellIndex)) &&
+                oldState.getCell(NeighbourUtils.down(cellIndex)).burningTime() > 0 &&
+                oldState.getCell(NeighbourUtils.down(cellIndex)).flammable() &&
+                oldState.getCell(NeighbourUtils.down(cellIndex)).remainingFirePillar() - 1 > 0) {
+            newTemperature = Math.max(currentTemperature, AIR.getBurningTemperature());
+        }
+
+        if (!oldState.hasCell(NeighbourUtils.down(cellIndex)) ||
+                oldState.getCell(NeighbourUtils.down(cellIndex)).burningTime() == 0 ||
+                !oldState.getCell(NeighbourUtils.down(cellIndex)).flammable()) {
+
+            Optional<Vector3i> neighbourOnFire = doesNeighbourOnFire(oldState, cellIndex);
+            if (neighbourOnFire.isPresent() &&
+                    !possibleToGoUp(oldState, neighbourOnFire.get()) &&
+                    oldState.getCell(neighbourOnFire.get()).remainingFirePillar() - 1 > 0)
+            {
+                newTemperature = Math.max(newTemperature, 600);
+            }
+        }
+
+        // keep air on fire
+        if (oldCell.burningTime() > 0) {
+            newTemperature = Math.max(currentTemperature, 600);
+        }
+        return newTemperature;
+    }
+
+    private double newWoodTemperature(Cell oldCell, double currentTemperature, int burningTime, double newTemperature) {
+        if (currentTemperature > WOOD.autoIgnitionTemperature() &&
+                oldCell.burningTime() == 0 &&
+                MAX_BURNING_TIME != 0 &&
+                oldCell.flammable()) {
+            //set wood on fire
+            newTemperature = WOOD.getBurningTemperature();
+        } else if (burningTime > 0 && oldCell.burningTime() <= MAX_BURNING_TIME) {
+            //keep wood on fire
+            newTemperature = Math.max(WOOD.getBurningTemperature(), currentTemperature);
+        }
+        return newTemperature;
+    }
+
     private double computeConduction(State oldState, Cell oldCell, Vector3i cellIndex) {
         return calculateAxisDifference(oldState, NeighbourUtils.north(cellIndex), oldCell, NeighbourUtils.south(cellIndex)) +
                 calculateAxisDifference(oldState, NeighbourUtils.up(cellIndex), oldCell, NeighbourUtils.down(cellIndex)) +
@@ -36,7 +92,12 @@ public class TemperaturePropagator {
     }
 
     private double calculateAxisDifference(State oldState, Vector3i formerIndex, Cell middleCell, Vector3i furtherIndex) {
+
         double result = 0.0;
+
+        if (!oldState.hasCell(formerIndex) && !oldState.hasCell(furtherIndex))
+            return result;
+
         if(oldState.hasCell(formerIndex) && oldState.hasCell(furtherIndex)){
             Cell formerCell = oldState.getCell(formerIndex);
             Cell furtherCell = oldState.getCell(furtherIndex);

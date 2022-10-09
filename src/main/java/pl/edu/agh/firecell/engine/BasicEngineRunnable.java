@@ -26,7 +26,6 @@ public class BasicEngineRunnable implements Runnable {
     private final Algorithm algorithm;
 
     public BasicEngineRunnable(State initialState, StateConsumer stateConsumer, Algorithm algorithm) {
-        initialState = isPossibleToGoUpUpdate(initialState);
         this.currentState = initialState;
         this.stateConsumer = stateConsumer;
         this.algorithm = algorithm;
@@ -62,32 +61,4 @@ public class BasicEngineRunnable implements Runnable {
         return Observable.just(cell).subscribeOn(Schedulers.computation());
     }
 
-    static State isPossibleToGoUpUpdate(State state){
-        List<Cell> newCells = Observable.range(0, state.cells().size())
-                .map(flatIndex -> {
-                    Cell oldCell = state.getCell(IndexUtils.expandIndex(flatIndex, state.spaceSize()));
-                    return new Cell(oldCell.temperature(),
-                            oldCell.burningTime(),
-                            oldCell.flammable(),
-                            oldCell.material(),
-                            oldCell.remainingFirePillar(),
-                            state.hasCell(NeighbourUtils.up(IndexUtils.expandIndex(flatIndex, state.spaceSize()))) &&
-                                    !state.getCell(NeighbourUtils.up(IndexUtils.expandIndex(flatIndex, state.spaceSize()))).material().getMatterState().equals(MatterState.SOLID));
-                    })
-                .toList()
-                .blockingGet();
-
-        return new State(newCells, state.spaceSize());
-    }
-
-    static boolean isPossibleToGoUp(State oldState, Vector3i cellIndex) {
-        try {
-            if (oldState.getCell(NeighbourUtils.up(cellIndex)).material().getMatterState().equals(MatterState.SOLID)) {
-                return false;
-            }
-        } catch (IndexOutOfBoundsException ignored){
-            return false;
-        }
-        return true;
-    }
 }
