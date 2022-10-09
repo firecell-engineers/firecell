@@ -55,10 +55,9 @@ public class TemperaturePropagator {
                 oldState.getCell(NeighbourUtils.down(cellIndex)).burningTime() == 0 ||
                 !oldState.getCell(NeighbourUtils.down(cellIndex)).flammable()) {
 
-            Optional<Vector3i> neighbourOnFire = doesNeighbourOnFire(oldState, cellIndex);
-            if (neighbourOnFire.isPresent() &&
-                    !possibleToGoUp(oldState, neighbourOnFire.get()) &&
-                    oldState.getCell(neighbourOnFire.get()).remainingFirePillar() - 1 > 0)
+            if (doesNeighbourOnFire(oldState, cellIndex)
+                    .anyMatch(neighbourIndex -> !possibleToGoUp(oldState, neighbourIndex) &&
+                            oldState.getCell(neighbourIndex).remainingFirePillar() - 1 > 0))
             {
                 newTemperature = Math.max(newTemperature, 600);
             }

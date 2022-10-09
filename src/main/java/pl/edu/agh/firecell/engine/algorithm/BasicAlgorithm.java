@@ -56,4 +56,8 @@ public class BasicAlgorithm implements Algorithm {
         }
         return true;
     }
+
+    public static boolean isOnFire(Cell cell) {
+        return cell.flammable() && cell.burningTime() > 0;
+    }
 }
