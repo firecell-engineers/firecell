@@ -39,28 +39,31 @@ public class FirePropagator {
     }
 
     public int computeFirePillar(State oldState, Cell oldCell, Vector3i cellIndex, int currentFirePillar){
-        int newRemainingHeightOfFirePillar = currentFirePillar;
-
         if (!oldCell.material().equals(AIR))
-            return newRemainingHeightOfFirePillar;
+            return currentFirePillar;
 
+        // from under
+        int downFirePillar = 0;
         if (oldState.hasCell(NeighbourUtils.down(cellIndex)) &&
                 isOnFire(oldState.getCell(NeighbourUtils.down(cellIndex))) &&
                 oldState.getCell(NeighbourUtils.down(cellIndex)).remainingFirePillar() - 1 > 0) {
-            newRemainingHeightOfFirePillar = Math.max(oldState.getCell(NeighbourUtils.down(cellIndex)).remainingFirePillar() - 1, currentFirePillar);
-        }
-        if (!oldState.hasCell(NeighbourUtils.down(cellIndex)) ||
-                !isOnFire(oldState.getCell(NeighbourUtils.down(cellIndex)))) {
-            try {
-                newRemainingHeightOfFirePillar = Collections.max(doesNeighbourOnFire(oldState, cellIndex)
-                        .filter(neighbourIndex -> !possibleToGoUp(oldState, neighbourIndex) &&
-                                oldState.getCell(neighbourIndex).remainingFirePillar() - 1 > 0)
-                        .map(neighbourIndex -> oldState.getCell(neighbourIndex).remainingFirePillar())
-                        .toList());
-            } catch (NoSuchElementException ignored) {}
+            downFirePillar = oldState.getCell(NeighbourUtils.down(cellIndex)).remainingFirePillar() - 1;
         }
 
-        return newRemainingHeightOfFirePillar;
+        // from neighbour
+        int neighbourFirePillar = 0;
+        try {
+            int tmp = Collections.max(doesNeighbourOnFire(oldState, cellIndex)
+                    .filter(neighbourIndex -> !possibleToGoUp(oldState, neighbourIndex) &&
+                            oldState.getCell(neighbourIndex).remainingFirePillar() - 1 > 0)
+                    .map(neighbourIndex -> oldState.getCell(neighbourIndex).remainingFirePillar())
+                    .toList());
+            if(tmp>currentFirePillar){
+                neighbourFirePillar = tmp-1;
+            }
+        } catch (NoSuchElementException ignored) {}
+
+        return Math.max(downFirePillar, neighbourFirePillar);
     }
 
     private int newAirBurningTime(State oldState, Vector3i cellIndex) {
