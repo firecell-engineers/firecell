@@ -5,8 +5,6 @@ import pl.edu.agh.firecell.model.Cell;
 import pl.edu.agh.firecell.model.State;
 import pl.edu.agh.firecell.model.util.NeighbourUtils;
 
-import java.util.Collections;
-import java.util.NoSuchElementException;
 import java.util.stream.Stream;
 
 import static pl.edu.agh.firecell.engine.algorithm.BasicAlgorithm.*;
@@ -24,18 +22,9 @@ public class FirePropagator {
 
     public int computeBurningTime(State oldState, Cell oldCell, Vector3i cellIndex, double newTemperature){
         return switch (oldCell.material()) {
-            case WOOD -> newWoodBurningTime(oldCell, newTemperature, oldCell.burningTime());
-            case AIR -> newAirBurningTime(oldState, cellIndex);
+            case WOOD -> computeBurningTimeWood(oldCell, newTemperature, oldCell.burningTime());
+            case AIR -> computeBurningTimeAir(oldState, cellIndex);
         };
-    }
-
-    public static Stream<Vector3i> doesNeighbourOnFire(State oldState, Vector3i cellIndex){
-        return Stream
-                .concat(NeighbourUtils.neighboursStream(cellIndex, NeighbourUtils.Axis.X), NeighbourUtils.neighboursStream(cellIndex, NeighbourUtils.Axis.Z))
-                .filter(neighbourIndex -> oldState.hasCell(neighbourIndex) &&
-                        isOnFire(oldState.getCell(neighbourIndex)) &&
-                        oldState.getCell(neighbourIndex).remainingFirePillar() > 0 &&
-                        !possibleToGoUp(oldState, neighbourIndex));
     }
 
     public int computeFirePillar(State oldState, Cell oldCell, Vector3i cellIndex, int currentFirePillar){
@@ -45,59 +34,71 @@ public class FirePropagator {
         // from under
         int downFirePillar = 0;
         if (oldState.hasCell(NeighbourUtils.down(cellIndex)) &&
-                isOnFire(oldState.getCell(NeighbourUtils.down(cellIndex))) &&
+                isCellBurning(oldState.getCell(NeighbourUtils.down(cellIndex))) &&
                 oldState.getCell(NeighbourUtils.down(cellIndex)).remainingFirePillar() - 1 > 0) {
             downFirePillar = oldState.getCell(NeighbourUtils.down(cellIndex)).remainingFirePillar() - 1;
         }
 
         // from neighbour
         int neighbourFirePillar = 0;
-        try {
-            int tmp = Collections.max(doesNeighbourOnFire(oldState, cellIndex)
-                    .filter(neighbourIndex -> !possibleToGoUp(oldState, neighbourIndex) &&
-                            oldState.getCell(neighbourIndex).remainingFirePillar() - 1 > 0)
-                    .map(neighbourIndex -> oldState.getCell(neighbourIndex).remainingFirePillar())
-                    .toList());
-            if(tmp>currentFirePillar){
-                neighbourFirePillar = tmp-1;
-            }
-        } catch (NoSuchElementException ignored) {}
+        int horizontalNeighbourFirePillar = getBurningHorizontalNeighbours(oldState, cellIndex)
+                .filter(neighbourIndex -> !isUpNeighbourAir(oldState, neighbourIndex) &&
+                        oldState.getCell(neighbourIndex).remainingFirePillar() - 1 > 0)
+                .map(neighbourIndex -> oldState.getCell(neighbourIndex).remainingFirePillar())
+                .max(Integer::compareTo)
+                .orElse(0);
+        if(horizontalNeighbourFirePillar>currentFirePillar){
+            neighbourFirePillar = horizontalNeighbourFirePillar - 1;
+        }
 
         return Math.max(downFirePillar, neighbourFirePillar);
     }
 
-    private int newAirBurningTime(State oldState, Vector3i cellIndex) {
-        int newBurningTime;
-        newBurningTime = 0;
+    public static Stream<Vector3i> getBurningHorizontalNeighbours(State oldState, Vector3i cellIndex){
+        return Stream
+                .concat(NeighbourUtils.neighboursStream(cellIndex, NeighbourUtils.Axis.X), NeighbourUtils.neighboursStream(cellIndex, NeighbourUtils.Axis.Z))
+                .filter(neighbourIndex -> oldState.hasCell(neighbourIndex) &&
+                        isCellBurning(oldState.getCell(neighbourIndex)) &&
+                        oldState.getCell(neighbourIndex).remainingFirePillar() > 0 &&
+                        !isUpNeighbourAir(oldState, neighbourIndex));
+    }
+
+    private int computeBurningTimeAir(State oldState, Vector3i cellIndex) {
+        int newBurningTime = 0;
 
         if (oldState.hasCell(NeighbourUtils.down(cellIndex)) &&
-                isOnFire(oldState.getCell(NeighbourUtils.down(cellIndex))) &&
+                isCellBurning(oldState.getCell(NeighbourUtils.down(cellIndex))) &&
                 oldState.getCell(NeighbourUtils.down(cellIndex)).remainingFirePillar() - 1 > 0) {
             newBurningTime++;
         }
 
         if (!oldState.hasCell(NeighbourUtils.down(cellIndex)) ||
-                !isOnFire(oldState.getCell(NeighbourUtils.down(cellIndex))))
+                !isCellBurning(oldState.getCell(NeighbourUtils.down(cellIndex))))
         {
             // cell under is not on fire or not present
-            if(doesNeighbourOnFire(oldState, cellIndex)
-                    .anyMatch(neighbourIndex -> !possibleToGoUp(oldState, neighbourIndex) &&
+            if(getBurningHorizontalNeighbours(oldState, cellIndex)
+                    .anyMatch(neighbourIndex -> !isUpNeighbourAir(oldState, neighbourIndex) &&
                             oldState.getCell(neighbourIndex).remainingFirePillar() - 1 > 0))
                 newBurningTime = 1;
         }
         return newBurningTime;
     }
 
-    private int newWoodBurningTime(Cell oldCell, double newTemperature, int currenBurningTime) {
+    private int computeBurningTimeWood(Cell oldCell, double newTemperature, int currenBurningTime) {
+        int newBurningTime = currenBurningTime;
         if (newTemperature > WOOD.autoIgnitionTemperature() &&
                 oldCell.burningTime() == 0 &&
                 MAX_BURNING_TIME != 0 &&
                 oldCell.flammable()) {
-            currenBurningTime++;
+            newBurningTime++;
         }
         if (oldCell.burningTime() > 0 && oldCell.burningTime() <= MAX_BURNING_TIME) {
-            currenBurningTime++;
+            newBurningTime++;
         }
-        return currenBurningTime;
+        return newBurningTime;
+    }
+
+    private static boolean isCellBurning(Cell cell) {
+        return cell.flammable() && cell.burningTime() > 0;
     }
 }

@@ -9,10 +9,11 @@ import pl.edu.agh.firecell.model.util.NeighbourUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import static pl.edu.agh.firecell.engine.algorithm.BasicAlgorithm.*;
 import static pl.edu.agh.firecell.engine.algorithm.BasicAlgorithm.MAX_BURNING_TIME;
-import static pl.edu.agh.firecell.engine.algorithm.FirePropagator.doesNeighbourOnFire;
+import static pl.edu.agh.firecell.engine.algorithm.FirePropagator.getBurningHorizontalNeighbours;
 import static pl.edu.agh.firecell.model.Material.AIR;
 import static pl.edu.agh.firecell.model.Material.WOOD;
 
@@ -38,12 +39,13 @@ public class TemperaturePropagator {
 
         switch (oldCell.material()) {
             case WOOD -> newTemperature = newWoodTemperature(oldCell, currentTemperature, burningTime, newTemperature);
-            case AIR -> newTemperature = newAirTemperature(oldState, oldCell, cellIndex, currentTemperature, newTemperature);
+            case AIR -> newTemperature = newAirTemperature(oldState, oldCell, cellIndex, currentTemperature);
         }
         return newTemperature;
     }
 
-    private double newAirTemperature(State oldState, Cell oldCell, Vector3i cellIndex, double currentTemperature, double newTemperature) {
+    private double newAirTemperature(State oldState, Cell oldCell, Vector3i cellIndex, double currentTemperature) {
+        double newTemperature = currentTemperature;
         if (oldState.hasCell(NeighbourUtils.down(cellIndex)) &&
                 oldState.getCell(NeighbourUtils.down(cellIndex)).burningTime() > 0 &&
                 oldState.getCell(NeighbourUtils.down(cellIndex)).flammable() &&
@@ -55,8 +57,8 @@ public class TemperaturePropagator {
                 oldState.getCell(NeighbourUtils.down(cellIndex)).burningTime() == 0 ||
                 !oldState.getCell(NeighbourUtils.down(cellIndex)).flammable()) {
 
-            if (doesNeighbourOnFire(oldState, cellIndex)
-                    .anyMatch(neighbourIndex -> !possibleToGoUp(oldState, neighbourIndex) &&
+            if (getBurningHorizontalNeighbours(oldState, cellIndex)
+                    .anyMatch(neighbourIndex -> !isUpNeighbourAir(oldState, neighbourIndex) &&
                             oldState.getCell(neighbourIndex).remainingFirePillar() - 1 > 0))
             {
                 newTemperature = Math.max(newTemperature, 600);

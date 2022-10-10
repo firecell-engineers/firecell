@@ -4,7 +4,7 @@ import org.joml.Vector3i;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pl.edu.agh.firecell.model.Cell;
-import pl.edu.agh.firecell.model.MatterState;
+import pl.edu.agh.firecell.model.Material;
 import pl.edu.agh.firecell.model.State;
 import pl.edu.agh.firecell.model.util.NeighbourUtils;
 
@@ -46,18 +46,9 @@ public class BasicAlgorithm implements Algorithm {
         );
     }
 
-    public static boolean possibleToGoUp(State state, Vector3i cellIndex){
-        try {
-            if (state.getCell(NeighbourUtils.up(cellIndex)).material().getMatterState().equals(MatterState.SOLID)) {
-                return false;
-            }
-        } catch (IndexOutOfBoundsException ignored){
-            return false;
-        }
-        return true;
+    public static boolean isUpNeighbourAir(State state, Vector3i cellIndex){
+        Vector3i upIndex = NeighbourUtils.up(cellIndex);
+        return state.hasCell(upIndex) && state.getCell(upIndex).material().equals(Material.AIR);
     }
 
-    public static boolean isOnFire(Cell cell) {
-        return cell.flammable() && cell.burningTime() > 0;
-    }
 }

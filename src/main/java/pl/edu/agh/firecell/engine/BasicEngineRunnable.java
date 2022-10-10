@@ -7,11 +7,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pl.edu.agh.firecell.engine.algorithm.Algorithm;
 import pl.edu.agh.firecell.model.Cell;
-import pl.edu.agh.firecell.model.Material;
-import pl.edu.agh.firecell.model.MatterState;
 import pl.edu.agh.firecell.model.State;
 import pl.edu.agh.firecell.model.util.IndexUtils;
-import pl.edu.agh.firecell.model.util.NeighbourUtils;
 import pl.edu.agh.firecell.storage.StateConsumer;
 
 import java.util.List;
