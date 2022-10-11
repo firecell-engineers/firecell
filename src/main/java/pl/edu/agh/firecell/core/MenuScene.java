@@ -1,6 +1,8 @@
 package pl.edu.agh.firecell.core;
 
 import imgui.ImGui;
+import org.joml.RoundingMode;
+import org.joml.Vector2i;
 import org.joml.Vector3i;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,18 +12,24 @@ import pl.edu.agh.firecell.model.SimulationConfig;
 import pl.edu.agh.firecell.model.State;
 import pl.edu.agh.firecell.model.StateBuilder;
 
-
 import java.util.function.Consumer;
+
+import static imgui.flag.ImGuiWindowFlags.*;
 
 public class MenuScene implements Scene {
 
     private final Logger logger = LoggerFactory.getLogger(MenuScene.class);
 
+    private final Runnable startStateBuilderHandler;
     private final IOListener ioListener;
     private SimulationConfig config = createInitialSimulationConfig();
     private final Consumer<SimulationConfig> startSimulationHandler;
 
-    public MenuScene(Consumer<SimulationConfig> startSimulationHandler, IOListener ioListener) {
+    public static final Vector2i MENU_SIZE = new Vector2i(150, 100);
+
+    public MenuScene(Consumer<SimulationConfig> startSimulationHandler, Runnable startStateBuilderHandler,
+                     IOListener ioListener) {
+        this.startStateBuilderHandler = startStateBuilderHandler;
         this.ioListener = ioListener;
         this.startSimulationHandler = startSimulationHandler;
     }
@@ -32,6 +40,11 @@ public class MenuScene implements Scene {
     }
 
     private void renderGUI() {
+        renderMenuBar();
+        renderMenu();
+    }
+
+    private void renderMenuBar() {
         if (ImGui.beginMainMenuBar()) {
             if (ImGui.beginMenu("Simulation")) {
                 if (ImGui.menuItem("Start simulation")) {
@@ -52,6 +65,19 @@ public class MenuScene implements Scene {
         }
     }
 
+    private void renderMenu() {
+        var viewport = ImGui.getMainViewport();
+        var menuPosition = new Vector2i(viewport.getWorkPosX() + 30, viewport.getWorkPosY() + 30, RoundingMode.HALF_UP);
+        ImGui.setNextWindowPos(menuPosition.x, menuPosition.y);
+        ImGui.setNextWindowSize(MENU_SIZE.x, MENU_SIZE.y);
+        if (ImGui.begin("Menu", NoResize | NoTitleBar | NoMove | NoDecoration)) {
+            if (ImGui.button("Room builder")) {
+                startStateBuilderHandler.run();
+            }
+        }
+        ImGui.end();
+    }
+
     @Override
     public void dispose() {
     }
@@ -68,7 +94,7 @@ public class MenuScene implements Scene {
                 .addCuboid(new Vector3i(12, 1, 17), new Vector3i(1, 4, 1), Material.WOOD) // table leg
                 .addCuboid(new Vector3i(12, 4, 12), new Vector3i(6, 1, 6), Material.WOOD) // table surface
                 .igniteCuboid(new Vector3i(14, 4, 14), new Vector3i(2, 2, 2)) // fire source
-                .getResult();
+                .build();
 
         return new SimulationConfig(spaceSize, initialState, 0.5);
     }

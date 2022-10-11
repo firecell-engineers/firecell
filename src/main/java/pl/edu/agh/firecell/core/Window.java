@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pl.edu.agh.firecell.core.io.IOListener;
 import pl.edu.agh.firecell.core.io.KeyEvent;
+import pl.edu.agh.firecell.core.statebuilder.StateBuilderScene;
 import pl.edu.agh.firecell.core.util.LoggingOutputStream;
 import pl.edu.agh.firecell.model.SimulationConfig;
 
@@ -70,13 +71,15 @@ public class Window {
         double startFrameTime = glfwGetTime();
         double frameTime = 0.0;
 
-        scene = new MenuScene(this::startSimulation, ioListener);
+        scene = new MenuScene(this::startSimulation, this::startStateBuilder, ioListener);
 
         while (!glfwWindowShouldClose(glfwWindow)) {
             glfwPollEvents();
             imGuiGlfw.newFrame();
             ImGui.newFrame();
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+            ImGui.showStackToolWindow();
 
             scene.update(frameTime);
 
@@ -125,8 +128,19 @@ public class Window {
 
     private void finishSimulation() {
         scene.dispose();
-        scene = new MenuScene(this::startSimulation, ioListener);
+        scene = new MenuScene(this::startSimulation, this::startStateBuilder, ioListener);
         logger.info("Finished simulation.");
+    }
+
+    private void startStateBuilder() {
+        try {
+            StateBuilderScene builderScene = new StateBuilderScene(ioListener, size.x / (float) size.y);
+            scene.dispose();
+            scene = builderScene;
+            logger.info("Starting state builder.");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void initializeGLFW() {
