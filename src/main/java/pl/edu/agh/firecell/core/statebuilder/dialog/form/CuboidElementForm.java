@@ -3,8 +3,8 @@ package pl.edu.agh.firecell.core.statebuilder.dialog.form;
 import imgui.ImGui;
 import imgui.type.ImInt;
 import org.joml.Vector3i;
+import pl.edu.agh.firecell.core.statebuilder.StateBuilder;
 import pl.edu.agh.firecell.model.Material;
-import pl.edu.agh.firecell.model.StateBuilder;
 
 public class CuboidElementForm extends AbstractElementForm {
     private final ImInt sizeX = new ImInt(0);

@@ -5,7 +5,7 @@ import imgui.type.ImInt;
 import imgui.type.ImString;
 import org.joml.Vector3i;
 import pl.edu.agh.firecell.core.statebuilder.ElementWrapper;
-import pl.edu.agh.firecell.model.StateBuilder;
+import pl.edu.agh.firecell.core.statebuilder.StateBuilder;
 
 // TODO: add validation
 public abstract class AbstractElementForm implements ElementForm {

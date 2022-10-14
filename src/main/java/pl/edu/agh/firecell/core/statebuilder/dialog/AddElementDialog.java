@@ -5,8 +5,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pl.edu.agh.firecell.core.statebuilder.ElementType;
 import pl.edu.agh.firecell.core.statebuilder.ElementWrapper;
+import pl.edu.agh.firecell.core.statebuilder.StateBuilder;
 import pl.edu.agh.firecell.core.statebuilder.dialog.form.ElementForm;
-import pl.edu.agh.firecell.model.StateBuilder;
 
 import java.util.function.Consumer;
 

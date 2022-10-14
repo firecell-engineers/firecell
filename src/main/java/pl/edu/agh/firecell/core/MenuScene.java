@@ -7,10 +7,10 @@ import org.joml.Vector3i;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pl.edu.agh.firecell.core.io.IOListener;
+import pl.edu.agh.firecell.core.statebuilder.StateBuilder;
 import pl.edu.agh.firecell.model.Material;
 import pl.edu.agh.firecell.model.SimulationConfig;
 import pl.edu.agh.firecell.model.State;
-import pl.edu.agh.firecell.model.StateBuilder;
 
 import java.util.function.Consumer;
 

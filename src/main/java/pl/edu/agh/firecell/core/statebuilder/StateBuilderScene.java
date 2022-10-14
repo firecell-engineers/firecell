@@ -8,7 +8,6 @@ import pl.edu.agh.firecell.core.io.IOListener;
 import pl.edu.agh.firecell.core.statebuilder.dialog.AddElementDialog;
 import pl.edu.agh.firecell.model.SimulationConfig;
 import pl.edu.agh.firecell.model.State;
-import pl.edu.agh.firecell.model.StateBuilder;
 import pl.edu.agh.firecell.renderer.BasicRenderer;
 import pl.edu.agh.firecell.renderer.Renderer;
 
