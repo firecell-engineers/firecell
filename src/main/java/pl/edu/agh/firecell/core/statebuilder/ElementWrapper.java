@@ -1,4 +1,6 @@
 package pl.edu.agh.firecell.core.statebuilder;
 
-public record ElementWrapper(StateBuilder.Element element, String name) {
+import pl.edu.agh.firecell.core.statebuilder.element.Element;
+
+public record ElementWrapper(Element element, String name) {
 }

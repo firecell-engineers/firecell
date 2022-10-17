@@ -6,12 +6,18 @@ import org.joml.Vector2i;
 import org.joml.Vector3i;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import pl.edu.agh.firecell.core.io.IOListener;
+import pl.edu.agh.firecell.core.statebuilder.ElementWrapper;
+import pl.edu.agh.firecell.core.statebuilder.RoomStorage;
 import pl.edu.agh.firecell.core.statebuilder.StateBuilder;
 import pl.edu.agh.firecell.model.Material;
+import pl.edu.agh.firecell.model.Room;
 import pl.edu.agh.firecell.model.SimulationConfig;
 import pl.edu.agh.firecell.model.State;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 import static imgui.flag.ImGuiWindowFlags.*;
@@ -20,18 +26,21 @@ public class MenuScene implements Scene {
 
     private final Logger logger = LoggerFactory.getLogger(MenuScene.class);
 
-    private final Runnable startStateBuilderHandler;
-    private final IOListener ioListener;
-    private SimulationConfig config = createInitialSimulationConfig();
+    private final Consumer<Room> startStateBuilderHandler;
+    private final RoomStorage roomStorage;
+    private final SimulationConfig defaultConfig = createInitialSimulationConfig();
     private final Consumer<SimulationConfig> startSimulationHandler;
+    private final List<String> savedRoomNames = new ArrayList<>();
+    private String selectedRoom = null;
 
     public static final Vector2i MENU_SIZE = new Vector2i(150, 100);
 
-    public MenuScene(Consumer<SimulationConfig> startSimulationHandler, Runnable startStateBuilderHandler,
-                     IOListener ioListener) {
+    public MenuScene(Consumer<SimulationConfig> startSimulationHandler, Consumer<Room> startStateBuilderHandler,
+                     RoomStorage roomStorage) {
         this.startStateBuilderHandler = startStateBuilderHandler;
-        this.ioListener = ioListener;
         this.startSimulationHandler = startSimulationHandler;
+        this.roomStorage = roomStorage;
+        savedRoomNames.addAll(roomStorage.getRoomNames());
     }
 
     @Override
@@ -42,13 +51,14 @@ public class MenuScene implements Scene {
     private void renderGUI() {
         renderMenuBar();
         renderMenu();
+        renderRoomList();
     }
 
     private void renderMenuBar() {
         if (ImGui.beginMainMenuBar()) {
             if (ImGui.beginMenu("Simulation")) {
                 if (ImGui.menuItem("Start simulation")) {
-                    startSimulationHandler.accept(config);
+                    startSimulationHandler.accept(defaultConfig);
                 }
                 ImGui.endMenu();
             }
@@ -72,7 +82,43 @@ public class MenuScene implements Scene {
         ImGui.setNextWindowSize(MENU_SIZE.x, MENU_SIZE.y);
         if (ImGui.begin("Menu", NoResize | NoTitleBar | NoMove | NoDecoration)) {
             if (ImGui.button("Room builder")) {
-                startStateBuilderHandler.run();
+                startStateBuilderHandler.accept(null);
+            }
+        }
+        ImGui.end();
+    }
+
+    private void renderRoomList() {
+        if (ImGui.begin("Saved rooms", NoResize | NoMove | NoTitleBar | NoDecoration)) {
+            if (ImGui.beginListBox("Saved rooms##listbox")) {
+                for (String roomName : savedRoomNames) {
+                    if (ImGui.selectable(roomName, Objects.equals(selectedRoom, roomName))) {
+                        selectedRoom = roomName;
+                    }
+                }
+            }
+            ImGui.endListBox();
+            if (ImGui.button("Edit") && selectedRoom != null) {
+                try {
+                    Room room = roomStorage.loadRoom(selectedRoom);
+                    startStateBuilderHandler.accept(room);
+                } catch (IOException e) {
+                    // TODO: show some gui
+                }
+            }
+            if (ImGui.button("Run simulation") && selectedRoom != null) {
+                try {
+                    Room room = roomStorage.loadRoom(selectedRoom);
+                    StateBuilder stateBuilder = new StateBuilder(room.spaceSize());
+                    for (ElementWrapper elementWrapper : room.elements()) {
+                        stateBuilder.addElement(elementWrapper.element());
+                    }
+                    State initialState = stateBuilder.build();
+                    SimulationConfig simulationConfig = new SimulationConfig(room.spaceSize(), initialState, defaultConfig.stepTime());
+                    startSimulationHandler.accept(simulationConfig);
+                } catch (IOException e) {
+                    // TODO: show some gui
+                }
             }
         }
         ImGui.end();

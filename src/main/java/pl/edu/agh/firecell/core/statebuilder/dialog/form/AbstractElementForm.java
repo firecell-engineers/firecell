@@ -6,6 +6,7 @@ import imgui.type.ImString;
 import org.joml.Vector3i;
 import pl.edu.agh.firecell.core.statebuilder.ElementWrapper;
 import pl.edu.agh.firecell.core.statebuilder.StateBuilder;
+import pl.edu.agh.firecell.core.statebuilder.element.Element;
 
 // TODO: add validation
 public abstract class AbstractElementForm implements ElementForm {
@@ -35,5 +36,5 @@ public abstract class AbstractElementForm implements ElementForm {
         return new Vector3i(positionX.get(), positionY.get(), positionZ.get());
     }
 
-    protected abstract StateBuilder.Element createBaseElement(StateBuilder stateBuilder, Vector3i position);
+    protected abstract Element createBaseElement(StateBuilder stateBuilder, Vector3i position);
 }

@@ -4,6 +4,7 @@ import imgui.ImGui;
 import imgui.type.ImInt;
 import org.joml.Vector3i;
 import pl.edu.agh.firecell.core.statebuilder.StateBuilder;
+import pl.edu.agh.firecell.core.statebuilder.element.Element;
 import pl.edu.agh.firecell.model.Material;
 
 public class CuboidElementForm extends AbstractElementForm {
@@ -37,7 +38,7 @@ public class CuboidElementForm extends AbstractElementForm {
     }
 
     @Override
-    protected StateBuilder.Element createBaseElement(StateBuilder stateBuilder, Vector3i position) {
+    protected Element createBaseElement(StateBuilder stateBuilder, Vector3i position) {
         stateBuilder.addCuboid(position, createSizeVector(), selectedMaterial);
         return stateBuilder.getLastElement();
     }

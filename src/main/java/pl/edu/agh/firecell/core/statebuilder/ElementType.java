@@ -7,7 +7,6 @@ import java.util.function.Supplier;
 
 public enum ElementType {
     CUBOID(CuboidElementForm::new);
-
     private final Supplier<ElementForm> formFactory;
 
     ElementType(Supplier<ElementForm> formFactory) {

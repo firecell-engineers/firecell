@@ -16,8 +16,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pl.edu.agh.firecell.core.io.IOListener;
 import pl.edu.agh.firecell.core.io.KeyEvent;
+import pl.edu.agh.firecell.core.statebuilder.RoomStorage;
 import pl.edu.agh.firecell.core.statebuilder.StateBuilderScene;
 import pl.edu.agh.firecell.core.util.LoggingOutputStream;
+import pl.edu.agh.firecell.model.Room;
 import pl.edu.agh.firecell.model.SimulationConfig;
 
 import java.io.IOException;
@@ -34,6 +36,7 @@ public class Window {
 
     // need to be same as in glsl shaders
     private static final String GLSL_VERSION = "#version 330";
+    private final RoomStorage roomStorage = new RoomStorage();
 
     private final String name;
     private Vector2i size;
@@ -71,7 +74,7 @@ public class Window {
         double startFrameTime = glfwGetTime();
         double frameTime = 0.0;
 
-        scene = new MenuScene(this::startSimulation, this::startStateBuilder, ioListener);
+        scene = new MenuScene(this::startSimulation, this::startStateBuilder, roomStorage);
 
         while (!glfwWindowShouldClose(glfwWindow)) {
             glfwPollEvents();
@@ -117,7 +120,7 @@ public class Window {
 
     private void startSimulation(SimulationConfig config) {
         try {
-            var simulationScene = new SimulationScene(config, this::finishSimulation, ioListener, size.x / (float) size.y);
+            var simulationScene = new SimulationScene(config, this::finishSceneHandler, ioListener, size.x / (float) size.y);
             scene.dispose();
             scene = simulationScene;
             logger.info("Starting simulation.");
@@ -126,15 +129,22 @@ public class Window {
         }
     }
 
-    private void finishSimulation() {
+    private void finishSceneHandler() {
         scene.dispose();
-        scene = new MenuScene(this::startSimulation, this::startStateBuilder, ioListener);
-        logger.info("Finished simulation.");
+        logger.info("Finished scene {}. Opening menu.", scene.getClass().getName());
+        scene = new MenuScene(this::startSimulation, this::startStateBuilder, roomStorage);
     }
 
-    private void startStateBuilder() {
+    private void startStateBuilder(Room room) {
         try {
-            StateBuilderScene builderScene = new StateBuilderScene(ioListener, size.x / (float) size.y);
+            StateBuilderScene builderScene;
+            if (room == null) {
+                builderScene = new StateBuilderScene(roomStorage, ioListener, size.x / (float) size.y,
+                        this::finishSceneHandler);
+            } else {
+                builderScene = new StateBuilderScene(roomStorage, ioListener, size.x / (float) size.y,
+                        this::finishSceneHandler, room);
+            }
             scene.dispose();
             scene = builderScene;
             logger.info("Starting state builder.");
