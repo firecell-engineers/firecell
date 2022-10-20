@@ -1,11 +1,21 @@
 package pl.edu.agh.firecell.model;
 
-public record Cell(
+public record Cell (
         double temperature,
         int burningTime,
         boolean flammable,
-        Material material
-) {
+        Material material,
+        int remainingFirePillar
+        ) {
+
+        public Cell(double temperature, int burningTime, boolean flammable, Material material){
+                this(temperature, burningTime, flammable, material, 0);
+        }
+
+        public Cell(Cell other){
+            this(other.temperature, other.burningTime, other.flammable, other.material,
+                    other.remainingFirePillar);
+        }
 
     public boolean isSolid() {
         return material.getMatterState().equals(MatterState.SOLID);

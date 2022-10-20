@@ -25,7 +25,12 @@ public class StateBuilder {
     public StateBuilder addCuboid(Vector3i position, Vector3i size, Material material) {
         IndexUtils.range(position, new Vector3i(-1).add(position).add(size))
                 .map(expandedIndex -> IndexUtils.flattenIndex(expandedIndex, spaceSize))
-                .forEach(flatIndex -> cells.set(flatIndex, new Cell(15, 0, true, material)));
+                .forEach(flatIndex -> {
+                    if(material==Material.WOOD)
+                        cells.set(flatIndex, new Cell(15, 0, true, material, 5));
+                    else
+                        cells.set(flatIndex, new Cell(15, 0, true, material));
+                });
         return this;
     }
 
@@ -35,7 +40,8 @@ public class StateBuilder {
                 .filter(index -> cells.get(index).flammable())
                 .forEach(index -> {
                     var oldCell = cells.get(index);
-                    cells.set(index, new Cell(400, 1, oldCell.flammable(), oldCell.material()));
+                    cells.set(index, new Cell(600,
+                            0, oldCell.flammable(), oldCell.material(), oldCell.remainingFirePillar()));
                 });
         return this;
     }
