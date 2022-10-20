@@ -35,7 +35,7 @@ public class FirePropagator {
         int downFirePillar = 0;
         if (oldState.hasCell(NeighbourUtils.down(cellIndex)) &&
                 isCellBurning(oldState.getCell(NeighbourUtils.down(cellIndex))) &&
-                oldState.getCell(NeighbourUtils.down(cellIndex)).remainingFirePillar() - 1 > 0) {
+                oldState.getCell(NeighbourUtils.down(cellIndex)).remainingFirePillar() > 1) {
             downFirePillar = oldState.getCell(NeighbourUtils.down(cellIndex)).remainingFirePillar() - 1;
         }
 

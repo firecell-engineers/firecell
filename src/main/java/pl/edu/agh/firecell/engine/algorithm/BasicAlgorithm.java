@@ -12,7 +12,7 @@ import pl.edu.agh.firecell.model.util.NeighbourUtils;
 public class BasicAlgorithm implements Algorithm {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
-    private final TemperaturePropagator temperatureCalculation;
+    private final TemperaturePropagator temperaturePropagator;
     private final FirePropagator firePropagator;
     public static final double CONVECTION_COEFFICIENT = 1;
     // should be dependent on the material in the future
@@ -21,7 +21,7 @@ public class BasicAlgorithm implements Algorithm {
 
 
     public BasicAlgorithm(double deltaTime) {
-        this.temperatureCalculation = new TemperaturePropagator(deltaTime);
+        this.temperaturePropagator = new TemperaturePropagator(deltaTime);
         this.firePropagator = new FirePropagator();
     }
 
@@ -30,11 +30,11 @@ public class BasicAlgorithm implements Algorithm {
 
         Cell oldCell = oldState.getCell(cellIndex);
         // NOTE: Following method calls are dependent on each other, the order matters.
-        double newTemperature = temperatureCalculation.computeNewTemperature(oldState, cellIndex, oldCell);
+        double newTemperature = temperaturePropagator.computeNewTemperature(oldState, cellIndex, oldCell);
         int newBurningTime = firePropagator.computeBurningTime(oldState, oldCell, cellIndex, newTemperature);
         int newRemainingHeightOfFirePillar = firePropagator.computeFirePillar(oldState, oldCell, cellIndex, oldCell.remainingFirePillar());
         boolean newFlammable = firePropagator.computeNewFlammable(oldCell, newBurningTime);
-        newTemperature = temperatureCalculation.updateTemperatureBasedOnFire(oldState, oldCell, cellIndex, newTemperature, newBurningTime);
+        newTemperature = temperaturePropagator.updateTemperatureBasedOnFire(oldState, oldCell, cellIndex, newTemperature, newBurningTime);
         // boolean isBurned = false; || maybe in future
 
         return new Cell(
