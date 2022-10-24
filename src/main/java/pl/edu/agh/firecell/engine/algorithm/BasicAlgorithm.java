@@ -16,7 +16,9 @@ public class BasicAlgorithm implements Algorithm {
     private final FirePropagator firePropagator;
     public static final double CONVECTION_COEFFICIENT = 1;
     // should be dependent on the material in the future
-    public static final double CONDUCTIVITY_COEFFICIENT = 0.2;
+    public static final double CONDUCTIVITY_COEFFICIENT_WOOD = 0.2;
+    public static final double CONDUCTIVITY_COEFFICIENT_AIR = 0.008;
+    public static final double CONDUCTIVITY_COEFFICIENT_WOOD_AIR = 0.02;
     public static final int MAX_BURNING_TIME = 50;
 
 
@@ -34,7 +36,7 @@ public class BasicAlgorithm implements Algorithm {
         int newBurningTime = firePropagator.computeBurningTime(oldState, oldCell, cellIndex, newTemperature);
         int newRemainingHeightOfFirePillar = firePropagator.computeFirePillar(oldState, oldCell, cellIndex, oldCell.remainingFirePillar());
         boolean newFlammable = firePropagator.computeNewFlammable(oldCell, newBurningTime);
-        newTemperature = temperaturePropagator.updateTemperatureBasedOnFire(oldState, oldCell, cellIndex, newTemperature, newBurningTime);
+        newTemperature = temperaturePropagator.newTemperatureFromChemicalReaction(oldState, oldCell, cellIndex, newTemperature, newBurningTime);
         // boolean isBurned = false; || maybe in future
 
         return new Cell(

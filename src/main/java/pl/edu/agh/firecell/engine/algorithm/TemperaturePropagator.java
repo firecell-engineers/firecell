@@ -28,11 +28,11 @@ public class TemperaturePropagator {
         return oldCell.temperature() + deltaTime *
                 switch (oldCell.material().getMatterState()) {
                     case SOLID -> computeConduction(oldState, oldCell, cellIndex);
-                    case FLUID -> computeConvection(oldState, oldCell, cellIndex);
+                    case FLUID -> computeConduction(oldState, oldCell, cellIndex) + computeConvection(oldState, oldCell, cellIndex);
         };
     }
 
-    public double updateTemperatureBasedOnFire(State oldState, Cell oldCell, Vector3i cellIndex, double currentTemperature, int burningTime){
+    public double newTemperatureFromChemicalReaction(State oldState, Cell oldCell, Vector3i cellIndex, double currentTemperature, int burningTime){
 
         double newTemperature = currentTemperature;
 
@@ -46,16 +46,13 @@ public class TemperaturePropagator {
     private double newAirTemperature(State oldState, Cell oldCell, Vector3i cellIndex, double currentTemperature) {
         double newTemperature = currentTemperature;
         if (oldState.hasCell(NeighbourUtils.down(cellIndex)) &&
-                oldState.getCell(NeighbourUtils.down(cellIndex)).burningTime() > 0 &&
-                oldState.getCell(NeighbourUtils.down(cellIndex)).flammable() &&
+                FirePropagator.isCellBurning(oldState.getCell(NeighbourUtils.down(cellIndex))) &&
                 oldState.getCell(NeighbourUtils.down(cellIndex)).remainingFirePillar() - 1 > 0) {
             newTemperature = Math.max(currentTemperature, AIR.getBurningTemperature());
         }
 
         if (!oldState.hasCell(NeighbourUtils.down(cellIndex)) ||
-                oldState.getCell(NeighbourUtils.down(cellIndex)).burningTime() == 0 ||
-                !oldState.getCell(NeighbourUtils.down(cellIndex)).flammable()) {
-
+                !FirePropagator.isCellBurning(oldState.getCell(NeighbourUtils.down(cellIndex)))) {
             if (getBurningHorizontalNeighbours(oldState, cellIndex)
                     .anyMatch(neighbourIndex -> !isUpNeighbourAir(oldState, neighbourIndex) &&
                             oldState.getCell(neighbourIndex).remainingFirePillar() - 1 > 0))
@@ -92,31 +89,30 @@ public class TemperaturePropagator {
     }
 
     private double calculateAxisDifference(State oldState, Vector3i formerIndex, Cell middleCell, Vector3i furtherIndex) {
-
-        double result = 0.0;
-
-        if (!oldState.hasCell(formerIndex) && !oldState.hasCell(furtherIndex))
-            return result;
-
-        if(oldState.hasCell(formerIndex) && oldState.hasCell(furtherIndex)){
-            Cell formerCell = oldState.getCell(formerIndex);
-            Cell furtherCell = oldState.getCell(furtherIndex);
-            if (formerCell.isSolid() && formerCell.isSolid())
-                result = computeConductivity(formerCell, middleCell, furtherCell);
-            else if (formerCell.isSolid())
-                result = computeConductivity(formerCell, middleCell, new Cell(middleCell));
-            else if (furtherCell.isSolid())
-                result = computeConductivity(new Cell(middleCell), middleCell, furtherCell);
-        } else if(oldState.hasCell(formerIndex) && oldState.getCell(formerIndex).isSolid())
-            result = computeConductivity(oldState.getCell(formerIndex), middleCell, new Cell(middleCell));
-        else if(oldState.hasCell(furtherIndex) && oldState.getCell(furtherIndex).isSolid())
-            result = computeConductivity(new Cell(middleCell), middleCell, oldState.getCell(furtherIndex));
-
-        return result;
+        return oldState.hasCell(formerIndex) && oldState.hasCell(furtherIndex)?
+                computeConductivity(oldState.getCell(formerIndex), middleCell,
+                        oldState.getCell(furtherIndex),
+                        getCoe(oldState.getCell(formerIndex), middleCell),
+                        getCoe(oldState.getCell(furtherIndex), middleCell)):
+                0.0;
     }
 
-    private double computeConductivity(Cell former, Cell middle, Cell latter) {
-        return - CONDUCTIVITY_COEFFICIENT * (tempDiff(middle, former) + tempDiff(middle, latter));
+    private double getCoe(Cell neighbour, Cell middleCell) {
+        double coe = 0.0;
+        if (neighbour.material().equals(WOOD) && middleCell.material().equals(WOOD))
+            coe = CONDUCTIVITY_COEFFICIENT_WOOD;
+
+        if ((neighbour.material().equals(WOOD) && middleCell.material().equals(AIR)) ||
+                (neighbour.material().equals(AIR) && middleCell.material().equals(WOOD)))
+            coe = CONDUCTIVITY_COEFFICIENT_WOOD_AIR;
+
+        if ((neighbour.material().equals(AIR) && middleCell.material().equals(AIR)))
+            coe = CONDUCTIVITY_COEFFICIENT_AIR;
+        return coe;
+    }
+
+    private double computeConductivity(Cell former, Cell middle, Cell latter, double conductivityCoeFormer, double conductivityCoeFurther) {
+        return - (conductivityCoeFormer * tempDiff(middle, former) + conductivityCoeFurther * tempDiff(middle, latter));
     }
 
     private static double tempDiffAbs(Cell cellOne, Cell cellTwo) {
@@ -134,15 +130,12 @@ public class TemperaturePropagator {
             Cell cellUnder = oldState.getCell(NeighbourUtils.down(cellIndex));
             if (cellUnder.material().equals(Material.AIR) && cellUnder.temperature() > oldCell.temperature())
                 temperatureDifference += CONVECTION_COEFFICIENT * tempDiffAbs(oldCell, cellUnder);
-
         } catch (IndexOutOfBoundsException ignored) {}
 
         try {
             Cell cellAbove = oldState.getCell(NeighbourUtils.up(cellIndex));
-            if (cellAbove.material().equals(Material.AIR) &&
-                    cellAbove.temperature() < oldCell.temperature()) {
+            if (cellAbove.material().equals(Material.AIR) && cellAbove.temperature() < oldCell.temperature())
                 temperatureDifference -= CONVECTION_COEFFICIENT * tempDiffAbs(oldCell, cellAbove);
-            }
         } catch (IndexOutOfBoundsException ignored) {}
 
         return getLetterTRuleTemperatureUpdate(oldState, oldCell, cellIndex, temperatureDifference);
@@ -150,41 +143,43 @@ public class TemperaturePropagator {
 
     private double getLetterTRuleTemperatureUpdate(State oldState, Cell oldCell, Vector3i cellIndex, double temperatureDifference) {
         if (!oldState.hasCell(NeighbourUtils.up(cellIndex)) || oldState.getCell(NeighbourUtils.up(cellIndex)).temperature() > 100) {
-            // cell above me is ceiling
-            try {
-                Optional<Cell> northCell = oldState.hasCell(NeighbourUtils.north(cellIndex)) ? Optional.of(oldState.getCell(NeighbourUtils.north(cellIndex))) : Optional.empty();
-                Optional<Cell> southCell = oldState.hasCell(NeighbourUtils.south(cellIndex)) ? Optional.of(oldState.getCell(NeighbourUtils.south(cellIndex))) : Optional.empty();
-                Optional<Cell> eastCell = oldState.hasCell(NeighbourUtils.east(cellIndex)) ? Optional.of(oldState.getCell(NeighbourUtils.east(cellIndex))) : Optional.empty();
-                Optional<Cell> westCell = oldState.hasCell(NeighbourUtils.west(cellIndex)) ? Optional.of(oldState.getCell(NeighbourUtils.west(cellIndex))) : Optional.empty();
+            // cell above me is ceiling or has high temperature
+            Optional<Cell> northCell = oldState.hasCell(NeighbourUtils.north(cellIndex)) ?
+                    Optional.of(oldState.getCell(NeighbourUtils.north(cellIndex))) : Optional.empty();
+            Optional<Cell> southCell = oldState.hasCell(NeighbourUtils.south(cellIndex)) ?
+                    Optional.of(oldState.getCell(NeighbourUtils.south(cellIndex))) : Optional.empty();
+            Optional<Cell> eastCell = oldState.hasCell(NeighbourUtils.east(cellIndex)) ?
+                    Optional.of(oldState.getCell(NeighbourUtils.east(cellIndex))) : Optional.empty();
+            Optional<Cell> westCell = oldState.hasCell(NeighbourUtils.west(cellIndex)) ?
+                    Optional.of(oldState.getCell(NeighbourUtils.west(cellIndex))) : Optional.empty();
 
-                List<Optional<Cell>> neighbours = new ArrayList<>(List.of(northCell, southCell, eastCell, westCell));
-                final int[] counter = {0, 0};
+            List<Optional<Cell>> neighbours = new ArrayList<>(List.of(northCell, southCell, eastCell, westCell));
+            final int[] counter = {0, 0};
 
-                neighbours.stream()
-                        .filter(Optional::isPresent)
-                        .map(Optional::get)
-                        .forEach(cell -> {
-                            if (cell.temperature() > oldCell.temperature())
-                                counter[0]++;
-                            else
-                                counter[1]++;
-                        });
+            neighbours.stream()
+                    .filter(Optional::isPresent)
+                    .map(Optional::get)
+                    .forEach(cell -> {
+                        if (cell.temperature() > oldCell.temperature())
+                            counter[0]++;
+                        else
+                            counter[1]++;
+                    });
 
-                // give to other
-                temperatureDifference -= neighbours.stream()
-                        .filter(Optional::isPresent)
-                        .filter(cell -> cell.get().temperature() < oldCell.temperature())
-                        .mapToDouble(cell -> tempDiffAbs(oldCell, cell.get()) / counter[1])
-                        .sum();
+            // give to other
+            temperatureDifference -= neighbours.stream()
+                    .filter(Optional::isPresent)
+                    .filter(cell -> cell.get().temperature() < oldCell.temperature())
+                    .mapToDouble(cell -> tempDiffAbs(oldCell, cell.get()) / counter[1])
+                    .sum();
 
-                // take from other
-                temperatureDifference += neighbours.stream()
-                        .filter(Optional::isPresent)
-                        .filter(cell -> cell.get().temperature() > oldCell.temperature())
-                        .mapToDouble(cell -> tempDiffAbs(oldCell, cell.get()) / counter[0])
-                        .sum();
+            // take from other
+            temperatureDifference += neighbours.stream()
+                    .filter(Optional::isPresent)
+                    .filter(cell -> cell.get().temperature() > oldCell.temperature())
+                    .mapToDouble(cell -> tempDiffAbs(oldCell, cell.get()) / counter[0])
+                    .sum();
 
-            } catch (IndexOutOfBoundsException ignored){}
         }
         return temperatureDifference;
     }
