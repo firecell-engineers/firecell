@@ -3,7 +3,7 @@ package pl.edu.agh.firecell.core.statebuilder.dialog.form;
 import imgui.ImGui;
 import imgui.type.ImInt;
 import org.joml.Vector3i;
-import pl.edu.agh.firecell.core.statebuilder.StateBuilder;
+import pl.edu.agh.firecell.core.statebuilder.element.CuboidElement;
 import pl.edu.agh.firecell.core.statebuilder.element.Element;
 import pl.edu.agh.firecell.model.Material;
 
@@ -38,8 +38,7 @@ public class CuboidElementForm extends AbstractElementForm {
     }
 
     @Override
-    protected Element createBaseElement(StateBuilder stateBuilder, Vector3i position) {
-        stateBuilder.addCuboid(position, createSizeVector(), selectedMaterial);
-        return stateBuilder.getLastElement();
+    protected Element createBaseElement(Vector3i position) {
+        return new CuboidElement(position, createSizeVector(), selectedMaterial);
     }
 }

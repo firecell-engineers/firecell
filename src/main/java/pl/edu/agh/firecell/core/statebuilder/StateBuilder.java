@@ -10,31 +10,23 @@ import pl.edu.agh.firecell.model.State;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.IntStream;
+
+import static pl.edu.agh.firecell.core.util.StateUtils.entireAir;
 
 // TODO: FIRE-22: Tests for StateBuilder
 public class StateBuilder {
 
     private final Vector3i spaceSize;
     private final List<Element> elements = new ArrayList<>();
-//    private List<Cell> cells;
 
     public StateBuilder(Vector3i spaceSize) {
         this.spaceSize = spaceSize;
     }
 
     public State build() {
-        List<Cell> cells = entireAir();
+        List<Cell> cells = entireAir(spaceSize);
         elements.forEach(element -> element.addTo(cells, spaceSize));
         return new State(cells, spaceSize);
-    }
-
-    public Element getLastElement() {
-        return elements.size() > 0 ? elements.get(elements.size() - 1) : null;
-    }
-
-    public void removeElement(Element element) {
-        elements.remove(element);
     }
 
     public void addElement(Element element) {
@@ -51,9 +43,7 @@ public class StateBuilder {
         return this;
     }
 
-    private List<Cell> entireAir() {
-        return new ArrayList<>(IntStream.range(0, spaceSize.x * spaceSize.y * spaceSize.z)
-                .mapToObj(idx -> new Cell(20, 0, true, Material.AIR))
-                .toList());
+    public void clear() {
+        elements.clear();
     }
 }

@@ -5,7 +5,6 @@ import imgui.type.ImInt;
 import imgui.type.ImString;
 import org.joml.Vector3i;
 import pl.edu.agh.firecell.core.statebuilder.ElementWrapper;
-import pl.edu.agh.firecell.core.statebuilder.StateBuilder;
 import pl.edu.agh.firecell.core.statebuilder.element.Element;
 
 // TODO: add validation
@@ -28,13 +27,13 @@ public abstract class AbstractElementForm implements ElementForm {
     protected abstract void buildElementGui();
 
     @Override
-    public ElementWrapper createElement(StateBuilder stateBuilder) {
-        return new ElementWrapper(createBaseElement(stateBuilder, getPositionVector()), name.get());
+    public ElementWrapper createElement() {
+        return new ElementWrapper(createBaseElement(getPositionVector()), name.get());
     }
 
     private Vector3i getPositionVector() {
         return new Vector3i(positionX.get(), positionY.get(), positionZ.get());
     }
 
-    protected abstract Element createBaseElement(StateBuilder stateBuilder, Vector3i position);
+    protected abstract Element createBaseElement(Vector3i position);
 }

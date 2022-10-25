@@ -5,7 +5,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pl.edu.agh.firecell.core.statebuilder.ElementType;
 import pl.edu.agh.firecell.core.statebuilder.ElementWrapper;
-import pl.edu.agh.firecell.core.statebuilder.StateBuilder;
 import pl.edu.agh.firecell.core.statebuilder.dialog.form.ElementForm;
 
 import java.util.function.Consumer;
@@ -14,13 +13,11 @@ public class AddElementDialog extends AbstractDialog {
     private static final Logger logger = LoggerFactory.getLogger(AddElementDialog.class);
 
     private final Consumer<ElementWrapper> addElementHandler;
-    private final StateBuilder stateBuilder;
     private ElementType selectedElementType = null;
     private ElementForm elementForm = null;
 
-    public AddElementDialog(Consumer<ElementWrapper> addElementHandler, StateBuilder stateBuilder) {
+    public AddElementDialog(Consumer<ElementWrapper> addElementHandler) {
         this.addElementHandler = addElementHandler;
-        this.stateBuilder = stateBuilder;
         setTitle("Add element");
         setVisible(false);
     }
@@ -48,7 +45,7 @@ public class AddElementDialog extends AbstractDialog {
         if (elementForm != null) {
             elementForm.buildGui();
             if (ImGui.button("Create")) {
-                ElementWrapper element = elementForm.createElement(stateBuilder);
+                ElementWrapper element = elementForm.createElement();
                 addElementHandler.accept(element);
             }
         }
