@@ -8,6 +8,9 @@ import pl.edu.agh.firecell.core.statebuilder.element.Element;
 import pl.edu.agh.firecell.model.Material;
 
 public class CuboidElementForm extends AbstractElementForm {
+    private final ImInt positionX = new ImInt(0);
+    private final ImInt positionY = new ImInt(0);
+    private final ImInt positionZ = new ImInt(0);
     private final ImInt sizeX = new ImInt(0);
     private final ImInt sizeY = new ImInt(0);
     private final ImInt sizeZ = new ImInt(0);
@@ -15,6 +18,10 @@ public class CuboidElementForm extends AbstractElementForm {
 
     @Override
     protected void buildElementGui() {
+        ImGui.text("Position");
+        ImGui.inputInt("X##elementPosition", positionX);
+        ImGui.inputInt("Y##elementPosition", positionY);
+        ImGui.inputInt("Z##elementPosition", positionZ);
         ImGui.text("Size");
         ImGui.inputInt("X##cuboidSize", sizeX);
         ImGui.inputInt("Y##cuboidSize", sizeY);
@@ -38,7 +45,11 @@ public class CuboidElementForm extends AbstractElementForm {
     }
 
     @Override
-    protected Element createBaseElement(Vector3i position) {
-        return new CuboidElement(position, createSizeVector(), selectedMaterial);
+    protected Element createBaseElement() {
+        return new CuboidElement(createPositionVector(), createSizeVector(), selectedMaterial);
+    }
+
+    private Vector3i createPositionVector() {
+        return new Vector3i(positionX.get(), positionY.get(), positionZ.get());
     }
 }
