@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pl.edu.agh.firecell.model.Cell;
 import pl.edu.agh.firecell.model.Material;
+import pl.edu.agh.firecell.model.Material;
 import pl.edu.agh.firecell.model.MatterState;
 import pl.edu.agh.firecell.model.State;
 import pl.edu.agh.firecell.model.util.NeighbourUtils;
@@ -18,18 +19,18 @@ import static pl.edu.agh.firecell.model.MatterState.FLUID;
 public class BasicAlgorithm implements Algorithm {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
-    private final double deltaTime;
-    public static final double CONVECTION_COEFFICIENT = 0.1;
+    private final TemperaturePropagator temperaturePropagator;
+    private final FirePropagator firePropagator;
+    public static final double CONVECTION_COEFFICIENT = 1;
     // should be dependent on the material in the future
     public static final double CONDUCTIVITY_COEFFICIENT = 0.1;
     private final Map<String, Integer> smokeCoefficients = new HashMap<>();
     private final Map<String, Integer> smokeCoefficientsHorizontalEscalation = new HashMap<>();
-    public static final int MAX_BURNING_TIME = 5;
     public static final double MIN_BURNING_TEMPERATURE = 100;
+    public static final int MAX_BURNING_TIME = 50;
+
 
     public BasicAlgorithm(double deltaTime) {
-        this.deltaTime = deltaTime;
-
         smokeCoefficients.put("down", 25);
         smokeCoefficients.put("up", 100);
         smokeCoefficients.put("north", 50);
@@ -43,23 +44,24 @@ public class BasicAlgorithm implements Algorithm {
         smokeCoefficientsHorizontalEscalation.put("south", 50);
         smokeCoefficientsHorizontalEscalation.put("west", 50);
         smokeCoefficientsHorizontalEscalation.put("east", 50);
+
+        this.temperaturePropagator = new TemperaturePropagator(deltaTime);
+        this.firePropagator = new FirePropagator();
     }
 
     @Override
     public Cell compute(State oldState, Vector3i cellIndex) {
 
         Cell oldCell = oldState.getCell(cellIndex);
-
-        // temperature propagation
-        double newTemperature = computeNewTemperature(oldState, cellIndex, oldCell);
-        boolean newFlammable  = oldCell.flammable();
-        int newBurningTime    = oldCell.burningTime();
-        Material newMaterial  = oldCell.material();
+        // NOTE: Following method calls are dependent on each other, the order matters.
+        double newTemperature = temperaturePropagator.computeNewTemperature(oldState, cellIndex, oldCell);
+        int newBurningTime = firePropagator.computeBurningTime(oldState, oldCell, cellIndex, newTemperature);
+        int newRemainingHeightOfFirePillar = firePropagator.computeFirePillar(oldState, oldCell, cellIndex, oldCell.remainingFirePillar());
+        boolean newFlammable = firePropagator.computeNewFlammable(oldCell, newBurningTime);
+        newTemperature = temperaturePropagator.updateTemperatureBasedOnFire(oldState, oldCell, cellIndex, newTemperature, newBurningTime);
         int newSmokeIndicator = computeNewSmokeIndicator(oldState, cellIndex, oldCell);
+        // boolean isBurned = false; || maybe in future
 
-        // computeFirePropagation();
-        // computeSmokePropagation();
-        //computeFirePropagation();
         if(newFlammable){
             newSmokeIndicator = Math.min(100, newSmokeIndicator + newMaterial.smokeCoe());
         }
@@ -75,7 +77,8 @@ public class BasicAlgorithm implements Algorithm {
                 newTemperature,
                 newBurningTime,
                 newFlammable,
-                newMaterial,
+                oldCell.material(),
+                newRemainingHeightOfFirePillar,
                 newSmokeIndicator
         );
     }
@@ -124,36 +127,9 @@ public class BasicAlgorithm implements Algorithm {
         return coe * Math.min((double) (1/6)*from.smokeIndicator(), (double) (1/6)*(100-to.smokeIndicator()));
     }
 
-    private double computeNewTemperature(State oldState, Vector3i cellIndex, Cell oldCell) {
-        return oldCell.temperature() + deltaTime *
-                switch (oldCell.material().getMatterState()) {
-                    case SOLID -> computeConduction(oldState, oldCell, cellIndex);
-                    case FLUID -> computeConvection(oldState, oldCell, cellIndex);
-                };
+    public static boolean isUpNeighbourAir(State state, Vector3i cellIndex){
+        Vector3i upIndex = NeighbourUtils.up(cellIndex);
+        return state.hasCell(upIndex) && state.getCell(upIndex).material().equals(Material.AIR);
     }
 
-    private double computeConduction(State oldState, Cell oldCell, Vector3i cellIndex) {
-        return NeighbourUtils.neighboursStream(cellIndex)
-                .filter(oldState::hasCell)
-                .map(oldState::getCell)
-                .filter(Cell::isSolid)
-                .mapToDouble(neighbour -> computeConductivityWithNeighbour(oldCell, neighbour))
-                .sum();
-    }
-
-    private double computeConvection(State oldState, Cell oldCell, Vector3i cellIndex) {
-        return NeighbourUtils.neighboursStream(cellIndex, NeighbourUtils.Axis.Y)
-                .filter(oldState::hasCell)
-                .map(oldState::getCell)
-                .mapToDouble(neighbourCell -> computeConvectionWithNeighbour(oldCell, neighbourCell))
-                .sum();
-    }
-
-    private static double computeConductivityWithNeighbour(Cell oldCell, Cell neighbour) {
-        return CONDUCTIVITY_COEFFICIENT * (oldCell.temperature() - neighbour.temperature());
-    }
-
-    private static double computeConvectionWithNeighbour(Cell oldCell, Cell neighbour) {
-        return CONVECTION_COEFFICIENT * (oldCell.temperature() - neighbour.temperature());
-    }
 }

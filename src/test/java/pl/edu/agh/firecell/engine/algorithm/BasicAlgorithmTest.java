@@ -40,7 +40,7 @@ class BasicAlgorithmTest {
         final double COND_COEFF = BasicAlgorithm.CONDUCTIVITY_COEFFICIENT;
 
         return Stream.of(
-                Arguments.of(initWoodState, index111, new Cell(initWoodState.getTemp(index111) + deltaTime * COND_COEFF * 400.0, 1, true, Material.WOOD),
+                Arguments.of(initWoodState, index111, new Cell(Material.WOOD.getBurningTemperature(), 1, true, Material.WOOD),
                 Arguments.of(initWoodState, index201, new Cell(initWoodState.getTemp(index201), 0, true, Material.WOOD)),
                 Arguments.of(initWoodState, index222, new Cell(initWoodState.getTemp(index222), 0, true, Material.WOOD)),
                 Arguments.of(initAirState,  index111, new Cell(initAirState.getTemp(index111) + deltaTime * COND_COEFF * -300, 1, true, Material.AIR)),

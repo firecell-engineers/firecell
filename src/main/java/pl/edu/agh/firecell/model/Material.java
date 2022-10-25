@@ -7,24 +7,27 @@ import static pl.edu.agh.firecell.model.MatterState.SOLID;
 public enum Material {
     // TODO:
     // consider putting them into constant
-    AIR(0, 0, 0, FLUID, 30),
-    WOOD(3, 4, 0, SOLID, 0);
+    AIR(0, 0, 0, FLUID, 900, 30),
+    WOOD(3, 250, 0, SOLID, 550, 0);
 
     private final double ignitionTemperature;
     private final double autoIgnitionTemperature;
     private final double fireSpreadSpeed;
     private final MatterState matterState;
+    private final double burningTemperature;
     private final int smokeCoe;
 
     Material(double ignitionTemperature,
              double autoIgnitionTemperature,
              double fireSpreadSpeed,
              MatterState matterState,
+             double burningTemperature,
              int smokeCoe){
         this.ignitionTemperature = ignitionTemperature;
         this.autoIgnitionTemperature = autoIgnitionTemperature;
         this.fireSpreadSpeed = fireSpreadSpeed;
         this.matterState = matterState;
+        this.burningTemperature = burningTemperature;
         this.smokeCoe = smokeCoe;
     }
 
@@ -41,6 +44,8 @@ public enum Material {
     public int smokeCoe(){ return smokeCoe;}
 
     public MatterState getMatterState() {return matterState;}
+
+    public double getBurningTemperature() {return burningTemperature;}
 
 }
 
