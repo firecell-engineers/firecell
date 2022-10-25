@@ -39,8 +39,6 @@ vec4 transformPosition(vec3 position, mat4 mvp) {
 }
 
 vec4 resolveColor() {
-    if (aInstanceSmokeIndicator > 0) return DEBUG_COLOR;
-
     float smokeInterpolant = (aInstanceSmokeIndicator - SMOKE_MIN_TRESHOLD) /
                             (SMOKE_MAX_TRESHOLD - SMOKE_MIN_TRESHOLD);
 

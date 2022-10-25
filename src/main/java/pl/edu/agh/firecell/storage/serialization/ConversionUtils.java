@@ -23,7 +23,13 @@ public class ConversionUtils {
     }
 
     public static Cell convertFromProto(ProtoCell proto) {
-        return new Cell(proto.getTemperature(), proto.getBurningTime(), proto.getFlammable(), convertFromProto(proto.getMaterial()));
+        return new Cell(proto.getTemperature(),
+                proto.getBurningTime(),
+                proto.getFlammable(),
+                convertFromProto(proto.getMaterial()),
+                proto.getRemainingFirePillar(),
+                proto.getSmokeIndicator()
+        );
     }
 
     public static Material convertFromProto(ProtoMaterial proto) {
@@ -39,6 +45,8 @@ public class ConversionUtils {
                 .setBurningTime(cell.burningTime())
                 .setFlammable(cell.flammable())
                 .setMaterial(convertToProto(cell.material()))
+                .setRemainingFirePillar(cell.remainingFirePillar())
+                .setSmokeIndicator(cell.smokeIndicator())
                 .build();
     }
 

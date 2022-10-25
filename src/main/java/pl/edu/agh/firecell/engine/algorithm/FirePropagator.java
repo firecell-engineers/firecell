@@ -98,7 +98,7 @@ public class FirePropagator {
         return newBurningTime;
     }
 
-    private static boolean isCellBurning(Cell cell) {
+    public static boolean isCellBurning(Cell cell) {
         return cell.flammable() && cell.burningTime() > 0;
     }
 }
