@@ -13,6 +13,10 @@ public record Cell (
                 this(temperature, burningTime, flammable, material, 0, 0);
         }
 
+        public Cell(double temperature, int burningTime, boolean flammable, Material material, int remainingFirePillar){
+            this(temperature, burningTime, flammable, material, remainingFirePillar, 0);
+        }
+
         public Cell(Cell other){
             this(other.temperature, other.burningTime, other.flammable, other.material,
                     other.remainingFirePillar, other.smokeIndicator);
@@ -38,7 +42,7 @@ public record Cell (
                 burningTime == c.burningTime &&
                 flammable == c.flammable &&
                 material == c.material &&
-                remainingFirePillar = c.remainingFirePillar &&
+                remainingFirePillar == c.remainingFirePillar &&
                 smokeIndicator == c.smokeIndicator;
     }
 }
