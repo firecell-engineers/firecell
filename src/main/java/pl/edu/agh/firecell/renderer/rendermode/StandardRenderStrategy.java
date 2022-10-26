@@ -42,7 +42,6 @@ public class StandardRenderStrategy extends RenderStrategy {
         glDepthMask(false);
         var smokeCellsList = state.getIndexedCellsStream()
                 .filter(indexedCell -> indexedCell.cell().material().equals(Material.AIR))
-                .filter(indexedCell -> indexedCell.cell().burningTime() == 0)
                 .filter(indexedCell -> indexedCell.cell().smokeIndicator() > 0 && indexedCell.cell().smokeIndicator() <= 100)
                 .toList();
         var mesh = new InstancedCubeMesh(MeshUtils.CUBE_VERTICES, smokeCellsList);

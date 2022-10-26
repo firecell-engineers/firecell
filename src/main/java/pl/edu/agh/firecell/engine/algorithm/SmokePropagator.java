@@ -5,76 +5,81 @@ import pl.edu.agh.firecell.model.Cell;
 import pl.edu.agh.firecell.model.State;
 import pl.edu.agh.firecell.model.util.NeighbourUtils;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import static pl.edu.agh.firecell.model.MatterState.FLUID;
+import static pl.edu.agh.firecell.engine.algorithm.FirePropagator.isCellBurning;
 
 public class SmokePropagator {
 
-    private final Map<String, Integer> smokeCoefficients = new HashMap<>();
-    private final Map<String, Integer> smokeCoefficientsHorizontalEscalation = new HashMap<>();
+    private final double deltaTime;
 
-    public SmokePropagator() {
-        smokeCoefficients.put("down", 25);
-        smokeCoefficients.put("up", 100);
-        smokeCoefficients.put("north", 50);
-        smokeCoefficients.put("south", 50);
-        smokeCoefficients.put("west", 50);
-        smokeCoefficients.put("east", 50);
-
-        smokeCoefficientsHorizontalEscalation.put("down", 100);
-        smokeCoefficientsHorizontalEscalation.put("up", 0);
-        smokeCoefficientsHorizontalEscalation.put("north", 50);
-        smokeCoefficientsHorizontalEscalation.put("south", 50);
-        smokeCoefficientsHorizontalEscalation.put("west", 50);
-        smokeCoefficientsHorizontalEscalation.put("east", 50);
+    public SmokePropagator(double deltaTime) {
+        this.deltaTime = deltaTime;
     }
 
     public int computeNewSmokeIndicator(State oldState, Vector3i cellIndex, Cell oldCell) {
 
-        int devotedSmoke, deliveredSmoke;
+        double smokeDifference = getSmokeIndicatorDifference(oldCell, oldState, cellIndex);
 
-        try {
-            Cell cellAbove = oldState.getCell(NeighbourUtils.up(cellIndex));
-            if (cellAbove.material().getMatterState() != FLUID || cellAbove.smokeIndicator() >= 99) {
-                devotedSmoke = getDevotedSmoke(oldCell, oldState, cellIndex, smokeCoefficientsHorizontalEscalation);
-                deliveredSmoke = getDeliveredSmoke(oldCell, oldState, cellIndex, smokeCoefficientsHorizontalEscalation);
-            } else {
-                devotedSmoke = getDevotedSmoke(oldCell, oldState, cellIndex, smokeCoefficients);
-                deliveredSmoke = getDeliveredSmoke(oldCell, oldState, cellIndex, smokeCoefficients);
-            }
-        } catch (IndexOutOfBoundsException e){
-            devotedSmoke = 0;
-            deliveredSmoke = 0;
+        int smokeFromFire = 0;
+        if(oldState.hasCell(NeighbourUtils.down(cellIndex)) &&
+                isCellBurning(oldState.getCell(NeighbourUtils.down(cellIndex))) &&
+                oldState.getCell(NeighbourUtils.down(cellIndex)).isSolid()){
+            smokeFromFire = oldState.getCell(NeighbourUtils.down(cellIndex)).material().smokeCoe();
         }
 
-        return oldCell.smokeIndicator() - devotedSmoke + deliveredSmoke;
+        return (int)Math.min(oldCell.smokeIndicator() + deltaTime*(smokeDifference + smokeFromFire), 100);
     }
 
+    private double getSmokeIndicatorDifference (Cell oldCell, State oldState, Vector3i cellIndex){
+        final Int smokeInCell = new Int(oldCell.smokeIndicator());
+        return NeighbourUtils.neighboursStream(cellIndex)
+                .filter(oldState::hasCell)
+                .map(neighbourIndex -> {
+                    if(NeighbourUtils.up(cellIndex).equals(neighbourIndex)){
+                        // neighbour above
+                        // try to put to him as much as possible
+                        double toGive = Math.min(oldCell.smokeIndicator(), 100-oldState.getCell(neighbourIndex).smokeIndicator());
+                        smokeInCell.value -= toGive;
 
-    private int getDevotedSmoke(Cell oldCell, State oldState, Vector3i cellIndex, Map<String, Integer> coe){
-        return (int) (
-                DFunction(oldCell, oldState.getCell(NeighbourUtils.down(cellIndex)), coe.get("down")) +
-                        DFunction(oldCell, oldState.getCell(NeighbourUtils.up(cellIndex)), coe.get("up")) +
-                        DFunction(oldCell, oldState.getCell(NeighbourUtils.south(cellIndex)), coe.get("south")) +
-                        DFunction(oldCell, oldState.getCell(NeighbourUtils.north(cellIndex)), coe.get("north")) +
-                        DFunction(oldCell, oldState.getCell(NeighbourUtils.west(cellIndex)), coe.get("west")) +
-                        DFunction(oldCell, oldState.getCell(NeighbourUtils.east(cellIndex)), coe.get("east")));
+                        if(oldState.getCell(neighbourIndex).smokeIndicator() > oldCell.smokeIndicator()) {
+                            toGive -= 0.05 * oldState.getCell(neighbourIndex).smokeIndicator();
+                        }
+                        return -toGive;
+                    }
+                    if(NeighbourUtils.north(cellIndex).equals(neighbourIndex) ||
+                            NeighbourUtils.south(cellIndex).equals(neighbourIndex) ||
+                            NeighbourUtils.west(cellIndex).equals(neighbourIndex) ||
+                            NeighbourUtils.east(cellIndex).equals(neighbourIndex)){
+                        // to neighbours
+                        if(oldState.getCell(neighbourIndex).smokeIndicator() > oldCell.smokeIndicator()){
+                            // we want to take from
+                            int hisLost = 0;
+                            if(oldState.hasCell(NeighbourUtils.up(neighbourIndex))) {
+                                hisLost = Math.min(oldState.getCell(neighbourIndex).smokeIndicator(),
+                                        100 - oldState.getCell(NeighbourUtils.up(neighbourIndex)).smokeIndicator());
+                            }
+                            int toShare = oldState.getCell(neighbourIndex).smokeIndicator() - hisLost;
+                            return toShare/5.0;
+                        } else {
+                            double toGive = Math.min(smokeInCell.value/5, 100 - oldState.getCell(neighbourIndex).smokeIndicator());
+                            smokeInCell.value -= toGive;
+                            return -toGive;
+                        }
+                    }
+                    if(NeighbourUtils.down(cellIndex).equals(neighbourIndex)){
+                        double toGet = Math.min(oldState.getCell(neighbourIndex).smokeIndicator(), 100-oldCell.smokeIndicator());
+                        return toGet;
+                    }
+                    return 0.0;
+                }).mapToDouble(Double::doubleValue).sum();
     }
 
-    private int getDeliveredSmoke(Cell oldCell, State oldState, Vector3i cellIndex, Map<String, Integer> coe){
-        return (int) (
-                DFunction(oldState.getCell(NeighbourUtils.down(cellIndex)), oldCell, coe.get("down")) +
-                        DFunction(oldState.getCell(NeighbourUtils.up(cellIndex)), oldCell, coe.get("up")) +
-                        DFunction(oldState.getCell(NeighbourUtils.south(cellIndex)), oldCell, coe.get("south")) +
-                        DFunction(oldState.getCell(NeighbourUtils.north(cellIndex)), oldCell, coe.get("north")) +
-                        DFunction(oldState.getCell(NeighbourUtils.west(cellIndex)), oldCell, coe.get("west")) +
-                        DFunction(oldState.getCell(NeighbourUtils.east(cellIndex)), oldCell, coe.get("east")));
+    class Int{
+        public int value;
+        public Int(int val){
+            this.value = val;
+        }
+        public Int(){
+            this(0);
+        }
     }
-
-    private double DFunction(Cell from, Cell to, int coe){
-        return coe * Math.min((double) (1/6)*from.smokeIndicator(), (double) (1/6)*(100-to.smokeIndicator()));
-    }
-
 }

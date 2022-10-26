@@ -24,7 +24,7 @@ public class BasicAlgorithm implements Algorithm {
     public BasicAlgorithm(double deltaTime) {
         this.temperaturePropagator = new TemperaturePropagator(deltaTime);
         this.firePropagator = new FirePropagator();
-        this.smokePropagator = new SmokePropagator();
+        this.smokePropagator = new SmokePropagator(deltaTime);
     }
 
     @Override
