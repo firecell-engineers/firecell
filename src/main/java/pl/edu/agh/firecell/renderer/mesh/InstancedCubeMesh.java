@@ -36,7 +36,7 @@ public class InstancedCubeMesh extends Mesh {
             temperatureBuffer.put(bufferIndex, (float) indexedCell.cell().temperature());
             materialBuffer.put(bufferIndex, indexedCell.cell().material().ordinal());
             burningTimeBuffer.put(bufferIndex, indexedCell.cell().burningTime());
-            smokeIndicatorBuffer.put(bufferIndex, indexedCell.cell().smokeIndicator());
+            smokeIndicatorBuffer.put(bufferIndex, (float)indexedCell.cell().smokeIndicator());
             bufferIndex++;
         }
 

@@ -37,7 +37,7 @@ public class BasicAlgorithm implements Algorithm {
         int newRemainingHeightOfFirePillar = firePropagator.computeFirePillar(oldState, oldCell, cellIndex, oldCell.remainingFirePillar());
         boolean newFlammable = firePropagator.computeNewFlammable(oldCell, newBurningTime);
         newTemperature = temperaturePropagator.updateTemperatureBasedOnFire(oldState, oldCell, cellIndex, newTemperature, newBurningTime);
-        int newSmokeIndicator = smokePropagator.computeNewSmokeIndicator(oldState, cellIndex, oldCell);
+        double newSmokeIndicator = smokePropagator.computeNewSmokeIndicator(oldState, cellIndex, oldCell);
         // boolean isBurned = false; || maybe in future
 
         return new Cell(

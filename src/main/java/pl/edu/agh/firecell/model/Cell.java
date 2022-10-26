@@ -6,7 +6,7 @@ public record Cell (
         boolean flammable,
         Material material,
         int remainingFirePillar,
-        int smokeIndicator
+        double smokeIndicator
         ) {
 
         public Cell(double temperature, int burningTime, boolean flammable, Material material){

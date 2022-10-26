@@ -23,7 +23,7 @@ message ProtoCell {
   required bool flammable = 3;
   required ProtoMaterial material = 4;
   required int32 remainingFirePillar = 5;
-  required int32 smokeIndicator = 6;
+  required double smokeIndicator = 6;
 }
 
 message ProtoState {
