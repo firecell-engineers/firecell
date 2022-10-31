@@ -5,7 +5,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import pl.edu.agh.firecell.model.Cell;
-import pl.edu.agh.firecell.model.Material;
+import pl.edu.agh.firecell.model.material.Material;
 import pl.edu.agh.firecell.model.State;
 
 import java.util.ArrayList;

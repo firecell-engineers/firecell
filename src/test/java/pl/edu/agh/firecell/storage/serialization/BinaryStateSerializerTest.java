@@ -3,7 +3,7 @@ package pl.edu.agh.firecell.storage.serialization;
 import org.joml.Vector3i;
 import org.junit.jupiter.api.Test;
 import pl.edu.agh.firecell.model.Cell;
-import pl.edu.agh.firecell.model.Material;
+import pl.edu.agh.firecell.model.material.Material;
 import pl.edu.agh.firecell.model.State;
 
 import java.io.ByteArrayInputStream;

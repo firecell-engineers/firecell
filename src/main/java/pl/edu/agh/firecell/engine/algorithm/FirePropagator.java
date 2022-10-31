@@ -8,8 +8,8 @@ import pl.edu.agh.firecell.model.util.NeighbourUtils;
 import java.util.stream.Stream;
 
 import static pl.edu.agh.firecell.engine.algorithm.BasicAlgorithm.*;
-import static pl.edu.agh.firecell.model.Material.AIR;
-import static pl.edu.agh.firecell.model.Material.WOOD;
+import static pl.edu.agh.firecell.model.material.Material.AIR;
+import static pl.edu.agh.firecell.model.material.Material.WOOD;
 
 public class FirePropagator {
 
@@ -17,6 +17,8 @@ public class FirePropagator {
         return switch (oldCell.material()) {
             case WOOD -> newBurningTime < MAX_BURNING_TIME;
             case AIR -> true;
+            case CELLULAR_CONCRETE -> false;
+            default -> throw new IllegalStateException("Unexpected value: " + oldCell.material());
         };
     }
 
@@ -24,6 +26,8 @@ public class FirePropagator {
         return switch (oldCell.material()) {
             case WOOD -> computeBurningTimeWood(oldCell, newTemperature, oldCell.burningTime());
             case AIR -> computeBurningTimeAir(oldState, cellIndex);
+            case CELLULAR_CONCRETE -> 0;
+            default -> throw new IllegalStateException("Unexpected value: " + oldCell.material());
         };
     }
 

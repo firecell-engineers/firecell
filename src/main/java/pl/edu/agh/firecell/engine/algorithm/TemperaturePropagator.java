@@ -2,7 +2,7 @@ package pl.edu.agh.firecell.engine.algorithm;
 
 import org.joml.Vector3i;
 import pl.edu.agh.firecell.model.Cell;
-import pl.edu.agh.firecell.model.Material;
+import pl.edu.agh.firecell.model.material.Material;
 import pl.edu.agh.firecell.model.State;
 import pl.edu.agh.firecell.model.util.NeighbourUtils;
 
@@ -13,8 +13,8 @@ import java.util.Optional;
 import static pl.edu.agh.firecell.engine.algorithm.BasicAlgorithm.*;
 import static pl.edu.agh.firecell.engine.algorithm.BasicAlgorithm.MAX_BURNING_TIME;
 import static pl.edu.agh.firecell.engine.algorithm.FirePropagator.getBurningHorizontalNeighbours;
-import static pl.edu.agh.firecell.model.Material.AIR;
-import static pl.edu.agh.firecell.model.Material.WOOD;
+import static pl.edu.agh.firecell.model.material.Material.AIR;
+import static pl.edu.agh.firecell.model.material.Material.WOOD;
 
 public class TemperaturePropagator {
 

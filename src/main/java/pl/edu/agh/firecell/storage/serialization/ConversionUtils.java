@@ -2,7 +2,7 @@ package pl.edu.agh.firecell.storage.serialization;
 
 import org.joml.Vector3i;
 import pl.edu.agh.firecell.model.Cell;
-import pl.edu.agh.firecell.model.Material;
+import pl.edu.agh.firecell.model.material.Material;
 import pl.edu.agh.firecell.model.State;
 import pl.edu.agh.firecell.storage.proto.ProtoCell;
 import pl.edu.agh.firecell.storage.proto.ProtoMaterial;
@@ -30,6 +30,8 @@ public class ConversionUtils {
         return switch (proto) {
             case AIR -> Material.AIR;
             case WOOD -> Material.WOOD;
+            case CELLULAR_CONCRETE -> Material.CELLULAR_CONCRETE;
+            default -> throw new IllegalStateException("Unexpected value: " + proto);
         };
     }
 
@@ -46,6 +48,8 @@ public class ConversionUtils {
         return switch (material) {
             case WOOD -> ProtoMaterial.WOOD;
             case AIR -> ProtoMaterial.AIR;
+            case CELLULAR_CONCRETE -> ProtoMaterial.CELLULAR_CONCRETE;
+            default -> throw new IllegalStateException("Unexpected value: " + material);
         };
     }
 

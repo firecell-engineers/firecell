@@ -1,6 +1,7 @@
 package pl.edu.agh.firecell.model;
 
 import org.joml.Vector3i;
+import pl.edu.agh.firecell.model.material.Material;
 import pl.edu.agh.firecell.model.util.IndexUtils;
 
 import java.util.ArrayList;
