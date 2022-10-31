@@ -66,6 +66,10 @@ dependencies {
 
 }
 
+tasks.withType<JavaExec> {
+    systemProperty("java.library.path", file("./cppUtils"))
+}
+
 tasks.getByName<Test>("test") {
     useJUnitPlatform()
 }
