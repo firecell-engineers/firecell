@@ -98,6 +98,10 @@ public class SimulationScene implements Scene {
                 ImGui.text("Solids temperature: %s C".formatted(String.valueOf(Math.round(diagnosticsManager.solidsTemperature()))));
                 ImGui.text("Air temperature:    %s C".formatted(String.valueOf(Math.round(diagnosticsManager.airTemperature()))));
 
+                ImGui.text("Total smoke:    %s".formatted(String.valueOf(Math.round(diagnosticsManager.totalSmokeValue()))));
+                ImGui.text("Max smoke:    %s".formatted(String.valueOf(Math.round(diagnosticsManager.maxSmokeValue()))));
+                ImGui.text("Min smoke:    %s".formatted(String.valueOf(Math.round(diagnosticsManager.minSmokeValue()))));
+
                 ImGui.endMenu();
             }
             if (ImGui.beginMenu("Render mode")) {
