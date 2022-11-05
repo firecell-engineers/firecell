@@ -56,7 +56,8 @@ public class SmokePropagator {
         if (eastCell.isPresent()) smokeFromFire += eastCell.get().material().smokeCoe() / 4;
 
         double smokeDifference = getSmokeIndicatorDifference(oldCell, oldState, cellIndex);
-
+        if(Math.min(oldCell.smokeIndicator() + smokeDifference + smokeFromFire, 100) < 0.0005)
+            return 0.0;
         return Math.min(oldCell.smokeIndicator() + smokeDifference + smokeFromFire, 100);
     }
 
