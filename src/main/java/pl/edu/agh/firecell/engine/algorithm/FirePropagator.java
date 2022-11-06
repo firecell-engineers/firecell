@@ -12,6 +12,8 @@ import static pl.edu.agh.firecell.engine.algorithm.BasicAlgorithm.*;
 
 public class FirePropagator {
 
+    private static final int requiredTime = 10;
+
     public boolean computeNewFlammable(Cell oldCell, int newBurningTime) {
         return switch (oldCell.material()) {
             case WOOD -> newBurningTime < MAX_BURNING_TIME;
@@ -102,15 +104,11 @@ public class FirePropagator {
     }
 
     private boolean shouldIgniteFromNeighbour(State oldState, Vector3i cellIndex) {
-        int requiredTime = 10;
-        return NeighbourUtils.neighboursStream(cellIndex, NeighbourUtils.Axis.X)
+        return Stream.concat(NeighbourUtils.neighboursStream(cellIndex, NeighbourUtils.Axis.X),
+                                            NeighbourUtils.neighboursStream(cellIndex, NeighbourUtils.Axis.Z))
                 .filter(oldState::hasCell)
                 .map(oldState::getCell)
-                .anyMatch(cell -> cell.burningTime() > requiredTime) ||
-                NeighbourUtils.neighboursStream(cellIndex, NeighbourUtils.Axis.Z)
-                        .filter(oldState::hasCell)
-                        .map(oldState::getCell)
-                        .anyMatch(cell -> cell.burningTime() > requiredTime);
+                .anyMatch(cell -> cell.burningTime() > requiredTime);
     }
 
     private static boolean isCellBurning(Cell cell) {
