@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static pl.edu.agh.firecell.engine.algorithm.FirePropagator.isCellBurning;
+import static pl.edu.agh.firecell.engine.algorithm.BasicAlgorithm.isCellBurning;
 
 public class SmokePropagator {
 
@@ -56,36 +56,39 @@ public class SmokePropagator {
         if (eastCell.isPresent()) smokeFromFire += eastCell.get().material().smokeCoe() / 4;
 
         double smokeDifference = getSmokeIndicatorDifference(oldCell, oldState, cellIndex);
-        if(Math.min(oldCell.smokeIndicator() + smokeDifference + smokeFromFire, 100) < 0.0005)
+        double deviation = 0.0005;
+        if (Math.min(oldCell.smokeIndicator() + smokeDifference + smokeFromFire, 100) < deviation)
             return 0.0;
         return Math.min(oldCell.smokeIndicator() + smokeDifference + smokeFromFire, 100);
     }
 
     private double getSmokeIndicatorDifference(Cell oldCell, State oldState, Vector3i cellIndex) {
-        Int counter = new Int(oldCell.smokeIndicator());
+        _Double valueOfSmokeDuringComputing = new _Double(oldCell.smokeIndicator());
         return NeighbourUtils.neighboursStream(cellIndex)
                 .filter(oldState::hasCell)
                 .filter(neighbourIndex -> oldState.getCell(neighbourIndex).isFluid())
                 .map(neighbourIndex -> {
-                    double diff = 0.0;
                     if (NeighbourUtils.up(cellIndex).equals(neighbourIndex)) {
-                        diff = -Math.min(oldCell.smokeIndicator(), 100 - oldState.getCell(neighbourIndex).smokeIndicator());
-                        counter.v += diff;
-                    } else if (NeighbourUtils.down(cellIndex).equals(neighbourIndex)) {
-                        diff = Math.min(oldState.getCell(neighbourIndex).smokeIndicator(),
+                        double diff = -Math.min(oldCell.smokeIndicator(), 100 - oldState.getCell(neighbourIndex).smokeIndicator());
+                        valueOfSmokeDuringComputing.v += diff;
+                        return diff;
+                    }
+                    if (NeighbourUtils.down(cellIndex).equals(neighbourIndex)) {
+                        double diff = Math.min(oldState.getCell(neighbourIndex).smokeIndicator(),
                                 100 - oldCell.smokeIndicator());
-                        counter.v += diff;
-                    } else if (isHorizontal(cellIndex, neighbourIndex)) {
-                        int numberOfNeighboursMine = N(oldState, cellIndex).size() + 1;
-                        int numberOfNeighboursHim = N(oldState, neighbourIndex).size() + 1;
-                        if (cellAboveCanNotTakeSmoke(oldState, cellIndex)) {
-                            diff -= Math.min((100 - oldState.getCell(neighbourIndex).smokeIndicator()) / numberOfNeighboursHim,
-                                    (counter.v) / numberOfNeighboursMine);
-                        }
-                        if (cellAboveCanNotTakeSmoke(oldState, neighbourIndex)) {
-                            diff += Math.min((100 - counter.v) / numberOfNeighboursMine,
-                                    (oldState.getCell(neighbourIndex).smokeIndicator()) / numberOfNeighboursHim);
-                        }
+                        valueOfSmokeDuringComputing.v += diff;
+                        return diff;
+                    }
+                    int numberOfNeighboursMine = numberOfHorizontalNeighboursWithSmokeCapacity(oldState, cellIndex) + 1;
+                    int numberOfNeighboursHim = numberOfHorizontalNeighboursWithSmokeCapacity(oldState, neighbourIndex) + 1;
+                    double diff = 0.0;
+                    if (cellAboveCanNotTakeSmoke(oldState, cellIndex)) {
+                        diff -= Math.min((100 - oldState.getCell(neighbourIndex).smokeIndicator()) / numberOfNeighboursHim,
+                                (valueOfSmokeDuringComputing.v) / numberOfNeighboursMine);
+                    }
+                    if (cellAboveCanNotTakeSmoke(oldState, neighbourIndex)) {
+                        diff += Math.min((100 - valueOfSmokeDuringComputing.v) / numberOfNeighboursMine,
+                                (oldState.getCell(neighbourIndex).smokeIndicator()) / numberOfNeighboursHim);
                     }
                     return diff;
                 }).mapToDouble(Double::doubleValue).sum();
@@ -93,12 +96,13 @@ public class SmokePropagator {
 
     private boolean cellAboveCanNotTakeSmoke(State state, Vector3i index) {
         Vector3i cellAbove = NeighbourUtils.up(index);
-        return (state.hasCell(cellAbove) && state.getCell(cellAbove).smokeIndicator() >= 50) ||
+        int smokeLimitValue = 50;
+        return (state.hasCell(cellAbove) && state.getCell(cellAbove).smokeIndicator() >= smokeLimitValue) ||
                 (state.hasCell(cellAbove) && !state.getCell(cellAbove).isFluid()) ||
                 !state.hasCell(cellAbove);
     }
 
-    private List<Cell> N(State state, Vector3i cellIndex) {
+    private int numberOfHorizontalNeighboursWithSmokeCapacity(State state, Vector3i cellIndex) {
         List<Cell> res = new ArrayList<>();
         NeighbourUtils.neighboursStream(cellIndex, NeighbourUtils.Axis.X)
                 .filter(state::hasCell)
@@ -108,22 +112,15 @@ public class SmokePropagator {
                 .filter(state::hasCell)
                 .filter(index -> state.getCell(index).smokeIndicator() < 100)
                 .forEach(index -> res.add(state.getCell(index)));
-        return res;
-    }
-
-    private boolean isHorizontal(Vector3i cellIndex, Vector3i neighbourIndex) {
-        return NeighbourUtils.north(cellIndex).equals(neighbourIndex) ||
-                NeighbourUtils.south(cellIndex).equals(neighbourIndex) ||
-                NeighbourUtils.west(cellIndex).equals(neighbourIndex) ||
-                NeighbourUtils.east(cellIndex).equals(neighbourIndex);
+        return res.size();
     }
 
 }
 
-class Int {
+class _Double {
     public double v;
 
-    public Int(double v) {
+    public _Double(double v) {
         this.v = v;
     }
 }
