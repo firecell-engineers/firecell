@@ -53,7 +53,6 @@ public class BasicAlgorithm implements Algorithm {
         newTemperature = temperaturePropagator.updateTemperatureBasedOnFire(oldCell, newTemperature);
 
         // Diffusion update
-        diffusionGenerator.oxygenUpdate(oldState, cellIndex);
         diffusionGenerator.smokeUpdate(oldState, cellIndex);
 
         return new Cell(

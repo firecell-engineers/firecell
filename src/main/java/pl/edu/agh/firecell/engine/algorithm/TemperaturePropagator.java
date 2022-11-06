@@ -26,13 +26,25 @@ public class TemperaturePropagator {
     }
 
     private double calculateAxisDifference(State oldState, Vector3i formerIndex, Cell middleCell, Vector3i furtherIndex) {
-        return oldState.hasCell(formerIndex) && oldState.hasCell(furtherIndex) ?
-                computeConductivity(oldState.getCell(formerIndex), middleCell,
-                        oldState.getCell(furtherIndex),
-                        getCoe(oldState.getCell(formerIndex), middleCell),
-                        getCoe(oldState.getCell(furtherIndex), middleCell)) :
-                0.0;
-        // repair, bug at the border cause one of neighbour is not present
+        if(oldState.hasCell(formerIndex) && oldState.hasCell(furtherIndex)){
+            return computeConductivity(oldState.getCell(formerIndex), middleCell,
+                    oldState.getCell(furtherIndex),
+                    getCoe(oldState.getCell(formerIndex), middleCell),
+                    getCoe(oldState.getCell(furtherIndex), middleCell));
+        }
+        if(!oldState.hasCell(formerIndex) && oldState.hasCell(furtherIndex)){
+            Cell tmp = new Cell(middleCell);
+            return computeConductivity(tmp, middleCell, oldState.getCell(furtherIndex),
+                    getCoe(tmp, middleCell),
+                    getCoe(oldState.getCell(furtherIndex), middleCell));
+        }
+        if(oldState.hasCell(formerIndex) && !oldState.hasCell(furtherIndex)){
+            Cell tmp = new Cell(middleCell);
+            return computeConductivity(oldState.getCell(formerIndex), middleCell, tmp,
+                    getCoe(oldState.getCell(formerIndex), middleCell),
+                    getCoe(tmp, middleCell));
+        }
+        return 0.0;
     }
 
     private double getCoe(Cell neighbour, Cell middleCell) {
@@ -59,14 +71,14 @@ public class TemperaturePropagator {
 
         try {
             Cell cellUnder = oldState.getCell(NeighbourUtils.down(cellIndex));
-            if (cellUnder.material().equals(Material.AIR) && cellUnder.temperature() > oldCell.temperature())
+            if (cellUnder.isFluid() && cellUnder.temperature() > oldCell.temperature())
                 temperatureDifference += CONVECTION_COEFFICIENT * tempDiffAbs(oldCell, cellUnder);
         } catch (IndexOutOfBoundsException ignored) {
         }
 
         try {
             Cell cellAbove = oldState.getCell(NeighbourUtils.up(cellIndex));
-            if (cellAbove.material().equals(Material.AIR) && cellAbove.temperature() < oldCell.temperature())
+            if (cellAbove.isFluid() && cellAbove.temperature() < oldCell.temperature())
                 temperatureDifference -= CONVECTION_COEFFICIENT * tempDiffAbs(oldCell, cellAbove);
         } catch (IndexOutOfBoundsException ignored) {
         }

@@ -9,10 +9,6 @@ public class DiffusionGenerator {
         this.deltaTime = deltaTime;
     }
 
-    public double oxygenUpdate(State oldState, Vector3i cellIndex) {
-        return 0.0;
-    }
-
     public double smokeUpdate(State oldState, Vector3i cellIndex) {
         return 0.0;
     }
