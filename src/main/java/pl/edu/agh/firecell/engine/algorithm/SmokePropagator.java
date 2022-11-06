@@ -7,7 +7,7 @@ import pl.edu.agh.firecell.model.util.NeighbourUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Stream;
 
 import static pl.edu.agh.firecell.engine.algorithm.BasicAlgorithm.isCellBurning;
 
@@ -20,46 +20,31 @@ public class SmokePropagator {
     }
 
     public double computeNewSmokeIndicator(State oldState, Vector3i cellIndex, Cell oldCell) {
-        int smokeFromFire = 0;
-        if (oldState.hasCell(NeighbourUtils.down(cellIndex)) &&
-                isCellBurning(oldState.getCell(NeighbourUtils.down(cellIndex))) &&
-                oldState.getCell(NeighbourUtils.down(cellIndex)).isSolid()) {
-            smokeFromFire = oldState.getCell(NeighbourUtils.down(cellIndex)).material().smokeCoe();
-        }
-        Optional<Cell> northCell = Optional.empty();
-        Optional<Cell> southCell = Optional.empty();
-        Optional<Cell> westCell = Optional.empty();
-        Optional<Cell> eastCell = Optional.empty();
-        if (oldState.hasCell(NeighbourUtils.west(cellIndex)) &&
-                isCellBurning(oldState.getCell(NeighbourUtils.west(cellIndex))) &&
-                oldState.getCell(NeighbourUtils.west(cellIndex)).isSolid()) {
-            westCell = Optional.of(oldState.getCell(NeighbourUtils.west(cellIndex)));
-        }
-        if (oldState.hasCell(NeighbourUtils.east(cellIndex)) &&
-                isCellBurning(oldState.getCell(NeighbourUtils.east(cellIndex))) &&
-                oldState.getCell(NeighbourUtils.east(cellIndex)).isSolid()) {
-            eastCell = Optional.of(oldState.getCell(NeighbourUtils.east(cellIndex)));
-        }
-        if (oldState.hasCell(NeighbourUtils.north(cellIndex)) &&
-                isCellBurning(oldState.getCell(NeighbourUtils.north(cellIndex))) &&
-                oldState.getCell(NeighbourUtils.north(cellIndex)).isSolid()) {
-            northCell = Optional.of(oldState.getCell(NeighbourUtils.north(cellIndex)));
-        }
-        if (oldState.hasCell(NeighbourUtils.south(cellIndex)) &&
-                isCellBurning(oldState.getCell(NeighbourUtils.south(cellIndex))) &&
-                oldState.getCell(NeighbourUtils.south(cellIndex)).isSolid()) {
-            southCell = Optional.of(oldState.getCell(NeighbourUtils.south(cellIndex)));
-        }
-        if (southCell.isPresent()) smokeFromFire += southCell.get().material().smokeCoe() / 4;
-        if (northCell.isPresent()) smokeFromFire += northCell.get().material().smokeCoe() / 4;
-        if (westCell.isPresent()) smokeFromFire += westCell.get().material().smokeCoe() / 4;
-        if (eastCell.isPresent()) smokeFromFire += eastCell.get().material().smokeCoe() / 4;
-
+        double smokeFromFire = generateSmoke(oldState, cellIndex);
         double smokeDifference = getSmokeIndicatorDifference(oldCell, oldState, cellIndex);
         double deviation = 0.0005;
         if (Math.min(oldCell.smokeIndicator() + smokeDifference + smokeFromFire, 100) < deviation)
             return 0.0;
         return Math.min(oldCell.smokeIndicator() + smokeDifference + smokeFromFire, 100);
+    }
+
+    private double generateSmoke(State oldState, Vector3i cellIndex) {
+        double smokeFromFire = 0;
+        if (oldState.hasCell(NeighbourUtils.down(cellIndex)) &&
+                isCellBurning(oldState.getCell(NeighbourUtils.down(cellIndex))) &&
+                oldState.getCell(NeighbourUtils.down(cellIndex)).isSolid()) {
+            smokeFromFire = oldState.getCell(NeighbourUtils.down(cellIndex)).material().smokeCoe();
+        }
+
+        smokeFromFire += Stream.concat(NeighbourUtils.neighboursStream(cellIndex, NeighbourUtils.Axis.X),
+                NeighbourUtils.neighboursStream(cellIndex, NeighbourUtils.Axis.Z))
+                        .filter(oldState::hasCell)
+                        .map(oldState::getCell)
+                        .filter(BasicAlgorithm::isCellBurning)
+                        .filter(Cell::isSolid)
+                        .map(cell -> cell.material().smokeCoe()/4.0)
+                        .mapToDouble(Double::doubleValue).sum();
+        return smokeFromFire;
     }
 
     private double getSmokeIndicatorDifference(Cell oldCell, State oldState, Vector3i cellIndex) {
