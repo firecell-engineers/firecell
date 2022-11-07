@@ -2,16 +2,17 @@ package pl.edu.agh.firecell.engine.algorithm;
 
 import org.joml.Vector3i;
 import pl.edu.agh.firecell.model.Cell;
+import pl.edu.agh.firecell.model.Material;
 import pl.edu.agh.firecell.model.State;
 import pl.edu.agh.firecell.model.util.NeighbourUtils;
 
 import java.util.stream.Stream;
 
 import static pl.edu.agh.firecell.engine.algorithm.BasicAlgorithm.*;
-import static pl.edu.agh.firecell.model.Material.AIR;
-import static pl.edu.agh.firecell.model.Material.WOOD;
 
 public class FirePropagator {
+
+    private static final int REQUIRED_TIME = 10;
 
     public boolean computeNewFlammable(Cell oldCell, int newBurningTime) {
         return switch (oldCell.material()) {
@@ -22,13 +23,13 @@ public class FirePropagator {
 
     public int computeBurningTime(State oldState, Cell oldCell, Vector3i cellIndex, double newTemperature) {
         return switch (oldCell.material()) {
-            case WOOD -> computeBurningTimeWood(oldCell, newTemperature, oldCell.burningTime());
+            case WOOD -> computeBurningTimeWood(oldState, cellIndex, newTemperature, oldCell.burningTime());
             case AIR -> computeBurningTimeAir(oldState, cellIndex);
         };
     }
 
     public int computeFirePillar(State oldState, Cell oldCell, Vector3i cellIndex, int currentFirePillar) {
-        if (!oldCell.material().equals(AIR))
+        if (!oldCell.material().equals(Material.AIR))
             return currentFirePillar;
 
         // from under
@@ -83,13 +84,18 @@ public class FirePropagator {
         return newBurningTime;
     }
 
-    private int computeBurningTimeWood(Cell oldCell, double newTemperature, int currenBurningTime) {
+    private int computeBurningTimeWood(State oldState, Vector3i cellIndex, double newTemperature, int currenBurningTime) {
+        Cell oldCell = oldState.getCell(cellIndex);
         int newBurningTime = currenBurningTime;
-        if (newTemperature > WOOD.autoIgnitionTemperature() &&
-                oldCell.burningTime() == 0 &&
+        if (oldCell.burningTime() == 0 &&
                 MAX_BURNING_TIME != 0 &&
                 oldCell.flammable()) {
-            newBurningTime++;
+            if (newTemperature > Material.WOOD.autoIgnitionTemperature()) {
+                newBurningTime++;
+            } else if (shouldIgniteFromNeighbour(oldState, cellIndex) &&
+                    newTemperature > Material.WOOD.ignitionTemperature()) {
+                newBurningTime++;
+            }
         }
         if (oldCell.burningTime() > 0 && oldCell.burningTime() <= MAX_BURNING_TIME) {
             newBurningTime++;
@@ -97,4 +103,15 @@ public class FirePropagator {
         return newBurningTime;
     }
 
+    private boolean shouldIgniteFromNeighbour(State oldState, Vector3i cellIndex) {
+        return Stream.concat(NeighbourUtils.neighboursStream(cellIndex, NeighbourUtils.Axis.X),
+                                            NeighbourUtils.neighboursStream(cellIndex, NeighbourUtils.Axis.Z))
+                .filter(oldState::hasCell)
+                .map(oldState::getCell)
+                .anyMatch(cell -> cell.burningTime() > REQUIRED_TIME);
+    }
+
+    private static boolean isCellBurning(Cell cell) {
+        return cell.flammable() && cell.burningTime() > 0;
+    }
 }
