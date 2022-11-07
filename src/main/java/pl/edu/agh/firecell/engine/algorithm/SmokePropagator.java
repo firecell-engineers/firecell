@@ -21,7 +21,7 @@ public class SmokePropagator {
 
     public double computeNewSmokeIndicator(State oldState, Vector3i cellIndex, Cell oldCell) {
         double smokeFromFire = generateSmoke(oldState, cellIndex);
-        double smokeDifference = getSmokeIndicatorDifference(oldCell, oldState, cellIndex);
+        double smokeDifference = getSmokeIndicatorDifference(oldState, cellIndex);
         double deviation = 0.0005;
         if (Math.min(oldCell.smokeIndicator() + smokeDifference + smokeFromFire, 100) < deviation)
             return 0.0;
@@ -47,36 +47,47 @@ public class SmokePropagator {
         return smokeFromFire;
     }
 
-    private double getSmokeIndicatorDifference(Cell oldCell, State oldState, Vector3i cellIndex) {
-        _Double valueOfSmokeDuringComputing = new _Double(oldCell.smokeIndicator());
-        return NeighbourUtils.neighboursStream(cellIndex)
+    private double getSmokeIndicatorDifference(State oldState, Vector3i cellIndex) {
+        Cell oldCell = oldState.getCell(cellIndex);
+        double valueOfSmokeDuringComputing = oldCell.smokeIndicator();
+
+        // up
+        double diffFromAbove = 0;
+        if(oldState.hasCell(NeighbourUtils.up(cellIndex)) && oldState.getCell(NeighbourUtils.up(cellIndex)).isFluid()){
+            Cell cellAbove = oldState.getCell(NeighbourUtils.up(cellIndex));
+            diffFromAbove = -Math.min(oldCell.smokeIndicator(), 100 - cellAbove.smokeIndicator());
+            valueOfSmokeDuringComputing += diffFromAbove;
+        }
+        // down
+        double diffFromDown = 0;
+        if(oldState.hasCell(NeighbourUtils.down(cellIndex)) && oldState.getCell(NeighbourUtils.down(cellIndex)).isFluid()){
+            Cell cellUnder = oldState.getCell(NeighbourUtils.down(cellIndex));
+            diffFromDown = Math.min(cellUnder.smokeIndicator(), 100 - oldCell.smokeIndicator());
+            valueOfSmokeDuringComputing += diffFromDown;
+        }
+
+        final double valueOfSmokeDuringComputingFinal = valueOfSmokeDuringComputing;
+        // around
+        double diffFromAround = Stream.concat(NeighbourUtils.neighboursStream(cellIndex, NeighbourUtils.Axis.X),
+                NeighbourUtils.neighboursStream(cellIndex, NeighbourUtils.Axis.Z))
                 .filter(oldState::hasCell)
-                .filter(neighbourIndex -> oldState.getCell(neighbourIndex).isFluid())
+                .filter(index -> oldState.getCell(index).isFluid())
                 .map(neighbourIndex -> {
-                    if (NeighbourUtils.up(cellIndex).equals(neighbourIndex)) {
-                        double diff = -Math.min(oldCell.smokeIndicator(), 100 - oldState.getCell(neighbourIndex).smokeIndicator());
-                        valueOfSmokeDuringComputing.v += diff;
-                        return diff;
-                    }
-                    if (NeighbourUtils.down(cellIndex).equals(neighbourIndex)) {
-                        double diff = Math.min(oldState.getCell(neighbourIndex).smokeIndicator(),
-                                100 - oldCell.smokeIndicator());
-                        valueOfSmokeDuringComputing.v += diff;
-                        return diff;
-                    }
                     int numberOfNeighboursMine = numberOfHorizontalNeighboursWithSmokeCapacity(oldState, cellIndex) + 1;
                     int numberOfNeighboursHim = numberOfHorizontalNeighboursWithSmokeCapacity(oldState, neighbourIndex) + 1;
                     double diff = 0.0;
                     if (cellAboveCanNotTakeSmoke(oldState, cellIndex)) {
                         diff -= Math.min((100 - oldState.getCell(neighbourIndex).smokeIndicator()) / numberOfNeighboursHim,
-                                (valueOfSmokeDuringComputing.v) / numberOfNeighboursMine);
+                                valueOfSmokeDuringComputingFinal / numberOfNeighboursMine);
                     }
                     if (cellAboveCanNotTakeSmoke(oldState, neighbourIndex)) {
-                        diff += Math.min((100 - valueOfSmokeDuringComputing.v) / numberOfNeighboursMine,
+                        diff += Math.min((100 - valueOfSmokeDuringComputingFinal) / numberOfNeighboursMine,
                                 (oldState.getCell(neighbourIndex).smokeIndicator()) / numberOfNeighboursHim);
                     }
                     return diff;
                 }).mapToDouble(Double::doubleValue).sum();
+
+        return diffFromAbove + diffFromDown + diffFromAround;
     }
 
     private boolean cellAboveCanNotTakeSmoke(State state, Vector3i index) {
@@ -100,12 +111,4 @@ public class SmokePropagator {
         return res.size();
     }
 
-}
-
-class _Double {
-    public double v;
-
-    public _Double(double v) {
-        this.v = v;
-    }
 }
