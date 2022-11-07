@@ -4,8 +4,8 @@ import org.joml.Vector3i;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pl.edu.agh.firecell.model.Cell;
-import pl.edu.agh.firecell.model.Material;
-import pl.edu.agh.firecell.model.MatterState;
+import pl.edu.agh.firecell.model.material.Material;
+import pl.edu.agh.firecell.model.material.MatterState;
 import pl.edu.agh.firecell.model.State;
 import pl.edu.agh.firecell.model.util.NeighbourUtils;
 

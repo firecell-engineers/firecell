@@ -2,20 +2,25 @@ package pl.edu.agh.firecell.engine.algorithm;
 
 import org.joml.Vector3i;
 import pl.edu.agh.firecell.model.Cell;
-import pl.edu.agh.firecell.model.Material;
+import pl.edu.agh.firecell.model.material.ConductionCoefficientProvider;
+import pl.edu.agh.firecell.model.material.Material;
 import pl.edu.agh.firecell.model.State;
 import pl.edu.agh.firecell.model.util.NeighbourUtils;
 
+import java.util.Optional;
+
 import static pl.edu.agh.firecell.engine.algorithm.BasicAlgorithm.*;
-import static pl.edu.agh.firecell.model.Material.AIR;
-import static pl.edu.agh.firecell.model.Material.WOOD;
+import static pl.edu.agh.firecell.model.material.Material.AIR;
+import static pl.edu.agh.firecell.model.material.Material.WOOD;
 
 public class TemperaturePropagator {
 
     private final double deltaTime;
+    private final ConductionCoefficientProvider conductionCoefficientProvider;
 
     public TemperaturePropagator(double deltaTime) {
         this.deltaTime = deltaTime;
+        this.conductionCoefficientProvider = new ConductionCoefficientProvider();
     }
 
     public double computeConduction(State oldState, Vector3i cellIndex, double currentTemperature) {
@@ -48,17 +53,8 @@ public class TemperaturePropagator {
     }
 
     private double getCoe(Cell neighbour, Cell middleCell) {
-        double coe = 0.0;
-        if (neighbour.material().equals(WOOD) && middleCell.material().equals(WOOD))
-            coe = CONDUCTIVITY_COEFFICIENT_WOOD;
-
-        if ((neighbour.material().equals(WOOD) && middleCell.material().equals(AIR)) ||
-                (neighbour.material().equals(AIR) && middleCell.material().equals(WOOD)))
-            coe = CONDUCTIVITY_COEFFICIENT_WOOD_AIR;
-
-        if ((neighbour.material().equals(AIR) && middleCell.material().equals(AIR)))
-            coe = CONDUCTIVITY_COEFFICIENT_AIR;
-        return coe;
+        Optional<Double> coe = conductionCoefficientProvider.getConductionCoe(neighbour.material(), middleCell.material());
+        return coe.orElse(0.0);
     }
 
     private double computeConductivity(Cell former, Cell middle, Cell latter, double conductivityCoeFormer, double conductivityCoeFurther) {
