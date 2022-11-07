@@ -14,6 +14,14 @@ import static pl.edu.agh.firecell.engine.algorithm.BasicAlgorithm.isCellBurning;
 public class SmokePropagator {
 
     private final double deltaTime;
+    // Maximum level of smoke in cell
+    private final int maxSmokeLevel = 100;
+    // Value of smoke with which we acknowledge cell is dense covered by smoke
+    private final int smokeLimitValue = 50;
+    // Due to inaccuracies and zenon's paradox, there is need to set the limit to interpret result as zero
+    private final double deviation = 0.0005;
+    // Internal smoke coefficient to improve smoke simulation
+    private final double smokeCoefficient = 2;
 
     public SmokePropagator(double deltaTime) {
         this.deltaTime = deltaTime;
@@ -22,10 +30,10 @@ public class SmokePropagator {
     public double computeNewSmokeIndicator(State oldState, Vector3i cellIndex, Cell oldCell) {
         double smokeFromFire = generateSmoke(oldState, cellIndex);
         double smokeDifference = getSmokeIndicatorDifference(oldState, cellIndex);
-        double deviation = 0.0005;
-        if (Math.min(oldCell.smokeIndicator() + smokeDifference + smokeFromFire, 100) < deviation)
-            return 0.0;
-        return Math.min(oldCell.smokeIndicator() + smokeDifference + smokeFromFire, 100);
+
+        double result = Math.min(oldCell.smokeIndicator() + (smokeDifference + smokeFromFire)*deltaTime*smokeCoefficient,
+                maxSmokeLevel);
+        return result<deviation?0.0:result;
     }
 
     private double generateSmoke(State oldState, Vector3i cellIndex) {
@@ -40,10 +48,8 @@ public class SmokePropagator {
                 NeighbourUtils.neighboursStream(cellIndex, NeighbourUtils.Axis.Z))
                         .filter(oldState::hasCell)
                         .map(oldState::getCell)
-                        .filter(BasicAlgorithm::isCellBurning)
-                        .filter(Cell::isSolid)
-                        .map(cell -> cell.material().smokeCoe()/4.0)
-                        .mapToDouble(Double::doubleValue).sum();
+                        .filter(cell -> isCellBurning(cell)&&cell.isSolid())
+                        .mapToDouble(cell -> cell.material().smokeCoe() / 4.0).sum();
         return smokeFromFire;
     }
 
@@ -55,14 +61,14 @@ public class SmokePropagator {
         double diffFromAbove = 0;
         if(oldState.hasCell(NeighbourUtils.up(cellIndex)) && oldState.getCell(NeighbourUtils.up(cellIndex)).isFluid()){
             Cell cellAbove = oldState.getCell(NeighbourUtils.up(cellIndex));
-            diffFromAbove = -Math.min(oldCell.smokeIndicator(), 100 - cellAbove.smokeIndicator());
+            diffFromAbove = -Math.min(oldCell.smokeIndicator(), maxSmokeLevel - cellAbove.smokeIndicator());
             valueOfSmokeDuringComputing += diffFromAbove;
         }
         // down
         double diffFromDown = 0;
         if(oldState.hasCell(NeighbourUtils.down(cellIndex)) && oldState.getCell(NeighbourUtils.down(cellIndex)).isFluid()){
             Cell cellUnder = oldState.getCell(NeighbourUtils.down(cellIndex));
-            diffFromDown = Math.min(cellUnder.smokeIndicator(), 100 - oldCell.smokeIndicator());
+            diffFromDown = Math.min(cellUnder.smokeIndicator(), maxSmokeLevel - oldCell.smokeIndicator());
             valueOfSmokeDuringComputing += diffFromDown;
         }
 
@@ -77,11 +83,11 @@ public class SmokePropagator {
                     int numberOfNeighboursHim = numberOfHorizontalNeighboursWithSmokeCapacity(oldState, neighbourIndex) + 1;
                     double diff = 0.0;
                     if (cellAboveCanNotTakeSmoke(oldState, cellIndex)) {
-                        diff -= Math.min((100 - oldState.getCell(neighbourIndex).smokeIndicator()) / numberOfNeighboursHim,
+                        diff -= Math.min((maxSmokeLevel - oldState.getCell(neighbourIndex).smokeIndicator()) / numberOfNeighboursHim,
                                 valueOfSmokeDuringComputingFinal / numberOfNeighboursMine);
                     }
                     if (cellAboveCanNotTakeSmoke(oldState, neighbourIndex)) {
-                        diff += Math.min((100 - valueOfSmokeDuringComputingFinal) / numberOfNeighboursMine,
+                        diff += Math.min((maxSmokeLevel - valueOfSmokeDuringComputingFinal) / numberOfNeighboursMine,
                                 (oldState.getCell(neighbourIndex).smokeIndicator()) / numberOfNeighboursHim);
                     }
                     return diff;
@@ -92,7 +98,6 @@ public class SmokePropagator {
 
     private boolean cellAboveCanNotTakeSmoke(State state, Vector3i index) {
         Vector3i cellAbove = NeighbourUtils.up(index);
-        int smokeLimitValue = 50;
         return (state.hasCell(cellAbove) && state.getCell(cellAbove).smokeIndicator() >= smokeLimitValue) ||
                 (state.hasCell(cellAbove) && !state.getCell(cellAbove).isFluid()) ||
                 !state.hasCell(cellAbove);
@@ -102,11 +107,11 @@ public class SmokePropagator {
         List<Cell> res = new ArrayList<>();
         NeighbourUtils.neighboursStream(cellIndex, NeighbourUtils.Axis.X)
                 .filter(state::hasCell)
-                .filter(index -> state.getCell(index).smokeIndicator() < 100)
+                .filter(index -> state.getCell(index).smokeIndicator() < maxSmokeLevel)
                 .forEach(index -> res.add(state.getCell(index)));
         NeighbourUtils.neighboursStream(cellIndex, NeighbourUtils.Axis.Z)
                 .filter(state::hasCell)
-                .filter(index -> state.getCell(index).smokeIndicator() < 100)
+                .filter(index -> state.getCell(index).smokeIndicator() < maxSmokeLevel)
                 .forEach(index -> res.add(state.getCell(index)));
         return res.size();
     }
