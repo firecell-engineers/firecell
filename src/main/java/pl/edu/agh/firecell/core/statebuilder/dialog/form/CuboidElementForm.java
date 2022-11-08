@@ -6,6 +6,7 @@ import org.joml.Vector3i;
 import pl.edu.agh.firecell.core.statebuilder.element.CuboidElement;
 import pl.edu.agh.firecell.core.statebuilder.element.Element;
 import pl.edu.agh.firecell.model.Material;
+import pl.edu.agh.firecell.model.util.GuiUtils;
 
 public class CuboidElementForm extends AbstractElementForm<CuboidElement> {
     private final ImInt positionX = new ImInt(0);
@@ -26,18 +27,7 @@ public class CuboidElementForm extends AbstractElementForm<CuboidElement> {
         ImGui.inputInt("X##cuboidSize", sizeX);
         ImGui.inputInt("Y##cuboidSize", sizeY);
         ImGui.inputInt("Z##cuboidSize", sizeZ);
-        if (ImGui.beginCombo("Material##cuboidMaterial", selectedMaterial.name())) {
-            for (Material material : Material.values()) {
-                boolean isSelected = selectedMaterial == material;
-                if (ImGui.selectable(material.name(), isSelected)) {
-                    selectedMaterial = material;
-                }
-                if (isSelected) {
-                    ImGui.setItemDefaultFocus();
-                }
-            }
-            ImGui.endCombo();
-        }
+        selectedMaterial = GuiUtils.comboBox("Material##cuboidMaterial", Material::name, selectedMaterial, Material.values());
     }
 
     private Vector3i createSizeVector() {
