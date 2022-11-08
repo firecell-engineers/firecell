@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import pl.edu.agh.firecell.core.statebuilder.ElementType;
 import pl.edu.agh.firecell.core.statebuilder.ElementWrapper;
 import pl.edu.agh.firecell.core.statebuilder.dialog.form.ElementForm;
+import pl.edu.agh.firecell.model.util.GuiUtils;
 
 import java.util.function.BiConsumer;
 
@@ -25,28 +26,23 @@ public class ManipulateElementDialog extends AbstractDialog {
 
     @Override
     protected void buildGui() {
-        ElementType oldType = selectedElementType;
-        if (ImGui.beginCombo("Element type", selectedElementType != null ? selectedElementType.name() : "-- select --")) {
-            for (ElementType elementType : ElementType.values()) { // TODO: make some utils class for these combo boxes to avoid duplicates
-                boolean isSelected = selectedElementType == elementType;
-                if (ImGui.selectable(elementType.name(), isSelected)) {
-                    selectedElementType = elementType;
-                }
-                if (isSelected) {
-                    ImGui.setItemDefaultFocus();
-                }
-            }
-            ImGui.endCombo();
-        }
-        if (oldType != selectedElementType) {
-            createElementForm();
-        }
+        createElementTypeComboBox();
         if (elementForm != null) {
             elementForm.buildGui();
             if (ImGui.button("Save")) {
                 ElementWrapper element = elementForm.createElement();
                 addElementHandler.accept(element, mode);
             }
+        }
+    }
+
+    private void createElementTypeComboBox() {
+        ElementType oldType = selectedElementType;
+        selectedElementType = GuiUtils.comboBox("Element type",
+                ElementType::name, selectedElementType, ElementType.values());
+
+        if (oldType != selectedElementType) {
+            createElementForm();
         }
     }
 
@@ -60,8 +56,12 @@ public class ManipulateElementDialog extends AbstractDialog {
 
     public void setCurrentElement(ElementWrapper currentElement) {
         this.currentElement = currentElement;
-        selectedElementType = currentElement == null ? null : ElementType.determineType(currentElement.element());
-        createElementForm();
+        if (currentElement == null) {
+            selectedElementType = null;
+        } else {
+            selectedElementType = ElementType.determineType(currentElement.element());
+            createElementForm();
+        }
     }
 
     public void setMode(Mode mode) {
