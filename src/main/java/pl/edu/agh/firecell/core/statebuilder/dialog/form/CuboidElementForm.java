@@ -7,7 +7,7 @@ import pl.edu.agh.firecell.core.statebuilder.element.CuboidElement;
 import pl.edu.agh.firecell.core.statebuilder.element.Element;
 import pl.edu.agh.firecell.model.Material;
 
-public class CuboidElementForm extends AbstractElementForm {
+public class CuboidElementForm extends AbstractElementForm<CuboidElement> {
     private final ImInt positionX = new ImInt(0);
     private final ImInt positionY = new ImInt(0);
     private final ImInt positionZ = new ImInt(0);
@@ -47,6 +47,22 @@ public class CuboidElementForm extends AbstractElementForm {
     @Override
     protected Element createBaseElement() {
         return new CuboidElement(createPositionVector(), createSizeVector(), selectedMaterial);
+    }
+
+    @Override
+    protected void fillFields(CuboidElement element) {
+        positionX.set(element.position().x);
+        positionY.set(element.position().y);
+        positionZ.set(element.position().z);
+        sizeX.set(element.size().x);
+        sizeY.set(element.size().y);
+        sizeZ.set(element.size().z);
+        selectedMaterial = element.material();
+    }
+
+    @Override
+    protected Class<CuboidElement> getElementClass() {
+        return CuboidElement.class;
     }
 
     private Vector3i createPositionVector() {

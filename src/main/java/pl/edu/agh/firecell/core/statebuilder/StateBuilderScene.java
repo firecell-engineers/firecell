@@ -5,7 +5,7 @@ import imgui.type.ImString;
 import org.joml.Vector3i;
 import pl.edu.agh.firecell.core.Scene;
 import pl.edu.agh.firecell.core.io.IOListener;
-import pl.edu.agh.firecell.core.statebuilder.dialog.AddElementDialog;
+import pl.edu.agh.firecell.core.statebuilder.dialog.ManipulateElementDialog;
 import pl.edu.agh.firecell.model.Room;
 import pl.edu.agh.firecell.model.SimulationConfig;
 import pl.edu.agh.firecell.renderer.BasicRenderer;
@@ -27,7 +27,8 @@ public class StateBuilderScene implements Scene {
     private final List<ElementWrapper> elements = new ArrayList<>();
     private final Renderer renderer;
     private ElementWrapper selectedElement = null;
-    private final AddElementDialog addElementDialog;
+    private int editedElementIndex = -1;
+    private final ManipulateElementDialog manipulateElementDialog;
     private final Runnable finishedHandler;
     private final Vector3i spaceSize = new Vector3i(30, 20, 30); // TODO: let user define space size
 
@@ -39,7 +40,7 @@ public class StateBuilderScene implements Scene {
         nameBuffer = new ImString(name, 100);
         stateBuilderService = new StateBuilderService(spaceSize);
         renderer = new BasicRenderer(aspectRatio, ioListener, createInitialConfig(spaceSize));
-        addElementDialog = new AddElementDialog(this::addElementHandler);
+        manipulateElementDialog = new ManipulateElementDialog(this::addElementHandler);
 
         roomStorage.createBaseDirectory();
         stateBuilderService.calculateState(elements);
@@ -64,7 +65,7 @@ public class StateBuilderScene implements Scene {
     private void renderGUI() {
         renderMenuBar();
         renderEditMenu();
-        addElementDialog.render();
+        manipulateElementDialog.render();
     }
 
     private void renderMenuBar() {
@@ -94,10 +95,19 @@ public class StateBuilderScene implements Scene {
             }
             if (ImGui.button("Remove") && selectedElement != null) {
                 elements.remove(selectedElement);
+                selectedElement = null;
                 stateBuilderService.calculateState(elements);
             }
+            if (ImGui.button("Edit") && selectedElement != null) {
+                manipulateElementDialog.setVisible(!manipulateElementDialog.isVisible());
+                manipulateElementDialog.setMode(ManipulateElementDialog.Mode.EDIT);
+                manipulateElementDialog.setCurrentElement(selectedElement);
+                editedElementIndex = elements.indexOf(selectedElement);
+            }
             if (ImGui.button("Add element")) {
-                addElementDialog.setVisible(!addElementDialog.isVisible());
+                manipulateElementDialog.setMode(ManipulateElementDialog.Mode.ADD);
+                manipulateElementDialog.setVisible(!manipulateElementDialog.isVisible());
+                manipulateElementDialog.setCurrentElement(null);
             }
         }
         ImGui.end();
@@ -112,10 +122,14 @@ public class StateBuilderScene implements Scene {
         }
     }
 
-    private void addElementHandler(ElementWrapper element) {
-        elements.add(element);
+    private void addElementHandler(ElementWrapper element, ManipulateElementDialog.Mode mode) {
+        switch (mode) {
+            case ADD -> elements.add(element);
+            case EDIT -> elements.set(editedElementIndex, element);
+        }
+
         stateBuilderService.calculateState(elements);
-        addElementDialog.setVisible(false);
+        manipulateElementDialog.setVisible(false);
     }
 
     @Override

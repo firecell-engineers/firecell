@@ -7,18 +7,19 @@ import pl.edu.agh.firecell.core.statebuilder.ElementType;
 import pl.edu.agh.firecell.core.statebuilder.ElementWrapper;
 import pl.edu.agh.firecell.core.statebuilder.dialog.form.ElementForm;
 
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 
-public class AddElementDialog extends AbstractDialog {
-    private static final Logger logger = LoggerFactory.getLogger(AddElementDialog.class);
+public class ManipulateElementDialog extends AbstractDialog {
+    private static final Logger logger = LoggerFactory.getLogger(ManipulateElementDialog.class);
 
-    private final Consumer<ElementWrapper> addElementHandler;
+    private final BiConsumer<ElementWrapper, Mode> addElementHandler;
     private ElementType selectedElementType = null;
     private ElementForm elementForm = null;
+    private ElementWrapper currentElement = null;
+    private Mode mode = Mode.ADD;
 
-    public AddElementDialog(Consumer<ElementWrapper> addElementHandler) {
+    public ManipulateElementDialog(BiConsumer<ElementWrapper, Mode> addElementHandler) {
         this.addElementHandler = addElementHandler;
-        setTitle("Add element");
         setVisible(false);
     }
 
@@ -30,7 +31,6 @@ public class AddElementDialog extends AbstractDialog {
                 boolean isSelected = selectedElementType == elementType;
                 if (ImGui.selectable(elementType.name(), isSelected)) {
                     selectedElementType = elementType;
-                    logger.info("Selected {}", selectedElementType);
                 }
                 if (isSelected) {
                     ImGui.setItemDefaultFocus();
@@ -39,15 +39,44 @@ public class AddElementDialog extends AbstractDialog {
             ImGui.endCombo();
         }
         if (oldType != selectedElementType) {
-            elementForm = selectedElementType.getFormFactory().get();
-            logger.info("Created form for {}", selectedElementType);
+            createElementForm();
         }
         if (elementForm != null) {
             elementForm.buildGui();
-            if (ImGui.button("Create")) {
+            if (ImGui.button("Save")) {
                 ElementWrapper element = elementForm.createElement();
-                addElementHandler.accept(element);
+                addElementHandler.accept(element, mode);
             }
+        }
+    }
+
+    private void createElementForm() {
+        elementForm = selectedElementType.getFormFactory().get();
+        if (currentElement != null && elementForm.matchesElement(currentElement)) {
+            elementForm.setElement(currentElement);
+        }
+        logger.info("Created form for {}", selectedElementType);
+    }
+
+    public void setCurrentElement(ElementWrapper currentElement) {
+        this.currentElement = currentElement;
+        selectedElementType = currentElement == null ? null : ElementType.determineType(currentElement.element());
+        createElementForm();
+    }
+
+    public void setMode(Mode mode) {
+        this.mode = mode;
+        setTitle(mode.title);
+    }
+
+    public enum Mode {
+        ADD("Add element"),
+        EDIT("Edit element");
+
+        private final String title;
+
+        Mode(String title) {
+            this.title = title;
         }
     }
 }

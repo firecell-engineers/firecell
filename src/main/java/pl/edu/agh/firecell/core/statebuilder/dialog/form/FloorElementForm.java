@@ -6,7 +6,7 @@ import org.joml.Vector2i;
 import pl.edu.agh.firecell.core.statebuilder.element.Element;
 import pl.edu.agh.firecell.core.statebuilder.element.FloorElement;
 
-public class FloorElementForm extends AbstractElementForm {
+public class FloorElementForm extends AbstractElementForm<FloorElement> {
     private final ImInt positionX = new ImInt(0);
     private final ImInt positionY = new ImInt(0);
     private final ImInt sizeX = new ImInt(0);
@@ -25,6 +25,19 @@ public class FloorElementForm extends AbstractElementForm {
     @Override
     protected Element createBaseElement() {
         return new FloorElement(createVector(positionX, positionY), createVector(sizeX, sizeY));
+    }
+
+    @Override
+    protected void fillFields(FloorElement element) {
+        positionX.set(element.getPosition().x);
+        positionY.set(element.getPosition().y);
+        sizeX.set(element.getSize().x);
+        sizeY.set(element.getSize().y);
+    }
+
+    @Override
+    protected Class<FloorElement> getElementClass() {
+        return FloorElement.class;
     }
 
     private Vector2i createVector(ImInt x, ImInt y) {

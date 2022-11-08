@@ -6,7 +6,7 @@ import pl.edu.agh.firecell.core.statebuilder.ElementWrapper;
 import pl.edu.agh.firecell.core.statebuilder.element.Element;
 
 // TODO: add validation
-public abstract class AbstractElementForm implements ElementForm {
+public abstract class AbstractElementForm<T extends Element> implements ElementForm {
     private final ImString name = new ImString("", 100);
 
     @Override
@@ -23,4 +23,20 @@ public abstract class AbstractElementForm implements ElementForm {
     }
 
     protected abstract Element createBaseElement();
+
+    @Override
+    public boolean matchesElement(ElementWrapper element) {
+        return getElementClass() == element.element().getClass();
+    }
+
+    @Override
+    public void setElement(ElementWrapper element) {
+        T innerElement = getElementClass().cast(element.element());
+        name.set(element.name());
+        fillFields(innerElement);
+    }
+
+    protected abstract void fillFields(T element);
+
+    protected abstract Class<T> getElementClass();
 }

@@ -6,4 +6,8 @@ public interface ElementForm {
     void buildGui();
 
     ElementWrapper createElement();
+
+    boolean matchesElement(ElementWrapper element);
+
+    void setElement(ElementWrapper element);
 }
