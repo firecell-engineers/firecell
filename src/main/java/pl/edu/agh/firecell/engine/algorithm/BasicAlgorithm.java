@@ -15,6 +15,7 @@ public class BasicAlgorithm implements Algorithm {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private final TemperaturePropagator temperaturePropagator;
     private final FirePropagator firePropagator;
+    private final SmokePropagator smokePropagator;
     private final DiffusionGenerator diffusionGenerator;
     public static final double CONVECTION_COEFFICIENT = 1;
     // should be dependent on the material in the future
@@ -28,6 +29,7 @@ public class BasicAlgorithm implements Algorithm {
         this.temperaturePropagator = new TemperaturePropagator(deltaTime);
         this.firePropagator = new FirePropagator();
         this.diffusionGenerator = new DiffusionGenerator(deltaTime);
+        this.smokePropagator = new SmokePropagator(deltaTime);
     }
 
     @Override
@@ -36,7 +38,7 @@ public class BasicAlgorithm implements Algorithm {
         Cell oldCell = oldState.getCell(cellIndex);
         double newTemperature = oldCell.temperature();
         int newBurningTime;
-        int newRemainingHeightOfFirePillar;
+        int newRemainingFirePillar;
         boolean newFlammable;
         // NOTE: Following method calls are dependent on each other, the order matters.
         // Conduction
@@ -45,9 +47,9 @@ public class BasicAlgorithm implements Algorithm {
         if(oldCell.material().getMatterState().equals(MatterState.FLUID))
             newTemperature = temperaturePropagator.computeConvection(oldState, cellIndex, newTemperature);
         // Smoke update
-
+        double newSmokeIndicator = smokePropagator.computeNewSmokeIndicator(oldState, cellIndex, oldCell);
         // Fire status update
-        newRemainingHeightOfFirePillar = firePropagator.computeFirePillar(oldState, oldCell, cellIndex, oldCell.remainingFirePillar());
+        newRemainingFirePillar = firePropagator.computeFirePillar(oldState, oldCell, cellIndex, oldCell.remainingFirePillar());
         newBurningTime = firePropagator.computeBurningTime(oldState, oldCell, cellIndex, newTemperature);
         newFlammable = firePropagator.computeNewFlammable(oldCell, newBurningTime);
         newTemperature = temperaturePropagator.updateTemperatureBasedOnFire(oldCell, newTemperature);
@@ -60,13 +62,17 @@ public class BasicAlgorithm implements Algorithm {
                 newBurningTime,
                 newFlammable,
                 oldCell.material(),
-                newRemainingHeightOfFirePillar
+                newRemainingFirePillar,
+                newSmokeIndicator
         );
     }
 
-    public static boolean isUpNeighbourAir(State state, Vector3i cellIndex){
+    public static boolean isUpNeighbourAir(State state, Vector3i cellIndex) {
         Vector3i upIndex = NeighbourUtils.up(cellIndex);
         return state.hasCell(upIndex) && state.getCell(upIndex).material().equals(Material.AIR);
     }
 
+    public static boolean isCellBurning(Cell cell) {
+        return cell.flammable() && cell.burningTime() > 0;
+    }
 }

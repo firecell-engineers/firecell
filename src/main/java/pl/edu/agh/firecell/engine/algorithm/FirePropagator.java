@@ -12,6 +12,8 @@ import static pl.edu.agh.firecell.engine.algorithm.BasicAlgorithm.*;
 
 public class FirePropagator {
 
+    // Required time period to set on fire neighbour cell with temperature
+    // higher than ignition temperature
     private static final int REQUIRED_TIME = 10;
 
     public boolean computeNewFlammable(Cell oldCell, int newBurningTime) {
