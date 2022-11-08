@@ -13,7 +13,8 @@ import java.util.List;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "@type")
 @JsonSubTypes({
         @Type(value = CuboidElement.class, name = "cuboid"),
-        @Type(value = FloorElement.class, name = "floor")
+        @Type(value = FloorElement.class, name = "floor"),
+        @Type(value = RoomElement.class, name = "room")
 })
 public interface Element {
     void addTo(List<Cell> cells, Vector3i spaceSize);
