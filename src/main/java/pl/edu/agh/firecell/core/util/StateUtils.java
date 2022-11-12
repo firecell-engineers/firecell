@@ -12,7 +12,7 @@ import java.util.stream.IntStream;
 public class StateUtils {
     public static List<Cell> entireAir(Vector3i spaceSize) {
         return new ArrayList<>(IntStream.range(0, spaceSize.x * spaceSize.y * spaceSize.z)
-                .mapToObj(idx -> new Cell(20, 0, true, Material.AIR))
+                .mapToObj(idx -> new Cell(20, 0, true, Material.AIR, 0))
                 .toList());
     }
 

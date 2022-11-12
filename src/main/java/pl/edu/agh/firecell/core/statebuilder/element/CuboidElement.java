@@ -13,6 +13,13 @@ public record CuboidElement(Vector3i position, Vector3i size, Material material)
     public void addTo(List<Cell> cells, Vector3i spaceSize) {
         IndexUtils.range(position, new Vector3i(-1).add(position).add(size))
                 .map(expandedIndex -> IndexUtils.flattenIndex(expandedIndex, spaceSize))
-                .forEach(flatIndex -> cells.set(flatIndex, new Cell(15, 0, true, material)));
+                .forEach(flatIndex -> cells.set(flatIndex, createCell()));
+    }
+
+    private Cell createCell() {
+        if (material == Material.WOOD) {
+            return new Cell(15, 0, true, material, 5);
+        }
+        return new Cell(15, 0, true, material);
     }
 }
