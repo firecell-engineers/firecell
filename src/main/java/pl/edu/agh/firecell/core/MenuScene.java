@@ -139,6 +139,7 @@ public class MenuScene implements Scene {
                 .addCuboid(new Vector3i(17, 1, 17), new Vector3i(1, 4, 1), Material.WOOD) // table leg
                 .addCuboid(new Vector3i(12, 1, 17), new Vector3i(1, 4, 1), Material.WOOD) // table leg
                 .addCuboid(new Vector3i(12, 4, 12), new Vector3i(6, 1, 6), Material.WOOD) // table surface
+                .addCuboid(new Vector3i(14, 7, 14), new Vector3i(1, 1, 1), Material.WOOD) // cube above the table
                 .igniteCuboid(new Vector3i(14, 4, 14), new Vector3i(2, 2, 2)) // fire source
                 .build();
 

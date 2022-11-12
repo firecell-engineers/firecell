@@ -6,6 +6,7 @@ layout (location = 2) in vec3  aInstancePosition;
 layout (location = 3) in float aInstanceTemperature;
 layout (location = 4) in int   aInstanceMaterial;
 layout (location = 5) in int   aInstanceBurningTime;
+layout (location = 6) in int   aInstanceSmokeIndicator;
 
 uniform mat4 uProjection;
 uniform mat4 uView;

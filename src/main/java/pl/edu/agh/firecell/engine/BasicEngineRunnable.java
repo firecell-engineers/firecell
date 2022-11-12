@@ -57,4 +57,5 @@ public class BasicEngineRunnable implements Runnable {
         Cell cell = algorithm.compute(state, expandedIndex);
         return Observable.just(cell).subscribeOn(Schedulers.computation());
     }
+
 }

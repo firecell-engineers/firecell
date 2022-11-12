@@ -1,11 +1,26 @@
 package pl.edu.agh.firecell.model;
 
-public record Cell(
+public record Cell (
         double temperature,
         int burningTime,
         boolean flammable,
-        Material material
-) {
+        Material material,
+        int remainingFirePillar,
+        double smokeIndicator
+        ) {
+
+        public Cell(double temperature, int burningTime, boolean flammable, Material material){
+                this(temperature, burningTime, flammable, material, 0, 0);
+        }
+
+        public Cell(double temperature, int burningTime, boolean flammable, Material material, int remainingFirePillar){
+            this(temperature, burningTime, flammable, material, remainingFirePillar, 0);
+        }
+
+        public Cell(Cell other){
+            this(other.temperature, other.burningTime, other.flammable, other.material,
+                    other.remainingFirePillar, other.smokeIndicator);
+        }
 
     public boolean isSolid() {
         return material.getMatterState().equals(MatterState.SOLID);
@@ -26,6 +41,8 @@ public record Cell(
         return Double.compare(temperature, c.temperature) == 0 &&
                 burningTime == c.burningTime &&
                 flammable == c.flammable &&
-                material == c.material;
+                material == c.material &&
+                remainingFirePillar == c.remainingFirePillar &&
+                smokeIndicator == c.smokeIndicator;
     }
 }
