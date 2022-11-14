@@ -1,11 +1,11 @@
-package pl.edu.agh.firecell.core.statebuilder.dialog;
+package pl.edu.agh.firecell.core.dialog;
 
 public interface Dialog {
     void render();
 
     void setVisible(boolean visible);
 
-    boolean isVisible();
-
     void setTitle(String title);
+
+    void setFlags(int flags);
 }

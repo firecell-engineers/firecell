@@ -6,7 +6,7 @@ import pl.edu.agh.firecell.model.util.IndexUtils;
 
 import java.util.List;
 
-public record IgnitionElement(Vector3i position, Vector3i size) implements Element {
+public record IgnitionElement(Vector3i position, Vector3i size) implements BaseCuboidElement {
 
     @Override
     public void addTo(List<Cell> cells, Vector3i spaceSize) {

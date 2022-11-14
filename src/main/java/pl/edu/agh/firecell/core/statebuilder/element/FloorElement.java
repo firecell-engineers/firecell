@@ -1,5 +1,7 @@
 package pl.edu.agh.firecell.core.statebuilder.element;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.joml.Vector2i;
 import org.joml.Vector3i;
 import pl.edu.agh.firecell.model.Material;
@@ -11,9 +13,10 @@ public class FloorElement extends AbstractCompositeElement {
     private final Vector2i position;
     private final Vector2i size;
 
-    public FloorElement(Vector2i position, Vector2i size) {
-        this.position = position;
+    @JsonCreator
+    public FloorElement(@JsonProperty("position") Vector2i position, @JsonProperty("size") Vector2i size) {
         this.size = size;
+        this.position = position;
     }
 
     @Override

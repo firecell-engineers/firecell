@@ -1,20 +1,15 @@
 package pl.edu.agh.firecell.core.statebuilder;
 
-import pl.edu.agh.firecell.core.statebuilder.dialog.form.CuboidElementForm;
-import pl.edu.agh.firecell.core.statebuilder.dialog.form.ElementForm;
-import pl.edu.agh.firecell.core.statebuilder.dialog.form.FloorElementForm;
-import pl.edu.agh.firecell.core.statebuilder.dialog.form.RoomElementForm;
-import pl.edu.agh.firecell.core.statebuilder.element.CuboidElement;
-import pl.edu.agh.firecell.core.statebuilder.element.Element;
-import pl.edu.agh.firecell.core.statebuilder.element.FloorElement;
-import pl.edu.agh.firecell.core.statebuilder.element.RoomElement;
+import pl.edu.agh.firecell.core.statebuilder.dialog.form.*;
+import pl.edu.agh.firecell.core.statebuilder.element.*;
 
 import java.util.function.Supplier;
 
 public enum ElementType {
     CUBOID(CuboidElementForm::new, CuboidElement.class),
     FLOOR(FloorElementForm::new, FloorElement.class),
-    ROOM(RoomElementForm::new, RoomElement.class);
+    ROOM(RoomElementForm::new, RoomElement.class),
+    IGNITION(IgnitionElementForm::new, IgnitionElement.class);
 
     private final Supplier<ElementForm> formFactory;
     private final Class<? extends Element> elementClass;
@@ -28,12 +23,12 @@ public enum ElementType {
         return formFactory;
     }
 
-    public static ElementType determineType(Element element) {
+    public static ElementType determineType(Class<? extends Element> elementClass) {
         for (ElementType type : values()) {
-            if (type.elementClass == element.getClass()) {
+            if (type.elementClass == elementClass) {
                 return type;
             }
         }
-        throw new IllegalArgumentException("Unsupported element: %s".formatted(element.getClass()));
+        throw new IllegalArgumentException("Unsupported element: %s".formatted(elementClass));
     }
 }

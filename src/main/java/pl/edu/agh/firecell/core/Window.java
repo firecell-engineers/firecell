@@ -16,10 +16,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pl.edu.agh.firecell.core.io.IOListener;
 import pl.edu.agh.firecell.core.io.KeyEvent;
+import pl.edu.agh.firecell.core.statebuilder.Room;
 import pl.edu.agh.firecell.core.statebuilder.RoomStorage;
 import pl.edu.agh.firecell.core.statebuilder.StateBuilderScene;
 import pl.edu.agh.firecell.core.util.LoggingOutputStream;
-import pl.edu.agh.firecell.model.Room;
 import pl.edu.agh.firecell.model.SimulationConfig;
 
 import java.io.IOException;
@@ -81,8 +81,6 @@ public class Window {
             imGuiGlfw.newFrame();
             ImGui.newFrame();
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-            ImGui.showStackToolWindow();
 
             scene.update(frameTime);
 

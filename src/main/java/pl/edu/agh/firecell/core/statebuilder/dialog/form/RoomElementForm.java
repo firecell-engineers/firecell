@@ -2,10 +2,11 @@ package pl.edu.agh.firecell.core.statebuilder.dialog.form;
 
 import imgui.ImGui;
 import imgui.type.ImInt;
-import org.joml.Vector2i;
-import org.joml.Vector3i;
 import pl.edu.agh.firecell.core.statebuilder.element.Element;
 import pl.edu.agh.firecell.core.statebuilder.element.RoomElement;
+
+import static pl.edu.agh.firecell.model.util.GuiUtils.createVector2i;
+import static pl.edu.agh.firecell.model.util.GuiUtils.createVector3i;
 
 public class RoomElementForm extends AbstractElementForm<RoomElement> {
     private final ImInt positionX = new ImInt(0);
@@ -27,8 +28,7 @@ public class RoomElementForm extends AbstractElementForm<RoomElement> {
 
     @Override
     protected Element createBaseElement() {
-        return new RoomElement(new Vector2i(positionX.get(), positionY.get()),
-                new Vector3i(sizeX.get(), sizeY.get(), sizeZ.get()));
+        return new RoomElement(createVector2i(positionX, positionY), createVector3i(sizeX, sizeY, sizeZ));
     }
 
     @Override

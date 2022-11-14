@@ -1,61 +1,34 @@
 package pl.edu.agh.firecell.core.statebuilder.dialog.form;
 
-import imgui.ImGui;
-import imgui.type.ImInt;
-import org.joml.Vector3i;
 import pl.edu.agh.firecell.core.statebuilder.element.CuboidElement;
 import pl.edu.agh.firecell.core.statebuilder.element.Element;
 import pl.edu.agh.firecell.model.Material;
 import pl.edu.agh.firecell.model.util.GuiUtils;
 
-public class CuboidElementForm extends AbstractElementForm<CuboidElement> {
-    private final ImInt positionX = new ImInt(0);
-    private final ImInt positionY = new ImInt(0);
-    private final ImInt positionZ = new ImInt(0);
-    private final ImInt sizeX = new ImInt(0);
-    private final ImInt sizeY = new ImInt(0);
-    private final ImInt sizeZ = new ImInt(0);
+import static pl.edu.agh.firecell.model.util.GuiUtils.createVector3i;
+
+public class CuboidElementForm extends AbstractCuboidElementForm<CuboidElement> {
     private Material selectedMaterial = Material.WOOD;
 
     @Override
     protected void buildElementGui() {
-        ImGui.text("Position");
-        ImGui.inputInt("X##elementPosition", positionX);
-        ImGui.inputInt("Y##elementPosition", positionY);
-        ImGui.inputInt("Z##elementPosition", positionZ);
-        ImGui.text("Size");
-        ImGui.inputInt("X##cuboidSize", sizeX);
-        ImGui.inputInt("Y##cuboidSize", sizeY);
-        ImGui.inputInt("Z##cuboidSize", sizeZ);
+        super.buildElementGui();
         selectedMaterial = GuiUtils.comboBox("Material##cuboidMaterial", Material::name, selectedMaterial, Material.values());
-    }
-
-    private Vector3i createSizeVector() {
-        return new Vector3i(sizeX.get(), sizeY.get(), sizeZ.get());
     }
 
     @Override
     protected Element createBaseElement() {
-        return new CuboidElement(createPositionVector(), createSizeVector(), selectedMaterial);
+        return new CuboidElement(createVector3i(positionX, positionY, positionZ), createVector3i(sizeX, sizeY, sizeZ), selectedMaterial);
     }
 
     @Override
     protected void fillFields(CuboidElement element) {
-        positionX.set(element.position().x);
-        positionY.set(element.position().y);
-        positionZ.set(element.position().z);
-        sizeX.set(element.size().x);
-        sizeY.set(element.size().y);
-        sizeZ.set(element.size().z);
+        super.fillFields(element);
         selectedMaterial = element.material();
     }
 
     @Override
     protected Class<CuboidElement> getElementClass() {
         return CuboidElement.class;
-    }
-
-    private Vector3i createPositionVector() {
-        return new Vector3i(positionX.get(), positionY.get(), positionZ.get());
     }
 }

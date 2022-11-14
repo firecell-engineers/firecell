@@ -7,7 +7,7 @@ import pl.edu.agh.firecell.model.util.IndexUtils;
 
 import java.util.List;
 
-public record CuboidElement(Vector3i position, Vector3i size, Material material) implements Element {
+public record CuboidElement(Vector3i position, Vector3i size, Material material) implements BaseCuboidElement {
 
     @Override
     public void addTo(List<Cell> cells, Vector3i spaceSize) {

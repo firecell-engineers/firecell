@@ -1,7 +1,6 @@
-package pl.edu.agh.firecell.model;
+package pl.edu.agh.firecell.core.statebuilder;
 
 import org.joml.Vector3i;
-import pl.edu.agh.firecell.core.statebuilder.ElementWrapper;
 
 import java.util.List;
 

@@ -8,6 +8,7 @@ import org.joml.Vector3i;
 import pl.edu.agh.firecell.model.State;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class StateBuilderService {
@@ -18,6 +19,7 @@ public class StateBuilderService {
 
     public StateBuilderService(Vector3i spaceSize) {
         this.stateBuilder = new StateBuilder(spaceSize);
+        calculateState(Collections.emptyList());
         initializeSubscription();
     }
 
@@ -25,18 +27,18 @@ public class StateBuilderService {
         subscription = pp.onBackpressureBuffer(1, () -> {
                 }, BackpressureOverflowStrategy.DROP_OLDEST)
                 .observeOn(Schedulers.single())
-                .subscribe(this::calculateStateInternal);
+                .subscribe(this::calculateState);
     }
 
     public State getCurrentState() {
         return currentState;
     }
 
-    public void calculateState(List<ElementWrapper> elements) {
+    public void scheduleStateCalculation(List<ElementWrapper> elements) {
         pp.onNext(new ArrayList<>(elements));
     }
 
-    private void calculateStateInternal(List<ElementWrapper> elements) {
+    private void calculateState(List<ElementWrapper> elements) {
         stateBuilder.clear();
         elements.stream()
                 .map(ElementWrapper::element)

@@ -1,6 +1,9 @@
 package pl.edu.agh.firecell.model.util;
 
 import imgui.ImGui;
+import imgui.type.ImInt;
+import org.joml.Vector2i;
+import org.joml.Vector3i;
 
 import java.util.function.Function;
 
@@ -22,5 +25,13 @@ public class GuiUtils {
             ImGui.endCombo();
         }
         return newElement;
+    }
+
+    public static Vector2i createVector2i(ImInt x, ImInt y) {
+        return new Vector2i(x.get(), y.get());
+    }
+
+    public static Vector3i createVector3i(ImInt x, ImInt y, ImInt z) {
+        return new Vector3i(x.get(), y.get(), z.get());
     }
 }
