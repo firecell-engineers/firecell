@@ -7,6 +7,7 @@ import imgui.gl3.ImGuiImplGl3;
 import imgui.glfw.ImGuiImplGlfw;
 import io.reactivex.rxjava3.disposables.Disposable;
 import org.joml.Vector2i;
+import org.joml.Vector3i;
 import org.lwjgl.Version;
 import org.lwjgl.glfw.Callbacks;
 import org.lwjgl.glfw.GLFWErrorCallback;
@@ -20,23 +21,28 @@ import pl.edu.agh.firecell.core.statebuilder.Room;
 import pl.edu.agh.firecell.core.statebuilder.RoomStorage;
 import pl.edu.agh.firecell.core.statebuilder.StateBuilderScene;
 import pl.edu.agh.firecell.core.util.LoggingOutputStream;
+import pl.edu.agh.firecell.core.util.StateUtils;
 import pl.edu.agh.firecell.model.SimulationConfig;
 
 import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
 import java.util.Objects;
 
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
 
-public class Window {
+public class Window implements StartSimulationHandler {
+    private static final Path SAVED_SIMULATIONS_PATH = Path.of("simulations");
+    private static final String STATES_DIRECTORY_NAME = "states";
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     // need to be same as in glsl shaders
     private static final String GLSL_VERSION = "#version 330";
     private final RoomStorage roomStorage = new RoomStorage();
+    private final SimulationStorage simulationStorage = new SimulationStorage(SAVED_SIMULATIONS_PATH);
 
     private final String name;
     private Vector2i size;
@@ -74,7 +80,7 @@ public class Window {
         double startFrameTime = glfwGetTime();
         double frameTime = 0.0;
 
-        scene = new MenuScene(this::startSimulation, this::startStateBuilder, roomStorage);
+        scene = new MenuScene(this, this::startStateBuilder, roomStorage, simulationStorage);
 
         while (!glfwWindowShouldClose(glfwWindow)) {
             glfwPollEvents();
@@ -116,21 +122,10 @@ public class Window {
         Objects.requireNonNull(glfwSetErrorCallback(null)).free();
     }
 
-    private void startSimulation(SimulationConfig config) {
-        try {
-            var simulationScene = new SimulationScene(config, this::finishSceneHandler, ioListener, size.x / (float) size.y);
-            scene.dispose();
-            scene = simulationScene;
-            logger.info("Starting simulation.");
-        } catch (IOException | InvalidPathException | IllegalStateException e) {
-            logger.error("Could not create Simulation Scene.", e);
-        }
-    }
-
     private void finishSceneHandler() {
         scene.dispose();
         logger.info("Finished scene {}. Opening menu.", scene.getClass().getName());
-        scene = new MenuScene(this::startSimulation, this::startStateBuilder, roomStorage);
+        scene = new MenuScene(this, this::startStateBuilder, roomStorage, simulationStorage);
     }
 
     private void startStateBuilder(Room room) {
@@ -196,5 +191,43 @@ public class Window {
         imGuiGl3 = new ImGuiImplGl3();
         imGuiGlfw.init(glfwWindow, true);
         imGuiGl3.init(GLSL_VERSION);
+    }
+
+    @Override
+    public void runNewSimulation(SimulationConfig config, String simulationName) {
+        try {
+            simulationStorage.initializeSimulation(simulationName, new StoredSimulationConfig(config.size(), config.stepTime()));
+            Path statesStoragePath = simulationStorage.resolvePath(simulationName).resolve(STATES_DIRECTORY_NAME);
+            var simulationScene = new SimulationScene(config, this::finishSceneHandler,
+                    ioListener, getAspectRatio(), statesStoragePath);
+            scene.dispose();
+            scene = simulationScene;
+            logger.info("Starting simulation.");
+        } catch (IOException | InvalidPathException | IllegalStateException e) {
+            logger.error("Could not start simulation.", e);
+        }
+    }
+
+    @Override
+    public void runSavedSimulation(String simulationName) {
+        try {
+            StoredSimulationConfig storedConfig = simulationStorage.readStoredConfig(simulationName);
+            Vector3i spaceSize = storedConfig.spaceSize();
+            SimulationConfig config = new SimulationConfig(spaceSize,
+                    StateUtils.emptyState(spaceSize), storedConfig.stepTime());
+            Path statesStoragePath = simulationStorage.resolvePath(simulationName).resolve(STATES_DIRECTORY_NAME);
+            var simulationScene = new StoredSimulationScene(config, this::finishSceneHandler,
+                    ioListener, getAspectRatio(), statesStoragePath);
+            scene.dispose();
+            scene = simulationScene;
+            logger.info("Running stored simulation.");
+        } catch (IOException | InvalidPathException | IllegalStateException e) {
+            logger.error("Could not start stored simulation.", e);
+        }
+    }
+
+
+    private float getAspectRatio() {
+        return size.x / (float) size.y;
     }
 }

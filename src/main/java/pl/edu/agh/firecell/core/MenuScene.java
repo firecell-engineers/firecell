@@ -26,15 +26,17 @@ public class MenuScene implements Scene {
 
     private final Consumer<Room> startStateBuilderHandler;
     private final RoomStorage roomStorage;
+    private final SimulationStorage simulationStorage;
     private final SimulationConfig defaultConfig = createInitialSimulationConfig();
-    private final Consumer<SimulationConfig> startSimulationHandler;
+    private final StartSimulationHandler startSimulationHandler;
     private Dialog currentDialog = null;
 
-    public MenuScene(Consumer<SimulationConfig> startSimulationHandler, Consumer<Room> startStateBuilderHandler,
-                     RoomStorage roomStorage) {
+    public MenuScene(StartSimulationHandler startSimulationHandler, Consumer<Room> startStateBuilderHandler,
+                     RoomStorage roomStorage, SimulationStorage simulationStorage) {
         this.startStateBuilderHandler = startStateBuilderHandler;
         this.startSimulationHandler = startSimulationHandler;
         this.roomStorage = roomStorage;
+        this.simulationStorage = simulationStorage;
     }
 
     @Override
@@ -50,13 +52,15 @@ public class MenuScene implements Scene {
     private void renderMenuBar() {
         if (ImGui.beginMainMenuBar()) {
             if (ImGui.beginMenu("Simulation")) {
-                if (ImGui.menuItem("Start simulation (OLD)")) {  // TODO: remove this item
-                    startSimulationHandler.accept(defaultConfig);
-                }
                 if (ImGui.menuItem("Start simulation")) {
                     currentDialog = new RoomListDialog("Start simulation",
                             roomStorage.getRoomNames(), this::startSimulationHandler);
                     logger.debug("Created start simulation dialog");
+                }
+                if (ImGui.menuItem("Run stored simulation")) {
+                    currentDialog = new SimulationsListDialog(simulationStorage.findStoredSimulations(),
+                            this::startStoredSimulationHandler);
+                    logger.debug("Created start stored simulation dialog");
                 }
                 ImGui.endMenu();
             }
@@ -97,10 +101,17 @@ public class MenuScene implements Scene {
             }
             State initialState = stateBuilder.build();
             SimulationConfig simulationConfig = new SimulationConfig(room.spaceSize(), initialState, defaultConfig.stepTime());
-            startSimulationHandler.accept(simulationConfig);
+            startSimulationHandler.runNewSimulation(simulationConfig, roomName);
         } catch (IOException e) {
             // TODO: show some gui
         }
+    }
+
+    private void startStoredSimulationHandler(String simulationName) {
+        if (simulationName == null) {
+            return;
+        }
+        startSimulationHandler.runSavedSimulation(simulationName);
     }
 
     private void editRoomHandler(String roomName) {

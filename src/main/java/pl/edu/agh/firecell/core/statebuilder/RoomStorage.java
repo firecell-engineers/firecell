@@ -28,11 +28,12 @@ public class RoomStorage {
 
     public void saveRoom(Room room) throws IOException {
         try {
-            File file = createFile(room.name());
+            File file = createFileObject(room.name());
             if (file.createNewFile()) {
-                logger.info("Saved room \"{}\"", room.name());
+                logger.debug("Created file \"{}\"", file.getPath());
             }
             MAPPER.writeValue(file, room);
+            logger.info("Saved room \"{}\"", room.name());
         } catch (IOException e) {
             logger.error("Failed to save room \"{}\" with {} elements.", room.name(), room.elements().size(), e); // TODO: rethrow to show error dialog
             throw e;
@@ -40,7 +41,7 @@ public class RoomStorage {
     }
 
     public Room loadRoom(String name) throws IOException {
-        File file = createFile(name);
+        File file = createFileObject(name);
         try {
             return MAPPER.readValue(file, Room.class);
         } catch (IOException e) {
@@ -61,7 +62,7 @@ public class RoomStorage {
         return file.canRead() && file.getName().endsWith(".json") && file.getName().length() > 5;
     }
 
-    private File createFile(String name) {
+    private File createFileObject(String name) {
         return BASE_PATH.resolve(name + ".json").toFile();
     }
 }
