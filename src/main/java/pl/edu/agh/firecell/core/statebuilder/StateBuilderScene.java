@@ -1,6 +1,7 @@
 package pl.edu.agh.firecell.core.statebuilder;
 
 import imgui.ImGui;
+import imgui.type.ImInt;
 import imgui.type.ImString;
 import org.joml.RoundingMode;
 import org.joml.Vector2i;
@@ -9,6 +10,7 @@ import pl.edu.agh.firecell.core.Scene;
 import pl.edu.agh.firecell.core.io.IOListener;
 import pl.edu.agh.firecell.core.statebuilder.dialog.ManipulateElementDialog;
 import pl.edu.agh.firecell.model.SimulationConfig;
+import pl.edu.agh.firecell.model.util.GuiUtils;
 import pl.edu.agh.firecell.renderer.BasicRenderer;
 import pl.edu.agh.firecell.renderer.Renderer;
 
@@ -32,7 +34,9 @@ public class StateBuilderScene implements Scene {
     private int editedElementIndex = -1;
     private final ManipulateElementDialog manipulateElementDialog;
     private final Runnable finishedHandler;
-    private final Vector3i spaceSize = new Vector3i(30, 20, 30); // TODO: let user define space size
+    private final ImInt spaceSizeX = new ImInt(30);
+    private final ImInt spaceSizeY = new ImInt(10);
+    private final ImInt spaceSizeZ = new ImInt(30);
     public static final String DEFAULT_ROOM_NAME = "New room";
 
     public StateBuilderScene(RoomStorage roomStorage, IOListener ioListener, float aspectRatio,
@@ -46,8 +50,8 @@ public class StateBuilderScene implements Scene {
             nameBuffer = new ImString(determineDefaultRoomName(), 100);
         }
 
-        stateBuilderService = new StateBuilderService(spaceSize);
-        renderer = new BasicRenderer(aspectRatio, ioListener, createInitialConfig(spaceSize));
+        stateBuilderService = new StateBuilderService(composeSpaceSize());
+        renderer = new BasicRenderer(aspectRatio, ioListener, createInitialConfig(composeSpaceSize()));
         manipulateElementDialog = new ManipulateElementDialog(this::manipulateElementHandler);
 
         roomStorage.createBaseDirectory();
@@ -94,6 +98,17 @@ public class StateBuilderScene implements Scene {
         if (ImGui.begin("Edit##fdsdfsfds", AlwaysAutoResize | NoResize | NoMove)) {
             ImGui.inputText("Name##stateName", nameBuffer);
             ImGui.separator();
+
+            ImGui.text("Space size");
+            boolean modifiedX = ImGui.inputInt("X##spaceSize", spaceSizeX);
+            boolean modifiedY = ImGui.inputInt("Y##spaceSize", spaceSizeY);
+            boolean modifiedZ = ImGui.inputInt("Z##spaceSize", spaceSizeZ);
+            if (modifiedX || modifiedY || modifiedZ) {
+                stateBuilderService.setSpaceSize(GuiUtils.createVector3i(spaceSizeX, spaceSizeY, spaceSizeZ));
+                stateBuilderService.scheduleStateCalculation(elements);
+            }
+            ImGui.separator();
+
             if (ImGui.beginListBox("Elements")) {
                 for (ElementWrapper element : elements) {
                     if (ImGui.selectable(element.name(), selectedElement == element)) {
@@ -123,7 +138,7 @@ public class StateBuilderScene implements Scene {
     }
 
     private void saveElements() {
-        Room room = new Room(spaceSize, nameBuffer.get(), elements);
+        Room room = new Room(composeSpaceSize(), nameBuffer.get(), elements);
         try {
             roomStorage.saveRoom(room);
         } catch (IOException e) {
@@ -152,7 +167,7 @@ public class StateBuilderScene implements Scene {
     }
 
     private SimulationConfig createInitialConfig(Vector3i spaceSize) {
-        return new SimulationConfig(spaceSize, emptyState(spaceSize), 0.5);
+        return new SimulationConfig(emptyState(spaceSize), 0.5);
     }
 
     private String determineDefaultRoomName() {
@@ -164,5 +179,9 @@ public class StateBuilderScene implements Scene {
             newRoomName = "%s (%d)".formatted(DEFAULT_ROOM_NAME, number);
         }
         return newRoomName;
+    }
+
+    private Vector3i composeSpaceSize() {
+        return GuiUtils.createVector3i(spaceSizeX, spaceSizeY, spaceSizeZ);
     }
 }

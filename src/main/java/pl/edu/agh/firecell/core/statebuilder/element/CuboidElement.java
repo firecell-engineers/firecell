@@ -12,6 +12,7 @@ public record CuboidElement(Vector3i position, Vector3i size, Material material)
     @Override
     public void addTo(List<Cell> cells, Vector3i spaceSize) {
         IndexUtils.range(position, new Vector3i(-1).add(position).add(size))
+                .filter(expandedIndex -> IndexUtils.isInSpaceSize(expandedIndex, spaceSize))
                 .map(expandedIndex -> IndexUtils.flattenIndex(expandedIndex, spaceSize))
                 .forEach(flatIndex -> cells.set(flatIndex, createCell()));
     }
