@@ -18,11 +18,12 @@ import org.slf4j.LoggerFactory;
 import pl.edu.agh.firecell.core.io.IOListener;
 import pl.edu.agh.firecell.core.io.KeyEvent;
 import pl.edu.agh.firecell.core.statebuilder.Room;
-import pl.edu.agh.firecell.core.statebuilder.RoomStorage;
+import pl.edu.agh.firecell.storage.RoomStorage;
 import pl.edu.agh.firecell.core.statebuilder.StateBuilderScene;
 import pl.edu.agh.firecell.core.util.LoggingOutputStream;
 import pl.edu.agh.firecell.core.util.StateUtils;
 import pl.edu.agh.firecell.model.SimulationConfig;
+import pl.edu.agh.firecell.storage.SimulationStorage;
 
 import java.io.IOException;
 import java.io.PrintStream;

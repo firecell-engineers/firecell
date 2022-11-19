@@ -9,11 +9,12 @@ import org.slf4j.LoggerFactory;
 import pl.edu.agh.firecell.core.dialog.Dialog;
 import pl.edu.agh.firecell.core.statebuilder.ElementWrapper;
 import pl.edu.agh.firecell.core.statebuilder.Room;
-import pl.edu.agh.firecell.core.statebuilder.RoomStorage;
+import pl.edu.agh.firecell.storage.RoomStorage;
 import pl.edu.agh.firecell.core.statebuilder.StateBuilder;
 import pl.edu.agh.firecell.model.Material;
 import pl.edu.agh.firecell.model.SimulationConfig;
 import pl.edu.agh.firecell.model.State;
+import pl.edu.agh.firecell.storage.SimulationStorage;
 
 import java.io.IOException;
 import java.util.function.Consumer;

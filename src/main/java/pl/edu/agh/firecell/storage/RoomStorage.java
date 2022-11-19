@@ -1,9 +1,10 @@
-package pl.edu.agh.firecell.core.statebuilder;
+package pl.edu.agh.firecell.storage;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import pl.edu.agh.firecell.core.statebuilder.Room;
 
 import java.io.File;
 import java.io.IOException;

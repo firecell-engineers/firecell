@@ -11,6 +11,7 @@ import pl.edu.agh.firecell.core.statebuilder.dialog.ManipulateElementDialog;
 import pl.edu.agh.firecell.model.SimulationConfig;
 import pl.edu.agh.firecell.renderer.BasicRenderer;
 import pl.edu.agh.firecell.renderer.Renderer;
+import pl.edu.agh.firecell.storage.RoomStorage;
 
 import java.io.IOException;
 import java.util.ArrayList;
