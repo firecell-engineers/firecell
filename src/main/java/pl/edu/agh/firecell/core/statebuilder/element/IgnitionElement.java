@@ -15,7 +15,7 @@ public record IgnitionElement(Vector3i position, Vector3i size) implements BaseC
                 .filter(index -> cells.get(index).flammable())
                 .forEach(index -> {
                     var oldCell = cells.get(index);
-                    cells.set(index, new Cell(400, 1, oldCell.flammable(),
+                    cells.set(index, new Cell(oldCell.temperature(), 1, oldCell.flammable(),
                             oldCell.material(), oldCell.remainingFirePillar()));
                 });
     }
