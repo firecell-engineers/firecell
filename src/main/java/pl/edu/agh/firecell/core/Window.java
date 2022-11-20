@@ -16,7 +16,6 @@ import org.lwjgl.system.MemoryUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pl.edu.agh.firecell.core.io.IOListener;
-import pl.edu.agh.firecell.core.io.KeyEvent;
 import pl.edu.agh.firecell.core.statebuilder.Room;
 import pl.edu.agh.firecell.storage.RoomStorage;
 import pl.edu.agh.firecell.core.statebuilder.StateBuilderScene;
@@ -56,7 +55,6 @@ public class Window implements StartSimulationHandler {
     private final IOListener ioListener;
 
     private final Disposable windowSizeSubscription;
-    private final Disposable closeKeyEventSubscription;
 
     public Window(int initialWidth, int initialHeight, String appName) {
         size = new Vector2i(initialWidth, initialHeight);
@@ -71,9 +69,7 @@ public class Window implements StartSimulationHandler {
             this.size = size;
             glViewport(0, 0, size.x, size.y);
         });
-        closeKeyEventSubscription = ioListener.keyObservable(GLFW_KEY_ESCAPE)
-                .filter(KeyEvent::pressed)
-                .subscribe(pressed -> glfwSetWindowShouldClose(glfwWindow, true));
+
     }
 
     public void run() {
@@ -110,7 +106,6 @@ public class Window implements StartSimulationHandler {
     private void dispose() {
         scene.dispose();
 
-        closeKeyEventSubscription.dispose();
         windowSizeSubscription.dispose();
 
         imGuiGl3.dispose();

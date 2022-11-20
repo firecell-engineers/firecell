@@ -49,4 +49,8 @@ public class StateBuilderService {
     public void dispose() {
         subscription.dispose();
     }
+
+    public void setSpaceSize(Vector3i spaceSize) {
+        stateBuilder.setSpaceSize(spaceSize);
+    }
 }
