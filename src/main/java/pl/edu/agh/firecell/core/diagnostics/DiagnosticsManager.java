@@ -10,6 +10,9 @@ public class DiagnosticsManager {
     private double totalTemperature;
     private double solidsTemperature;
     private double airTemperature;
+    private double totalSmokeValue;
+    private double maxSmokeValue;
+    private double minSmokeValue;
 
     private int solidsCellsCount;
     private int airCellsCount;
@@ -52,10 +55,19 @@ public class DiagnosticsManager {
         return airTemperature / (double)airCellsCount;
     }
 
+    public double totalSmokeValue(){ return totalSmokeValue; }
+
+    public double minSmokeValue(){ return minSmokeValue; }
+
+    public double maxSmokeValue(){ return maxSmokeValue; }
+
     private void processState() {
         totalTemperature = 0.0;
         solidsTemperature = 0.0;
         airTemperature = 0.0;
+        totalSmokeValue = 0.0;
+        maxSmokeValue = 0.0;
+        minSmokeValue = 0.0;
 
         solidsCellsCount = 0;
         airCellsCount = 0;
@@ -63,6 +75,10 @@ public class DiagnosticsManager {
 
         state.cells().forEach(cell -> {
             totalTemperature += cell.temperature();
+            totalSmokeValue += cell.smokeIndicator();
+
+            maxSmokeValue = Math.max(maxSmokeValue, cell.smokeIndicator());
+            minSmokeValue = Math.min(minSmokeValue, cell.smokeIndicator());
 
             if (cell.material().equals(Material.AIR)) {
                 airTemperature += cell.temperature();

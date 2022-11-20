@@ -26,6 +26,7 @@ public class InstancedCubeMesh extends Mesh {
         var temperatureBuffer = MemoryUtil.memAllocFloat(cellCount);
         var materialBuffer = MemoryUtil.memAllocInt(cellCount);
         var burningTimeBuffer = MemoryUtil.memAllocInt(cellCount);
+        var smokeIndicatorBuffer = MemoryUtil.memAllocFloat(cellCount);
 
         int bufferIndex = 0;
         for (IndexedCell indexedCell : indexedCells) {
@@ -35,6 +36,7 @@ public class InstancedCubeMesh extends Mesh {
             temperatureBuffer.put(bufferIndex, (float) indexedCell.cell().temperature());
             materialBuffer.put(bufferIndex, indexedCell.cell().material().ordinal());
             burningTimeBuffer.put(bufferIndex, indexedCell.cell().burningTime());
+            smokeIndicatorBuffer.put(bufferIndex, (float)indexedCell.cell().smokeIndicator());
             bufferIndex++;
         }
 
@@ -44,6 +46,7 @@ public class InstancedCubeMesh extends Mesh {
         addInstancedFloatAttribute(temperatureBuffer, 1);
         addInstancedIntAttribute(materialBuffer, 1);
         addInstancedIntAttribute(burningTimeBuffer, 1);
+        addInstancedFloatAttribute(smokeIndicatorBuffer, 1);
 
         glBindVertexArray(0);
     }

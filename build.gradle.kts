@@ -1,4 +1,5 @@
-import com.google.protobuf.gradle.*
+import com.google.protobuf.gradle.protobuf
+import com.google.protobuf.gradle.protoc
 
 plugins {
     id("java")
@@ -28,7 +29,7 @@ val lwjglNatives = Pair(System.getProperty("os.name")!!, System.getProperty("os.
 
 dependencies {
     // junit tests
-    testImplementation(group = "junit", name = "junit", version = "4.13")
+    testImplementation(group = "junit", name = "junit", version = "4.13.1")
     testImplementation(group = "org.junit.jupiter", name = "junit-jupiter-api", "5.6.2")
     testImplementation(group = "org.junit.jupiter", name = "junit-jupiter-params", "5.6.2")
     testRuntimeOnly(group = "org.junit.jupiter", name = "junit-jupiter-engine", "5.6.2")
@@ -64,6 +65,8 @@ dependencies {
     // apache commons
     implementation("org.apache.commons:commons-lang3:3.12.0")
 
+    // jackson
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.13.4.2")
 }
 
 tasks.getByName<Test>("test") {
