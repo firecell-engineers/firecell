@@ -37,7 +37,7 @@ class BasicAlgorithmTest {
         final Vector3i index201 = new Vector3i(2, 0, 1);
         final Vector3i index222 = new Vector3i(2, 2, 2);
 
-        final double COND_COEFF = BasicAlgorithm.CONDUCTIVITY_COEFFICIENT_WOOD;
+        final double COND_COEFF = 1;
 
         return Stream.of(
                 Arguments.of(initWoodState, index111, new Cell(Material.WOOD.getBurningTemperature()-220, 1, true, Material.WOOD),
