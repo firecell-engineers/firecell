@@ -2,25 +2,21 @@ package pl.edu.agh.firecell.engine.algorithm;
 
 import org.joml.Vector3i;
 import pl.edu.agh.firecell.model.Cell;
-import pl.edu.agh.firecell.model.material.ConductionCoefficientProvider;
-import pl.edu.agh.firecell.model.material.Material;
+import pl.edu.agh.firecell.model.material.MaterialConductionMap;
 import pl.edu.agh.firecell.model.State;
 import pl.edu.agh.firecell.model.util.NeighbourUtils;
 
-import java.util.Optional;
 
 import static pl.edu.agh.firecell.engine.algorithm.BasicAlgorithm.*;
-import static pl.edu.agh.firecell.model.material.Material.AIR;
-import static pl.edu.agh.firecell.model.material.Material.WOOD;
 
 public class TemperaturePropagator {
 
     private final double deltaTime;
-    private final ConductionCoefficientProvider conductionCoefficientProvider;
+    private final MaterialConductionMap materialConductionMap;
 
     public TemperaturePropagator(double deltaTime) {
         this.deltaTime = deltaTime;
-        this.conductionCoefficientProvider = new ConductionCoefficientProvider();
+        this.materialConductionMap = new MaterialConductionMap();
     }
 
     public double computeConduction(State oldState, Vector3i cellIndex, double currentTemperature) {
@@ -53,8 +49,7 @@ public class TemperaturePropagator {
     }
 
     private double getCoe(Cell neighbour, Cell middleCell) {
-        Optional<Double> coe = conductionCoefficientProvider.getConductionCoe(neighbour.material(), middleCell.material());
-        return coe.orElse(0.0);
+        return materialConductionMap.getCoefficient(neighbour.material(), middleCell.material());
     }
 
     private double computeConductivity(Cell former, Cell middle, Cell latter, double conductivityCoeFormer, double conductivityCoeFurther) {

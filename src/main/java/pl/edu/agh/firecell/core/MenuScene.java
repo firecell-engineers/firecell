@@ -5,7 +5,6 @@ import org.joml.Vector3i;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pl.edu.agh.firecell.core.io.IOListener;
-import pl.edu.agh.firecell.model.ModelChecker;
 import pl.edu.agh.firecell.model.material.Material;
 import pl.edu.agh.firecell.model.SimulationConfig;
 import pl.edu.agh.firecell.model.State;
@@ -71,12 +70,6 @@ public class MenuScene implements Scene {
                 .addCuboid(new Vector3i(14, 7, 14), new Vector3i(1, 1, 1), Material.WOOD) // cube above the table
                 .igniteCuboid(new Vector3i(14, 4, 14), new Vector3i(2, 2, 2)) // fire source
                 .getResult();
-
-        try {
-            new ModelChecker().checkAll();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
 
         return new SimulationConfig(spaceSize, initialState, 0.5);
     }
