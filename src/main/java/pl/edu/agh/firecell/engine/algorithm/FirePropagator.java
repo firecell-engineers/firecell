@@ -14,7 +14,7 @@ public class FirePropagator {
 
     // Required time period to set on fire neighbour cell with temperature
     // higher than ignition temperature
-    private static final int REQUIRED_TIME = 10;
+    private static final int REQUIRED_TIME = 50;
 
     public boolean computeNewFlammable(Cell oldCell, int newBurningTime) {
         return switch (oldCell.material()) {
