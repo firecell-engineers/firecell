@@ -106,5 +106,6 @@ Temporary Items
 
 /states/
 /rooms/
+!/rooms/important
 
 imgui.ini
