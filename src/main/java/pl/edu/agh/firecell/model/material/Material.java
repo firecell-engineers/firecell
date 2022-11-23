@@ -9,7 +9,7 @@ public enum Material {
     // consider putting them into constant
     AIR(0, 0, FLUID, 900, 0),
     WOOD(3, 250, SOLID, 550, 30),
-    CELLULAR_CONCRETE(10000, 10000, SOLID, 0, 0);
+    CELLULAR_CONCRETE(0, 0, SOLID, 0, 0);
     //Adding new Material remember to put it also to ConductionCoefficientProvider
     //and all switches :(
 

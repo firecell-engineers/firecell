@@ -45,7 +45,11 @@ public class SmokePropagator {
 
         smokeFromFire += Stream.concat(NeighbourUtils.neighboursStream(cellIndex, NeighbourUtils.Axis.X),
                 NeighbourUtils.neighboursStream(cellIndex, NeighbourUtils.Axis.Z))
-                        .filter(oldState::hasCell)
+                        .filter(index -> oldState.hasCell(index) && (
+                                !oldState.hasCell(NeighbourUtils.up(index))
+                                        || oldState.getCell(NeighbourUtils.up(index)).isSolid()
+                            )
+                        )
                         .map(oldState::getCell)
                         .filter(cell -> isCellBurning(cell)&&cell.isSolid())
                         .mapToDouble(cell -> cell.material().smokeCoe() / 4.0).sum();

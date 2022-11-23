@@ -21,16 +21,14 @@ public class FirePropagator {
             case WOOD -> newBurningTime < MAX_BURNING_TIME;
             case AIR -> true;
             case CELLULAR_CONCRETE -> false;
-            default -> throw new IllegalStateException("Unexpected value: " + oldCell.material());
         };
     }
 
     public int computeBurningTime(State oldState, Cell oldCell, Vector3i cellIndex, double newTemperature) {
         return switch (oldCell.material()) {
             case WOOD -> computeBurningTimeWood(oldState, cellIndex, newTemperature, oldCell.burningTime());
-            case AIR -> computeBurningTimeAir(oldState, cellIndex);
+            case AIR -> oldState.getCell(cellIndex).remainingFirePillar()>0?1:0;
             case CELLULAR_CONCRETE -> 0;
-            default -> throw new IllegalStateException("Unexpected value: " + oldCell.material());
         };
     }
 
@@ -68,26 +66,6 @@ public class FirePropagator {
                         isCellBurning(oldState.getCell(neighbourIndex)) &&
                         oldState.getCell(neighbourIndex).remainingFirePillar() > 0 &&
                         !isUpNeighbourAir(oldState, neighbourIndex));
-    }
-
-    private int computeBurningTimeAir(State oldState, Vector3i cellIndex) {
-        int newBurningTime = 0;
-
-        if (oldState.hasCell(NeighbourUtils.down(cellIndex)) &&
-                isCellBurning(oldState.getCell(NeighbourUtils.down(cellIndex))) &&
-                oldState.getCell(NeighbourUtils.down(cellIndex)).remainingFirePillar() - 1 > 0) {
-            newBurningTime++;
-        }
-
-        if (!oldState.hasCell(NeighbourUtils.down(cellIndex)) ||
-                !isCellBurning(oldState.getCell(NeighbourUtils.down(cellIndex)))) {
-            // cell under is not on fire or not present
-            if (getBurningHorizontalNeighbours(oldState, cellIndex)
-                    .anyMatch(neighbourIndex -> !isUpNeighbourAir(oldState, neighbourIndex) &&
-                            oldState.getCell(neighbourIndex).remainingFirePillar() - 1 > 0))
-                newBurningTime = 1;
-        }
-        return newBurningTime;
     }
 
     private int computeBurningTimeWood(State oldState, Vector3i cellIndex, double newTemperature, int currenBurningTime) {
