@@ -5,6 +5,8 @@ import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.processors.PublishProcessor;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import org.joml.Vector3i;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import pl.edu.agh.firecell.model.State;
 
 import java.util.ArrayList;
@@ -12,6 +14,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class StateBuilderService {
+    private final Logger logger = LoggerFactory.getLogger(StateBuilderService.class);
     private final PublishProcessor<List<ElementWrapper>> pp = PublishProcessor.create();
     private final StateBuilder stateBuilder;
     private Disposable subscription;
@@ -35,6 +38,7 @@ public class StateBuilderService {
     }
 
     public void scheduleStateCalculation(List<ElementWrapper> elements) {
+        logger.info("Scheduling state calculation for {} elements", elements.size());
         pp.onNext(new ArrayList<>(elements));
     }
 
@@ -44,6 +48,7 @@ public class StateBuilderService {
                 .map(ElementWrapper::element)
                 .forEach(stateBuilder::addElement);
         currentState = stateBuilder.build();
+        logger.info("New state calculated");
     }
 
     public void dispose() {
