@@ -96,7 +96,7 @@ public class MenuScene implements Scene {
                 stateBuilder.addElement(elementWrapper.element());
             }
             State initialState = stateBuilder.build();
-            SimulationConfig simulationConfig = new SimulationConfig(room.spaceSize(), initialState, defaultConfig.stepTime());
+            SimulationConfig simulationConfig = new SimulationConfig(initialState, defaultConfig.stepTime());
             startSimulationHandler.accept(simulationConfig);
         } catch (IOException e) {
             // TODO: show some gui
@@ -134,6 +134,6 @@ public class MenuScene implements Scene {
                 .igniteCuboid(new Vector3i(14, 4, 14), new Vector3i(2, 2, 2)) // fire source
                 .build();
 
-        return new SimulationConfig(spaceSize, initialState, 0.5);
+        return new SimulationConfig(initialState, 0.5);
     }
 }

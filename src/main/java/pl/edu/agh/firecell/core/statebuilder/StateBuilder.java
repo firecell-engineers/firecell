@@ -16,7 +16,7 @@ import static pl.edu.agh.firecell.core.util.StateUtils.entireAir;
 // TODO: FIRE-22: Tests for StateBuilder
 public class StateBuilder {
 
-    private final Vector3i spaceSize;
+    private Vector3i spaceSize;
     private final List<Element> elements = new ArrayList<>();
 
     public StateBuilder(Vector3i spaceSize) {
@@ -27,6 +27,10 @@ public class StateBuilder {
         List<Cell> cells = entireAir(spaceSize);
         elements.forEach(element -> element.addTo(cells, spaceSize));
         return new State(cells, spaceSize);
+    }
+
+    public void setSpaceSize(Vector3i spaceSize) {
+        this.spaceSize = spaceSize;
     }
 
     public void addElement(Element element) {

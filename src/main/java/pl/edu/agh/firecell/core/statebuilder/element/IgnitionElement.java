@@ -11,6 +11,7 @@ public record IgnitionElement(Vector3i position, Vector3i size) implements BaseC
     @Override
     public void addTo(List<Cell> cells, Vector3i spaceSize) {
         IndexUtils.range(position, new Vector3i(-1).add(position).add(size))
+                .filter(expandedIndex -> IndexUtils.isInSpaceSize(expandedIndex, spaceSize))
                 .map(expandedIndex -> IndexUtils.flattenIndex(expandedIndex, spaceSize))
                 .filter(index -> cells.get(index).flammable())
                 .forEach(index -> {
