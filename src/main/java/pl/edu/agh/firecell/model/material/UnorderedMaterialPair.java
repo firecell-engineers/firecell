@@ -10,12 +10,10 @@ public record UnorderedMaterialPair(Material m1,
 
     @Override
     public boolean equals(Object other) {
-        if (other == this)
-            return true;
-        if (!(other instanceof UnorderedMaterialPair p))
-            return false;
-        return m1.equals(p.m1) &&
-                m2.equals(p.m2);
+        if (other == null) return false;
+        if (other == this) return true;
+        if (!(other instanceof UnorderedMaterialPair p)) return false;
+        return m1.equals(p.m1) && m2.equals(p.m2);
     }
 
 }

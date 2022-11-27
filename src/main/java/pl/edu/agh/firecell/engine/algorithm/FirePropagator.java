@@ -27,7 +27,7 @@ public class FirePropagator {
     public int computeBurningTime(State oldState, Cell oldCell, Vector3i cellIndex, double newTemperature) {
         return switch (oldCell.material()) {
             case WOOD -> computeBurningTimeWood(oldState, cellIndex, newTemperature, oldCell.burningTime());
-            case AIR -> oldState.getCell(cellIndex).remainingFirePillar()>0?1:0;
+            case AIR -> oldState.getCell(cellIndex).remainingFirePillar() > 0 ? 1 : 0;
             case CELLULAR_CONCRETE -> 0;
         };
     }
@@ -89,7 +89,7 @@ public class FirePropagator {
 
     private boolean shouldIgniteFromNeighbour(State oldState, Vector3i cellIndex) {
         return Stream.concat(NeighbourUtils.neighboursStream(cellIndex, NeighbourUtils.Axis.X),
-                                            NeighbourUtils.neighboursStream(cellIndex, NeighbourUtils.Axis.Z))
+                        NeighbourUtils.neighboursStream(cellIndex, NeighbourUtils.Axis.Z))
                 .filter(oldState::hasCell)
                 .map(oldState::getCell)
                 .anyMatch(cell -> cell.burningTime() > REQUIRED_TIME);
