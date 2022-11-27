@@ -17,7 +17,7 @@ public class BasicAlgorithm implements Algorithm {
     private final FirePropagator firePropagator;
     private final SmokePropagator smokePropagator;
     private final DiffusionGenerator diffusionGenerator;
-    public static final double CONVECTION_COEFFICIENT = 0.5;
+    public static final double CONVECTION_COEFFICIENT = 1;
     // should be dependent on the material in the future
     public static final double CONDUCTIVITY_COEFFICIENT_WOOD = 0.2;
     public static final double CONDUCTIVITY_COEFFICIENT_AIR = 0.008;
@@ -55,8 +55,7 @@ public class BasicAlgorithm implements Algorithm {
         newTemperature = temperaturePropagator.updateTemperatureBasedOnFire(oldCell, newTemperature);
 
         // Diffusion update
-        if(oldCell.isFluid())
-            newTemperature = diffusionGenerator.temperatureUpdate(oldState, cellIndex, newTemperature);
+        diffusionGenerator.smokeUpdate(oldState, cellIndex);
 
         return new Cell(
                 newTemperature,

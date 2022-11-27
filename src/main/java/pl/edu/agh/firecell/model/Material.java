@@ -8,7 +8,7 @@ public enum Material {
     // TODO:
     // consider putting them into constant
     AIR(0, 0, FLUID, 900, 0),
-    WOOD(100, 400, SOLID, 550, 30);
+    WOOD(3, 250, SOLID, 550, 30);
 
     private final double ignitionTemperature;
     private final double autoIgnitionTemperature;
