@@ -13,6 +13,9 @@ public class DiagnosticsManager {
     private double totalSmokeValue;
     private double maxSmokeValue;
     private double minSmokeValue;
+    private double totalOxygenValue;
+    private double maxOxygenValue;
+    private double minOxygenValue;
 
     private int solidsCellsCount;
     private int airCellsCount;
@@ -61,6 +64,12 @@ public class DiagnosticsManager {
 
     public double maxSmokeValue(){ return maxSmokeValue; }
 
+    public double totalOxygenValue(){ return totalOxygenValue; }
+
+    public double minOxygenValue(){ return minOxygenValue; }
+
+    public double maxOxygenValue(){ return maxOxygenValue; }
+
     private void processState() {
         totalTemperature = 0.0;
         solidsTemperature = 0.0;
@@ -68,6 +77,9 @@ public class DiagnosticsManager {
         totalSmokeValue = 0.0;
         maxSmokeValue = 0.0;
         minSmokeValue = 0.0;
+        totalOxygenValue = 0.0;
+        maxOxygenValue = 0.0;
+        minOxygenValue = 0.0;
 
         solidsCellsCount = 0;
         airCellsCount = 0;
@@ -76,9 +88,13 @@ public class DiagnosticsManager {
         state.cells().forEach(cell -> {
             totalTemperature += cell.temperature();
             totalSmokeValue += cell.smokeIndicator();
+            totalOxygenValue += cell.oxygenLevel();
 
             maxSmokeValue = Math.max(maxSmokeValue, cell.smokeIndicator());
             minSmokeValue = Math.min(minSmokeValue, cell.smokeIndicator());
+
+            maxOxygenValue = Math.max(maxOxygenValue, cell.oxygenLevel());
+            minOxygenValue = Math.min(minOxygenValue, cell.oxygenLevel());
 
             if (cell.material().equals(Material.AIR)) {
                 airTemperature += cell.temperature();
@@ -90,9 +106,10 @@ public class DiagnosticsManager {
                 solidsCellsCount += 1;
             }
 
-            if (cell.burningTime() > 0) {
+            if (cell.burningTime() > 0 && cell.flammable()) {
                 burningCellsCount += 1;
             }
         });
     }
+
 }

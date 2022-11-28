@@ -6,20 +6,21 @@ public record Cell (
         boolean flammable,
         Material material,
         int remainingFirePillar,
-        double smokeIndicator
+        double smokeIndicator,
+        double oxygenLevel
         ) {
 
         public Cell(double temperature, int burningTime, boolean flammable, Material material){
-                this(temperature, burningTime, flammable, material, 0, 0);
+                this(temperature, burningTime, flammable, material, 0, 0, 21.0);
         }
 
         public Cell(double temperature, int burningTime, boolean flammable, Material material, int remainingFirePillar){
-            this(temperature, burningTime, flammable, material, remainingFirePillar, 0);
+            this(temperature, burningTime, flammable, material, remainingFirePillar, 0, 21.0);
         }
 
         public Cell(Cell other){
             this(other.temperature, other.burningTime, other.flammable, other.material,
-                    other.remainingFirePillar, other.smokeIndicator);
+                    other.remainingFirePillar, other.smokeIndicator, other.oxygenLevel);
         }
 
     public boolean isSolid() {
@@ -43,6 +44,7 @@ public record Cell (
                 flammable == c.flammable &&
                 material == c.material &&
                 remainingFirePillar == c.remainingFirePillar &&
-                smokeIndicator == c.smokeIndicator;
+                smokeIndicator == c.smokeIndicator &&
+                oxygenLevel == c.oxygenLevel;
     }
 }

@@ -28,7 +28,8 @@ public class ConversionUtils {
                 proto.getFlammable(),
                 convertFromProto(proto.getMaterial()),
                 proto.getRemainingFirePillar(),
-                proto.getSmokeIndicator()
+                proto.getSmokeIndicator(),
+                proto.getOxygenLevel()
         );
     }
 
@@ -47,6 +48,7 @@ public class ConversionUtils {
                 .setMaterial(convertToProto(cell.material()))
                 .setRemainingFirePillar(cell.remainingFirePillar())
                 .setSmokeIndicator(cell.smokeIndicator())
+                .setOxygenLevel(cell.oxygenLevel())
                 .build();
     }
 
