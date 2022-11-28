@@ -1,6 +1,6 @@
 package pl.edu.agh.firecell.renderer.rendermode;
 
-import pl.edu.agh.firecell.model.Material;
+import pl.edu.agh.firecell.model.material.Material;
 import pl.edu.agh.firecell.model.State;
 import pl.edu.agh.firecell.renderer.camera.Camera;
 import pl.edu.agh.firecell.renderer.mesh.InstancedCubeMesh;

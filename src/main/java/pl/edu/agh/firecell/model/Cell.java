@@ -1,5 +1,8 @@
 package pl.edu.agh.firecell.model;
 
+import pl.edu.agh.firecell.model.material.Material;
+import pl.edu.agh.firecell.model.material.MatterState;
+
 public record Cell (
         double temperature,
         int burningTime,

@@ -11,6 +11,12 @@ public class IndexUtils {
     private IndexUtils() {
     }
 
+    public static boolean isInSpaceSize(Vector3i index, Vector3i spaceSize) {
+        return 0 <= index.x && index.x < spaceSize.x
+                && 0 <= index.y && index.y < spaceSize.y
+                && 0 <= index.z && index.z < spaceSize.z;
+    }
+
     public static int flattenIndex(Vector3i index, Vector3i spaceSize) {
         if (index.x < 0 || index.y < 0 || index.z < 0) {
             throw new IndexOutOfBoundsException("Index %s has negative components.".formatted(index));

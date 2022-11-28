@@ -3,6 +3,7 @@ package pl.edu.agh.firecell.renderer;
 import io.reactivex.rxjava3.disposables.Disposable;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
+import org.joml.Vector3i;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pl.edu.agh.firecell.core.io.IOListener;
@@ -29,8 +30,8 @@ public class BasicRenderer implements Renderer {
     private final Shader transparentOxygenShader = new Shader("oxygen.glsl.vert", "ambientDiffuse.glsl.frag");
 
     private final Camera camera;
-    private final IOListener ioListener;
     private final CameraController cameraController;
+    private final IOListener ioListener;
     private Disposable windowSizeSubscription;
     private RenderStrategy renderStrategy;
     private RenderMode renderMode;
@@ -42,14 +43,14 @@ public class BasicRenderer implements Renderer {
     public BasicRenderer(float aspectRatio, IOListener ioListener, SimulationConfig config)
             throws IOException, InvalidPathException, IllegalStateException {
         this.ioListener = ioListener;
-        this.camera = new Camera(aspectRatio);
-        this.cameraController = new CameraController(camera, ioListener);
         this.renderMode = RenderMode.STANDARD;
+        this.camera = createCamera(config.initialState().spaceSize(), aspectRatio);
+        this.cameraController = new CameraController(camera, ioListener);
         this.renderStrategy = new StandardRenderStrategy(camera, opaqueMaterialShader, fireShader, smokeShader);
         this.projection = new Uniform<>("uProjection", camera.perspectiveMatrix());
         this.lightDirection = new Uniform<>("uLightDir", new Vector3f(-1.0f, -0.8f, 0.5f));
         this.lightColor = new Uniform<>("uLightColor", new Vector3f(1.0f, 1.0f, 1.0f));
-        initializeRendering(config);
+        initializeRendering();
     }
 
     @Override
@@ -89,10 +90,16 @@ public class BasicRenderer implements Renderer {
         cameraController.dispose();
     }
 
-    private void initializeRendering(SimulationConfig config) {
-        var spaceSize = new Vector3f(config.size().x, config.size().y, config.size().z);
-        camera.setPosition(new Vector3f(spaceSize).mul(0.5f).add(new Vector3f(0.0f, 0.0f, spaceSize.z * 1.5f)));
+    private Camera createCamera(Vector3i spaceSize, float aspectRatio) {
+        // camera position is slightly behind upper space corner
+        var cameraPosition = new Vector3f(spaceSize).mul(new Vector3f(1.2f), new Vector3f());
+        // camera orientation is pointing to the space center
+        var cameraEulerAngles = new Vector3f((float) (-Math.PI / 6), (float) (-Math.PI * 0.75), 0.f);
+        return new Camera(aspectRatio, cameraPosition, cameraEulerAngles);
+    }
 
+
+    private void initializeRendering() {
         Stream.of(opaqueMaterialShader, transparentTempShader, fireShader, smokeShader, transparentOxygenShader)
                 .forEach(shader -> {
                     shader.bind();

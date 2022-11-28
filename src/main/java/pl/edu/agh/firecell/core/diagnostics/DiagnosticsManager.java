@@ -1,6 +1,6 @@
 package pl.edu.agh.firecell.core.diagnostics;
 
-import pl.edu.agh.firecell.model.Material;
+import pl.edu.agh.firecell.model.material.Material;
 import pl.edu.agh.firecell.model.State;
 
 public class DiagnosticsManager {

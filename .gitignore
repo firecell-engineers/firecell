@@ -105,5 +105,7 @@ Temporary Items
 .apdisk
 
 /states/
+/rooms/
+!/rooms/important/
 
 imgui.ini
