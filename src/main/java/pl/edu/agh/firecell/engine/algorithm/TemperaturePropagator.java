@@ -12,6 +12,8 @@ import static pl.edu.agh.firecell.engine.algorithm.BasicAlgorithm.*;
 
 public class TemperaturePropagator {
 
+    private static final double BURNING_TEMPERATURE_COEFFICIENT = 0.3;
+
     private final double deltaTime;
     private final MaterialConductionMap materialConductionMap;
 
@@ -83,7 +85,7 @@ public class TemperaturePropagator {
 
         double diffToMaterialBurningTemperature = oldCell.material().getBurningTemperature() - currentTemperature;
         if (diffToMaterialBurningTemperature > 0)
-            return currentTemperature + deltaTime * diffToMaterialBurningTemperature;
+            return currentTemperature + diffToMaterialBurningTemperature * deltaTime * BURNING_TEMPERATURE_COEFFICIENT;
 
         return currentTemperature;
     }
