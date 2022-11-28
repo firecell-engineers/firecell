@@ -44,11 +44,12 @@ public class DiffusionGenerator {
     }
 
     public double oxygenUpdate(State oldState, Vector3i cellIndex, double currentOxygen){
-        int neighbourWeight = 1;
-        int mainWeight = 10;
+        double neighbourWeight = 1;
+        double mainWeight = 1;
+        double sumOfWeights = 6 * neighbourWeight + mainWeight;
         return currentOxygen - deltaTime * (currentOxygen - (NeighbourUtils.neighboursStream(cellIndex)
                 .map(index -> oldState.hasCell(index) && oldState.getCell(index).isFluid() ?
-                        oldState.getCell(index).oxygenLevel() * neighbourWeight : currentOxygen * neighbourWeight)
-                .mapToDouble(Double::doubleValue).sum() + mainWeight * currentOxygen) / (6 * neighbourWeight + mainWeight));
+                        oldState.getCell(index).oxygenLevel() * neighbourWeight/sumOfWeights : currentOxygen * neighbourWeight/sumOfWeights)
+                .mapToDouble(Double::doubleValue).sum() + mainWeight/sumOfWeights * currentOxygen));
     }
 }

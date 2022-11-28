@@ -76,10 +76,10 @@ public class DiagnosticsManager {
         airTemperature = 0.0;
         totalSmokeValue = 0.0;
         maxSmokeValue = 0.0;
-        minSmokeValue = 0.0;
+        minSmokeValue = 100.0;
         totalOxygenValue = 0.0;
         maxOxygenValue = 0.0;
-        minOxygenValue = 0.0;
+        minOxygenValue = 100.0;
 
         solidsCellsCount = 0;
         airCellsCount = 0;
@@ -87,18 +87,16 @@ public class DiagnosticsManager {
 
         state.cells().forEach(cell -> {
             totalTemperature += cell.temperature();
-            totalSmokeValue += cell.smokeIndicator();
-            totalOxygenValue += cell.oxygenLevel();
-
-            maxSmokeValue = Math.max(maxSmokeValue, cell.smokeIndicator());
-            minSmokeValue = Math.min(minSmokeValue, cell.smokeIndicator());
-
-            maxOxygenValue = Math.max(maxOxygenValue, cell.oxygenLevel());
-            minOxygenValue = Math.min(minOxygenValue, cell.oxygenLevel());
 
             if (cell.material().equals(Material.AIR)) {
                 airTemperature += cell.temperature();
                 airCellsCount += 1;
+                totalSmokeValue += cell.smokeIndicator();
+                totalOxygenValue += cell.oxygenLevel();
+                maxOxygenValue = Math.max(maxOxygenValue, cell.oxygenLevel());
+                minOxygenValue = Math.min(minOxygenValue, cell.oxygenLevel());
+                maxSmokeValue = Math.max(maxSmokeValue, cell.smokeIndicator());
+                minSmokeValue = Math.min(minSmokeValue, cell.smokeIndicator());
             }
 
             if (cell.isSolid()) {
