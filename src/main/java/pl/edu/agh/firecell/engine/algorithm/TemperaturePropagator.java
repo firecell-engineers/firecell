@@ -9,6 +9,7 @@ import pl.edu.agh.firecell.model.util.NeighbourUtils;
 
 
 import static pl.edu.agh.firecell.engine.algorithm.BasicAlgorithm.*;
+import static pl.edu.agh.firecell.model.util.HelpfulFunctions.*;
 
 public class TemperaturePropagator {
 
@@ -90,15 +91,4 @@ public class TemperaturePropagator {
         return currentTemperature;
     }
 
-    private static double tempDiffAbs(Cell cellOne, Cell cellTwo) {
-        return Math.abs(tempDiff(cellOne, cellTwo));
-    }
-
-    private static double tempDiff(Cell cellOne, Cell cellTwo) {
-        return cellOne.temperature() - cellTwo.temperature();
-    }
-
-    private static boolean isCellBurning(Cell cell) {
-        return cell.flammable() && cell.burningTime() > 0;
-    }
 }

@@ -5,10 +5,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pl.edu.agh.firecell.model.Cell;
 import pl.edu.agh.firecell.model.exception.ConductionCoefficientException;
-import pl.edu.agh.firecell.model.material.Material;
 import pl.edu.agh.firecell.model.material.MatterState;
 import pl.edu.agh.firecell.model.State;
-import pl.edu.agh.firecell.model.util.NeighbourUtils;
 
 
 public class BasicAlgorithm implements Algorithm {
@@ -66,12 +64,4 @@ public class BasicAlgorithm implements Algorithm {
         );
     }
 
-    public static boolean isUpNeighbourAir(State state, Vector3i cellIndex) {
-        Vector3i upIndex = NeighbourUtils.up(cellIndex);
-        return state.hasCell(upIndex) && state.getCell(upIndex).material().equals(Material.AIR);
-    }
-
-    public static boolean isCellBurning(Cell cell) {
-        return cell.flammable() && cell.burningTime() > 0;
-    }
 }

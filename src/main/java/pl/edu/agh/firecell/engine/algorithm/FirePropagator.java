@@ -9,6 +9,7 @@ import pl.edu.agh.firecell.model.util.NeighbourUtils;
 import java.util.stream.Stream;
 
 import static pl.edu.agh.firecell.engine.algorithm.BasicAlgorithm.*;
+import static pl.edu.agh.firecell.model.util.HelpfulFunctions.*;
 
 public class FirePropagator {
 
@@ -59,14 +60,7 @@ public class FirePropagator {
         return Math.max(downFirePillar, neighbourFirePillar);
     }
 
-    public static Stream<Vector3i> getBurningHorizontalNeighbours(State oldState, Vector3i cellIndex) {
-        return Stream
-                .concat(NeighbourUtils.neighboursStream(cellIndex, NeighbourUtils.Axis.X), NeighbourUtils.neighboursStream(cellIndex, NeighbourUtils.Axis.Z))
-                .filter(neighbourIndex -> oldState.hasCell(neighbourIndex) &&
-                        isCellBurning(oldState.getCell(neighbourIndex)) &&
-                        oldState.getCell(neighbourIndex).remainingFirePillar() > 0 &&
-                        !isUpNeighbourAir(oldState, neighbourIndex));
-    }
+
 
     private int computeBurningTimeWood(State oldState, Vector3i cellIndex, double newTemperature, int currenBurningTime) {
         Cell oldCell = oldState.getCell(cellIndex);
@@ -94,9 +88,5 @@ public class FirePropagator {
                 .filter(oldState::hasCell)
                 .map(oldState::getCell)
                 .anyMatch(cell -> cell.burningTime() > REQUIRED_TIME);
-    }
-
-    private static boolean isCellBurning(Cell cell) {
-        return cell.flammable() && cell.burningTime() > 0;
     }
 }

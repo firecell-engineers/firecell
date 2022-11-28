@@ -9,7 +9,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
-import static pl.edu.agh.firecell.engine.algorithm.BasicAlgorithm.isCellBurning;
+import static pl.edu.agh.firecell.model.util.HelpfulFunctions.isCellBurning;
+
 
 public class SmokePropagator {
 
