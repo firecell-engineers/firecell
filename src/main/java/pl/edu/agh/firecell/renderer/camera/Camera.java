@@ -10,21 +10,24 @@ public class Camera {
     private static final float FOV = 60.0f;
     private static final float Z_NEAR = 0.05f;
     private static final float Z_FAR = 500.0f;
-    private static final float MOVING_SPEED = 10.0f;
+    private static final float MOVING_SPEED = 15.0f;
 
-    private Logger logger = LoggerFactory.getLogger(Camera.class);
+    private final Logger logger = LoggerFactory.getLogger(Camera.class);
 
     private float aspectRatio;
-    private Vector3f position = new Vector3f(0);
+    private Vector3f position;
     private Vector3f direction = new Vector3f(0, 0, -1);
-    private final Vector3f up = new Vector3f(0, 1, 0);
-    private final Vector3f eulerAngles = new Vector3f(0.0f, (float) (- Math.PI / 2.0f), 0.0f);
+    private Vector3f up = new Vector3f(0, 1, 0);
+    private Vector3f eulerAngles;
 
     private Matrix4f viewMatrix;
     private Matrix4f perspectiveMatrix;
 
-    public Camera(float aspectRatio) {
+    public Camera(float aspectRatio, Vector3f position, Vector3f eulerAngles) {
+        this.position = position;
+        this.eulerAngles = eulerAngles;
         this.aspectRatio = aspectRatio;
+        updateDirection();
         updateProjectionMatrix();
         updateViewMatrix();
     }
@@ -32,11 +35,6 @@ public class Camera {
     public void setAspectRatio(float aspectRatio) {
         this.aspectRatio = aspectRatio;
         updateProjectionMatrix();
-    }
-
-    public void setPosition(Vector3f position) {
-        this.position = position;
-        updateViewMatrix();
     }
 
     public void addYaw(float yawChange) {
@@ -79,14 +77,6 @@ public class Camera {
 
     public Vector3f position() {
         return position;
-    }
-
-    public Vector3f direction() {
-        return direction;
-    }
-
-    public Vector3f up() {
-        return up;
     }
 
     private void updateViewMatrix() {
