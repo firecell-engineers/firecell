@@ -83,7 +83,7 @@ public class TemperaturePropagator {
 
         double diffToMaterialBurningTemperature = oldCell.material().getBurningTemperature() - currentTemperature;
         if (diffToMaterialBurningTemperature > 0)
-            return deltaTime * diffToMaterialBurningTemperature;
+            return currentTemperature + deltaTime * diffToMaterialBurningTemperature;
 
         return currentTemperature;
     }
