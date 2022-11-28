@@ -1,4 +1,4 @@
-package pl.edu.agh.firecell.model;
+package pl.edu.agh.firecell.model.material;
 
 public enum MatterState {
     SOLID,

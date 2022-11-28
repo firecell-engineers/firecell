@@ -11,7 +11,7 @@ import pl.edu.agh.firecell.core.statebuilder.ElementWrapper;
 import pl.edu.agh.firecell.core.statebuilder.Room;
 import pl.edu.agh.firecell.core.statebuilder.RoomStorage;
 import pl.edu.agh.firecell.core.statebuilder.StateBuilder;
-import pl.edu.agh.firecell.model.Material;
+import pl.edu.agh.firecell.model.material.Material;
 import pl.edu.agh.firecell.model.SimulationConfig;
 import pl.edu.agh.firecell.model.State;
 

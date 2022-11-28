@@ -2,7 +2,7 @@ package pl.edu.agh.firecell.core.statebuilder.dialog.form;
 
 import pl.edu.agh.firecell.core.statebuilder.element.CuboidElement;
 import pl.edu.agh.firecell.core.statebuilder.element.Element;
-import pl.edu.agh.firecell.model.Material;
+import pl.edu.agh.firecell.model.material.Material;
 import pl.edu.agh.firecell.model.util.GuiUtils;
 
 import static pl.edu.agh.firecell.model.util.GuiUtils.createVector3i;

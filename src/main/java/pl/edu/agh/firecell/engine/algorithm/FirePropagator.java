@@ -2,7 +2,7 @@ package pl.edu.agh.firecell.engine.algorithm;
 
 import org.joml.Vector3i;
 import pl.edu.agh.firecell.model.Cell;
-import pl.edu.agh.firecell.model.Material;
+import pl.edu.agh.firecell.model.material.Material;
 import pl.edu.agh.firecell.model.State;
 import pl.edu.agh.firecell.model.util.NeighbourUtils;
 
@@ -20,13 +20,15 @@ public class FirePropagator {
         return switch (oldCell.material()) {
             case WOOD -> newBurningTime < MAX_BURNING_TIME;
             case AIR -> true;
+            case CELLULAR_CONCRETE -> false;
         };
     }
 
     public int computeBurningTime(State oldState, Cell oldCell, Vector3i cellIndex, double newTemperature) {
         return switch (oldCell.material()) {
             case WOOD -> computeBurningTimeWood(oldState, cellIndex, newTemperature, oldCell.burningTime());
-            case AIR -> computeBurningTimeAir(oldState, cellIndex);
+            case AIR -> oldState.getCell(cellIndex).remainingFirePillar() > 0 ? 1 : 0;
+            case CELLULAR_CONCRETE -> 0;
         };
     }
 
@@ -66,26 +68,6 @@ public class FirePropagator {
                         !isUpNeighbourAir(oldState, neighbourIndex));
     }
 
-    private int computeBurningTimeAir(State oldState, Vector3i cellIndex) {
-        int newBurningTime = 0;
-
-        if (oldState.hasCell(NeighbourUtils.down(cellIndex)) &&
-                isCellBurning(oldState.getCell(NeighbourUtils.down(cellIndex))) &&
-                oldState.getCell(NeighbourUtils.down(cellIndex)).remainingFirePillar() - 1 > 0) {
-            newBurningTime++;
-        }
-
-        if (!oldState.hasCell(NeighbourUtils.down(cellIndex)) ||
-                !isCellBurning(oldState.getCell(NeighbourUtils.down(cellIndex)))) {
-            // cell under is not on fire or not present
-            if (getBurningHorizontalNeighbours(oldState, cellIndex)
-                    .anyMatch(neighbourIndex -> !isUpNeighbourAir(oldState, neighbourIndex) &&
-                            oldState.getCell(neighbourIndex).remainingFirePillar() - 1 > 0))
-                newBurningTime = 1;
-        }
-        return newBurningTime;
-    }
-
     private int computeBurningTimeWood(State oldState, Vector3i cellIndex, double newTemperature, int currenBurningTime) {
         Cell oldCell = oldState.getCell(cellIndex);
         int newBurningTime = currenBurningTime;
@@ -107,7 +89,7 @@ public class FirePropagator {
 
     private boolean shouldIgniteFromNeighbour(State oldState, Vector3i cellIndex) {
         return Stream.concat(NeighbourUtils.neighboursStream(cellIndex, NeighbourUtils.Axis.X),
-                                            NeighbourUtils.neighboursStream(cellIndex, NeighbourUtils.Axis.Z))
+                        NeighbourUtils.neighboursStream(cellIndex, NeighbourUtils.Axis.Z))
                 .filter(oldState::hasCell)
                 .map(oldState::getCell)
                 .anyMatch(cell -> cell.burningTime() > REQUIRED_TIME);

@@ -20,6 +20,7 @@ import pl.edu.agh.firecell.core.statebuilder.RoomStorage;
 import pl.edu.agh.firecell.core.statebuilder.StateBuilderScene;
 import pl.edu.agh.firecell.core.util.LoggingOutputStream;
 import pl.edu.agh.firecell.model.SimulationConfig;
+import pl.edu.agh.firecell.model.exception.ConductionCoefficientException;
 
 import java.io.IOException;
 import java.io.PrintStream;
@@ -117,7 +118,7 @@ public class Window {
             scene.dispose();
             scene = simulationScene;
             logger.info("Starting simulation.");
-        } catch (IOException | InvalidPathException | IllegalStateException e) {
+        } catch (IOException | InvalidPathException | IllegalStateException |ConductionCoefficientException e) {
             logger.error("Could not create Simulation Scene.", e);
         }
     }

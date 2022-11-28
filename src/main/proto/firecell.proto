@@ -15,6 +15,7 @@ message ProtoVector3i {
 enum ProtoMaterial {
   WOOD = 1;
   AIR = 2;
+  CELLULAR_CONCRETE = 3;
 }
 
 message ProtoCell {
