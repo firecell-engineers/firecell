@@ -9,7 +9,7 @@ public class MaterialConductionMap {
 
     private final Map<UnorderedMaterialPair, Double> coefficientMap;
 
-    public MaterialConductionMap() {
+    public MaterialConductionMap() throws ConductionCoefficientException {
         coefficientMap = new HashMap<>();
         //==================================================================================================================
         coefficientMap.put(new UnorderedMaterialPair(Material.AIR, Material.AIR),                                            /**/ 0.008);
@@ -21,11 +21,7 @@ public class MaterialConductionMap {
         //==================================================================================================================
         coefficientMap.put(new UnorderedMaterialPair(Material.CELLULAR_CONCRETE, Material.CELLULAR_CONCRETE),                  /**/ 0.1);
         //==================================================================================================================
-        try {
-            validate();
-        } catch (ConductionCoefficientException ignored) {
-        }
-
+        validate();
     }
 
     public double getCoefficient(Material m1, Material m2) {

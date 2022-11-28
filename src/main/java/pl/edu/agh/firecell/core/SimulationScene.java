@@ -10,6 +10,7 @@ import pl.edu.agh.firecell.engine.Engine;
 import pl.edu.agh.firecell.engine.algorithm.BasicAlgorithm;
 import pl.edu.agh.firecell.model.SimulationConfig;
 import pl.edu.agh.firecell.model.State;
+import pl.edu.agh.firecell.model.exception.ConductionCoefficientException;
 import pl.edu.agh.firecell.renderer.BasicRenderer;
 import pl.edu.agh.firecell.renderer.Renderer;
 import pl.edu.agh.firecell.renderer.rendermode.RenderMode;
@@ -38,7 +39,7 @@ public class SimulationScene implements Scene {
 
     public SimulationScene(SimulationConfig config, Runnable finishSimulationHandler,
                            IOListener ioListener, float aspectRatio)
-            throws IOException, InvalidPathException, IllegalStateException {
+            throws IOException, InvalidPathException, IllegalStateException, ConductionCoefficientException {
         this.currentState = config.initialState();
         this.finishSimulationHandler = finishSimulationHandler;
         this.stepTime = config.stepTime();

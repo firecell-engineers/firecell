@@ -5,6 +5,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import pl.edu.agh.firecell.model.Cell;
+import pl.edu.agh.firecell.model.exception.ConductionCoefficientException;
 import pl.edu.agh.firecell.model.material.Material;
 import pl.edu.agh.firecell.model.State;
 
@@ -19,7 +20,7 @@ class BasicAlgorithmTest {
 
     @ParameterizedTest(name = "Compute for index {1} failed.")
     @MethodSource("computeTestMethodSource")
-    public void computeTestMethod(State state, Vector3i cellIndex, Cell expectedCell) {
+    public void computeTestMethod(State state, Vector3i cellIndex, Cell expectedCell) throws ConductionCoefficientException {
         // given
         Algorithm algorithm = new BasicAlgorithm(deltaTime);
         // when then

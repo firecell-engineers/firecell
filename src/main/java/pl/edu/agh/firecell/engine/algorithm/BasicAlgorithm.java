@@ -4,6 +4,7 @@ import org.joml.Vector3i;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pl.edu.agh.firecell.model.Cell;
+import pl.edu.agh.firecell.model.exception.ConductionCoefficientException;
 import pl.edu.agh.firecell.model.material.Material;
 import pl.edu.agh.firecell.model.material.MatterState;
 import pl.edu.agh.firecell.model.State;
@@ -23,7 +24,7 @@ public class BasicAlgorithm implements Algorithm {
     public static final int MAX_BURNING_TIME = 50;
 
 
-    public BasicAlgorithm(double deltaTime) {
+    public BasicAlgorithm(double deltaTime) throws ConductionCoefficientException {
         this.temperaturePropagator = new TemperaturePropagator(deltaTime);
         this.firePropagator = new FirePropagator();
         this.diffusionGenerator = new DiffusionGenerator(deltaTime);

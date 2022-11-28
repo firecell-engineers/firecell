@@ -2,6 +2,7 @@ package pl.edu.agh.firecell.engine.algorithm;
 
 import org.joml.Vector3i;
 import pl.edu.agh.firecell.model.Cell;
+import pl.edu.agh.firecell.model.exception.ConductionCoefficientException;
 import pl.edu.agh.firecell.model.material.MaterialConductionMap;
 import pl.edu.agh.firecell.model.State;
 import pl.edu.agh.firecell.model.util.NeighbourUtils;
@@ -14,7 +15,7 @@ public class TemperaturePropagator {
     private final double deltaTime;
     private final MaterialConductionMap materialConductionMap;
 
-    public TemperaturePropagator(double deltaTime) {
+    public TemperaturePropagator(double deltaTime) throws ConductionCoefficientException {
         this.deltaTime = deltaTime;
         this.materialConductionMap = new MaterialConductionMap();
     }
