@@ -78,7 +78,14 @@ public class TemperaturePropagator {
     }
 
     public double updateTemperatureBasedOnFire(Cell oldCell, double currentTemperature) {
-        return oldCell.burningTime() > 0 && oldCell.flammable() ? oldCell.material().getBurningTemperature() : currentTemperature;
+        if (!isCellBurning(oldCell))
+            return currentTemperature;
+
+        double diffToMaterialBurningTemperature = oldCell.material().getBurningTemperature() - currentTemperature;
+        if (diffToMaterialBurningTemperature > 0)
+            return deltaTime * diffToMaterialBurningTemperature;
+
+        return currentTemperature;
     }
 
     private static double tempDiffAbs(Cell cellOne, Cell cellTwo) {
@@ -89,4 +96,7 @@ public class TemperaturePropagator {
         return cellOne.temperature() - cellTwo.temperature();
     }
 
+    private static boolean isCellBurning(Cell cell) {
+        return cell.flammable() && cell.burningTime() > 0;
+    }
 }

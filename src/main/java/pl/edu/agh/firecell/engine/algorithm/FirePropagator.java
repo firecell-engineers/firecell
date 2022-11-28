@@ -14,7 +14,7 @@ public class FirePropagator {
 
     // Required time period to set on fire neighbour cell with temperature
     // higher than ignition temperature
-    private static final int REQUIRED_TIME = 10;
+    private static final int REQUIRED_TIME = 25;
 
     public boolean computeNewFlammable(Cell oldCell, int newBurningTime) {
         return switch (oldCell.material()) {
@@ -70,21 +70,22 @@ public class FirePropagator {
 
     private int computeBurningTimeWood(State oldState, Vector3i cellIndex, double newTemperature, int currenBurningTime) {
         Cell oldCell = oldState.getCell(cellIndex);
-        int newBurningTime = currenBurningTime;
-        if (oldCell.burningTime() == 0 &&
-                MAX_BURNING_TIME != 0 &&
-                oldCell.flammable()) {
+
+        if (oldCell.burningTime() == 0 && MAX_BURNING_TIME != 0 && oldCell.flammable()) {
+
             if (newTemperature > Material.WOOD.autoIgnitionTemperature()) {
-                newBurningTime++;
-            } else if (shouldIgniteFromNeighbour(oldState, cellIndex) &&
-                    newTemperature > Material.WOOD.ignitionTemperature()) {
-                newBurningTime++;
+                return 1;
+
+            } else if (shouldIgniteFromNeighbour(oldState, cellIndex)
+                    && newTemperature > Material.WOOD.ignitionTemperature()) {
+                return 1;
             }
         }
+
         if (oldCell.burningTime() > 0 && oldCell.burningTime() <= MAX_BURNING_TIME) {
-            newBurningTime++;
+            return currenBurningTime + 1;
         }
-        return newBurningTime;
+        return currenBurningTime;
     }
 
     private boolean shouldIgniteFromNeighbour(State oldState, Vector3i cellIndex) {
