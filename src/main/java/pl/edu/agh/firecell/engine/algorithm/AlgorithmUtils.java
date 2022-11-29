@@ -1,13 +1,14 @@
-package pl.edu.agh.firecell.model.util;
+package pl.edu.agh.firecell.engine.algorithm;
 
 import org.joml.Vector3i;
 import pl.edu.agh.firecell.model.Cell;
 import pl.edu.agh.firecell.model.State;
 import pl.edu.agh.firecell.model.material.Material;
+import pl.edu.agh.firecell.model.util.NeighbourUtils;
 
 import java.util.stream.Stream;
 
-public class HelpfulFunctions {
+public class AlgorithmUtils {
 
     public static boolean isUpNeighbourAir(State state, Vector3i cellIndex) {
         Vector3i upIndex = NeighbourUtils.up(cellIndex);

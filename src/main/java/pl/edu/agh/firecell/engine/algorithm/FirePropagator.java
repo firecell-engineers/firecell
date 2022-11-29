@@ -8,11 +8,10 @@ import pl.edu.agh.firecell.model.util.NeighbourUtils;
 
 import java.util.stream.Stream;
 
-import static pl.edu.agh.firecell.engine.algorithm.BasicAlgorithm.*;
-import static pl.edu.agh.firecell.model.util.HelpfulFunctions.*;
 
 public class FirePropagator {
 
+    private static final int MAX_BURNING_TIME = 50;
     // Required time period to set on fire neighbour cell with temperature
     // higher than ignition temperature
     private static final int REQUIRED_TIME = 25;
@@ -40,15 +39,15 @@ public class FirePropagator {
         // from under
         int downFirePillar = 0;
         if (oldState.hasCell(NeighbourUtils.down(cellIndex)) &&
-                isCellBurning(oldState.getCell(NeighbourUtils.down(cellIndex))) &&
+                AlgorithmUtils.isCellBurning(oldState.getCell(NeighbourUtils.down(cellIndex))) &&
                 oldState.getCell(NeighbourUtils.down(cellIndex)).remainingFirePillar() > 1) {
             downFirePillar = oldState.getCell(NeighbourUtils.down(cellIndex)).remainingFirePillar() - 1;
         }
 
         // from neighbour
         int neighbourFirePillar = 0;
-        int horizontalNeighbourFirePillar = getBurningHorizontalNeighbours(oldState, cellIndex)
-                .filter(neighbourIndex -> !isUpNeighbourAir(oldState, neighbourIndex) &&
+        int horizontalNeighbourFirePillar = AlgorithmUtils.getBurningHorizontalNeighbours(oldState, cellIndex)
+                .filter(neighbourIndex -> !AlgorithmUtils.isUpNeighbourAir(oldState, neighbourIndex) &&
                         oldState.getCell(neighbourIndex).remainingFirePillar() - 1 > 0)
                 .map(neighbourIndex -> oldState.getCell(neighbourIndex).remainingFirePillar())
                 .max(Integer::compareTo)
