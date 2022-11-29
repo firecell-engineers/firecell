@@ -14,9 +14,10 @@ public class DiffusionGenerator {
     }
 
     public double smokeUpdate(State oldState, Vector3i cellIndex, double currentSmoke) {
-        int upNeighbourWeight = 1;
-        int downNeighbourWeight = 1;
-        int mainWeight = 100;
+        double upNeighbourWeight = 1;
+        double downNeighbourWeight = 1;
+        double mainWeight = 100;
+        double sumOfWeights = upNeighbourWeight + downNeighbourWeight + mainWeight;
         Vector3i indexAbove = NeighbourUtils.up(cellIndex);
         Vector3i indexUnder = NeighbourUtils.down(cellIndex);
         Cell underCell = oldState.hasCell(indexUnder) ? oldState.getCell(indexUnder) : null;
@@ -25,11 +26,9 @@ public class DiffusionGenerator {
                 (aboveCell == null || !aboveCell.isFluid())) {
             return currentSmoke;
         }
-
-        return (downNeighbourWeight * underCell.smokeIndicator()
-                + mainWeight * currentSmoke
-                + upNeighbourWeight * aboveCell.smokeIndicator())
-                / (upNeighbourWeight + mainWeight + downNeighbourWeight);
+        return (downNeighbourWeight / sumOfWeights * underCell.smokeIndicator()
+                + mainWeight / sumOfWeights * currentSmoke
+                + upNeighbourWeight / sumOfWeights * aboveCell.smokeIndicator());
     }
 
     public double temperatureUpdate(State oldState, Vector3i cellIndex, double currentTemperature) {
@@ -43,13 +42,15 @@ public class DiffusionGenerator {
                 .mapToDouble(Double::doubleValue).sum() + mainWeight * currentTemperature) / (6 * deltaTime * neighbourWeight + mainWeight);
     }
 
-    public double oxygenUpdate(State oldState, Vector3i cellIndex, double currentOxygen){
+    public double oxygenUpdate(State oldState, Vector3i cellIndex, double currentOxygen) {
         double neighbourWeight = 1;
         double mainWeight = 1;
+        // to speed up diffusion
+        int internalOxygenDiffusionCoe = 2;
         double sumOfWeights = 6 * neighbourWeight + mainWeight;
-        return currentOxygen - deltaTime * (currentOxygen - (NeighbourUtils.neighboursStream(cellIndex)
+        return currentOxygen - deltaTime * internalOxygenDiffusionCoe * (currentOxygen - (NeighbourUtils.neighboursStream(cellIndex)
                 .map(index -> oldState.hasCell(index) && oldState.getCell(index).isFluid() ?
-                        oldState.getCell(index).oxygenLevel() * neighbourWeight/sumOfWeights : currentOxygen * neighbourWeight/sumOfWeights)
-                .mapToDouble(Double::doubleValue).sum() + mainWeight/sumOfWeights * currentOxygen));
+                        oldState.getCell(index).oxygenLevel() * neighbourWeight / sumOfWeights : currentOxygen * neighbourWeight / sumOfWeights)
+                .mapToDouble(Double::doubleValue).sum() + mainWeight / sumOfWeights * currentOxygen));
     }
 }

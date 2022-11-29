@@ -18,11 +18,11 @@ public class BasicAlgorithm implements Algorithm {
     private final FirePropagator firePropagator;
     private final SmokePropagator smokePropagator;
     private final DiffusionGenerator diffusionGenerator;
-    // private final OxygenPropagator oxygenPropagator;
+    private final OxygenPropagator oxygenPropagator;
     public static final double CONVECTION_COEFFICIENT = 1;
     // should be dependent on the material in the future
     public static final double CONDUCTIVITY_COEFFICIENT = 0.2;
-    public static final int MAX_BURNING_TIME = 50;
+    public static final int MAX_BURNING_TIME = 100;
 
 
     public BasicAlgorithm(double deltaTime) throws ConductionCoefficientException {
@@ -30,7 +30,7 @@ public class BasicAlgorithm implements Algorithm {
         this.firePropagator = new FirePropagator();
         this.diffusionGenerator = new DiffusionGenerator(deltaTime);
         this.smokePropagator = new SmokePropagator(deltaTime);
-        // this.oxygenPropagator = new OxygenPropagator(deltaTime);
+        this.oxygenPropagator = new OxygenPropagator(deltaTime);
     }
 
     @Override
@@ -46,22 +46,22 @@ public class BasicAlgorithm implements Algorithm {
         // Conduction
         newTemperature = temperaturePropagator.computeConduction(oldState, cellIndex, newTemperature);
         // Convection
-        if(oldCell.material().getMatterState().equals(MatterState.FLUID))
+        if (oldCell.material().getMatterState().equals(MatterState.FLUID))
             newTemperature = temperaturePropagator.computeConvection(oldState, cellIndex, newTemperature);
         // Smoke update
         double newSmokeIndicator = smokePropagator.computeNewSmokeIndicator(oldState, cellIndex, oldCell);
         // Fire status update
         newRemainingFirePillar = firePropagator.computeFirePillar(oldState, oldCell, cellIndex, oldCell.remainingFirePillar());
         newBurningTime = firePropagator.computeBurningTime(oldState, oldCell, cellIndex, newTemperature);
-        newFlammable = firePropagator.computeNewFlammable(oldCell, newBurningTime);
+        newFlammable = firePropagator.computeNewFlammable(oldState, cellIndex, newBurningTime);
         newTemperature = temperaturePropagator.updateTemperatureBasedOnFire(oldCell, newTemperature);
 
         // Diffusion update
-        if(oldCell.isFluid())
+        if (oldCell.isFluid())
             newSmokeIndicator = diffusionGenerator.smokeUpdate(oldState, cellIndex, newSmokeIndicator);
-            newTemperature = diffusionGenerator.temperatureUpdate(oldState, cellIndex, newTemperature);
-            // newOxygenLevel = oxygenPropagator.makeUseOfOxygen(oldState, cellIndex, oldCell.oxygenLevel());
-            newOxygenLevel = diffusionGenerator.oxygenUpdate(oldState, cellIndex, oldCell.oxygenLevel());
+        newTemperature = diffusionGenerator.temperatureUpdate(oldState, cellIndex, newTemperature);
+        newOxygenLevel = oxygenPropagator.makeUseOfOxygen(oldState, cellIndex, oldCell.oxygenLevel());
+        newOxygenLevel = diffusionGenerator.oxygenUpdate(oldState, cellIndex, newOxygenLevel);
 
         return new Cell(
                 newTemperature,
