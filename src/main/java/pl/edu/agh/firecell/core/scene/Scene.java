@@ -1,4 +1,4 @@
-package pl.edu.agh.firecell.core;
+package pl.edu.agh.firecell.core.scene;
 
 public interface Scene {
     void update(double frameTime);

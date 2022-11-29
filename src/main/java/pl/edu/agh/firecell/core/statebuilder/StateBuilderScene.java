@@ -6,7 +6,7 @@ import imgui.type.ImString;
 import org.joml.RoundingMode;
 import org.joml.Vector2i;
 import org.joml.Vector3i;
-import pl.edu.agh.firecell.core.Scene;
+import pl.edu.agh.firecell.core.scene.Scene;
 import pl.edu.agh.firecell.core.io.IOListener;
 import pl.edu.agh.firecell.core.statebuilder.dialog.ManipulateElementDialog;
 import pl.edu.agh.firecell.model.SimulationConfig;
