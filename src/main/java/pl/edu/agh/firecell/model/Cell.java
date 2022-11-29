@@ -13,12 +13,14 @@ public record Cell (
         double oxygenLevel
         ) {
 
+        private static final double DEFAULT_OXYGEN_LEVEL = 21;
+
         public Cell(double temperature, int burningTime, boolean flammable, Material material){
-                this(temperature, burningTime, flammable, material, 0, 0, 21.0);
+                this(temperature, burningTime, flammable, material, 0, 0, DEFAULT_OXYGEN_LEVEL);
         }
 
         public Cell(double temperature, int burningTime, boolean flammable, Material material, int remainingFirePillar){
-            this(temperature, burningTime, flammable, material, remainingFirePillar, 0, 21.0);
+            this(temperature, burningTime, flammable, material, remainingFirePillar, 0, DEFAULT_OXYGEN_LEVEL);
         }
 
         public Cell(Cell other){

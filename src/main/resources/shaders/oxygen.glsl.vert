@@ -17,11 +17,11 @@ out vec4 fColor;
 
 const vec4 DEBUG_COLOR = vec4(1.0, 0.0, 1.0, 0.5);
 const vec4 TRANSPARENT_COLOR = vec4(0.0);
-const vec4 THIN_COLOR = vec4(0.7, 0.7, 0.7, 0.01);
-const vec4 DENSE_COLOR  = vec4(0.0, 0.0, 1.0, 0.3);
+const vec4 THIN_COLOR = vec4(1.0, 0.0, 0.0, 0.015);
+const vec4 DENSE_COLOR  = vec4(0.0, 0.0, 1.0, 0.01);
 
 const float OXYGEN_MIN_TRESHOLD = 0.0;
-const float OXYGEN_MAX_TRESHOLD = 100.0;
+const float OXYGEN_MAX_TRESHOLD = 25.0;
 
 mat4 modelFromPosition(vec3 position) {
     mat4 model = mat4(1.0);

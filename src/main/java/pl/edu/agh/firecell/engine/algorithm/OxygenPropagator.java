@@ -14,12 +14,11 @@ public class OxygenPropagator {
     }
 
     public double makeUseOfOxygen(State oldState, Vector3i cellIndex, double currentOxygenLevel) {
-        double oxygenUsageInFire = 10;
         Cell oldCell = oldState.getCell(cellIndex);
         if (BasicAlgorithm.isCellBurning(oldCell) &&
                 oldCell.material().equals(Material.AIR) &&
                 currentOxygenLevel > 0) {
-            return Math.max(0, currentOxygenLevel - (deltaTime * oxygenUsageInFire));
+            return Math.max(0, currentOxygenLevel - (deltaTime * FirePropagator.OXYGEN_USAGE_IN_FIRE));
         }
         return currentOxygenLevel;
     }

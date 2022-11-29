@@ -1,5 +1,6 @@
 package pl.edu.agh.firecell.core.diagnostics;
 
+import pl.edu.agh.firecell.engine.algorithm.BasicAlgorithm;
 import pl.edu.agh.firecell.model.material.Material;
 import pl.edu.agh.firecell.model.State;
 
@@ -76,10 +77,10 @@ public class DiagnosticsManager {
         airTemperature = 0.0;
         totalSmokeValue = 0.0;
         maxSmokeValue = 0.0;
-        minSmokeValue = 100.0;
+        minSmokeValue = Double.MAX_VALUE;
         totalOxygenValue = 0.0;
         maxOxygenValue = 0.0;
-        minOxygenValue = 100.0;
+        minOxygenValue = Double.MAX_VALUE;
 
         solidsCellsCount = 0;
         airCellsCount = 0;
@@ -104,7 +105,7 @@ public class DiagnosticsManager {
                 solidsCellsCount += 1;
             }
 
-            if (cell.burningTime() > 0 && cell.flammable()) {
+            if (BasicAlgorithm.isCellBurning(cell)) {
                 burningCellsCount += 1;
             }
         });

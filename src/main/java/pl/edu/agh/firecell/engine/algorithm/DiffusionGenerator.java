@@ -48,7 +48,7 @@ public class DiffusionGenerator {
         // to speed up diffusion
         int internalOxygenDiffusionCoe = 2;
         double sumOfWeights = 6 * neighbourWeight + mainWeight;
-        return currentOxygen - deltaTime * internalOxygenDiffusionCoe * (currentOxygen - (NeighbourUtils.neighboursStream(cellIndex)
+        return currentOxygen - Math.min(deltaTime * internalOxygenDiffusionCoe, 1) * (currentOxygen - (NeighbourUtils.neighboursStream(cellIndex)
                 .map(index -> oldState.hasCell(index) && oldState.getCell(index).isFluid() ?
                         oldState.getCell(index).oxygenLevel() * neighbourWeight / sumOfWeights : currentOxygen * neighbourWeight / sumOfWeights)
                 .mapToDouble(Double::doubleValue).sum() + mainWeight / sumOfWeights * currentOxygen));
