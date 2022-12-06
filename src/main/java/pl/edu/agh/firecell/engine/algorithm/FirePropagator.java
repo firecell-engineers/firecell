@@ -15,11 +15,15 @@ public class FirePropagator {
     // Required time period to set on fire neighbour cell with temperature
     // higher than ignition temperature
     private static final int REQUIRED_TIME = 10;
+    // Value how much percentage of oxygen one cell should use
+    // it also define how much must be accessible
+    public static final double OXYGEN_USAGE_IN_FIRE = 5;
 
-    public boolean computeNewFlammable(Cell oldCell, int newBurningTime) {
+    public boolean computeNewFlammable(State oldState, Vector3i cellIndex, int newBurningTime) {
+        Cell oldCell = oldState.getCell(cellIndex);
         return switch (oldCell.material()) {
-            case WOOD -> newBurningTime < MAX_BURNING_TIME;
-            case AIR -> true;
+            case WOOD -> newBurningTime < MAX_BURNING_TIME && haveAccessToOxygen(oldState, cellIndex);
+            case AIR -> oldCell.oxygenLevel() > 0;
             case CELLULAR_CONCRETE -> false;
         };
     }
@@ -93,6 +97,16 @@ public class FirePropagator {
                 .filter(oldState::hasCell)
                 .map(oldState::getCell)
                 .anyMatch(cell -> cell.burningTime() > REQUIRED_TIME);
+    }
+
+    private boolean haveAccessToOxygen(State oldState, Vector3i cellIndex) {
+        double sumOfOxygen = NeighbourUtils.neighboursStream(cellIndex)
+                .filter(oldState::hasCell)
+                .map(oldState::getCell)
+                .filter(cell -> cell.material().equals(Material.AIR))
+                .mapToDouble(Cell::oxygenLevel)
+                .sum();
+        return sumOfOxygen >= OXYGEN_USAGE_IN_FIRE;
     }
 
     private static boolean isCellBurning(Cell cell) {

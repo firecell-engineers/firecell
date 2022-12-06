@@ -27,6 +27,7 @@ public class BasicRenderer implements Renderer {
     private final Shader transparentTempShader = new Shader("temperature.glsl.vert", "ambientDiffuse.glsl.frag");
     private final Shader fireShader = new Shader("burning.glsl.vert", "ambientDiffuse.glsl.frag");
     private final Shader smokeShader = new Shader("smoke.glsl.vert", "ambientDiffuse.glsl.frag");
+    private final Shader transparentOxygenShader = new Shader("oxygen.glsl.vert", "ambientDiffuse.glsl.frag");
 
     private final Camera camera;
     private final CameraController cameraController;
@@ -63,6 +64,8 @@ public class BasicRenderer implements Renderer {
         fireShader.setMatrix4("uView", camera.viewMatrix());
         smokeShader.bind();
         smokeShader.setMatrix4("uView", camera.viewMatrix());
+        transparentOxygenShader.bind();
+        transparentOxygenShader.setMatrix4("uView", camera.viewMatrix());
 
         renderStrategy.renderState(state);
     }
@@ -76,6 +79,8 @@ public class BasicRenderer implements Renderer {
                     renderStrategy = new TemperatureAirRenderStrategy(camera, opaqueMaterialShader, transparentTempShader);
             case TEMPERATURE_SOLID ->
                     renderStrategy = new TemperatureSolidRenderStrategy(camera, transparentTempShader);
+            case OXYGEN_LEVEL ->
+                    renderStrategy = new OxygenRenderStrategy(camera, opaqueMaterialShader, transparentOxygenShader);
         }
     }
 
@@ -93,8 +98,9 @@ public class BasicRenderer implements Renderer {
         return new Camera(aspectRatio, cameraPosition, cameraEulerAngles);
     }
 
+
     private void initializeRendering() {
-        Stream.of(opaqueMaterialShader, transparentTempShader, fireShader, smokeShader)
+        Stream.of(opaqueMaterialShader, transparentTempShader, fireShader, smokeShader, transparentOxygenShader)
                 .forEach(shader -> {
                     shader.bind();
                     projection.populateShader(shader);
@@ -105,7 +111,7 @@ public class BasicRenderer implements Renderer {
         windowSizeSubscription = ioListener.windowSizeObservable().subscribe(size -> {
             camera.setAspectRatio(size.x / (float) size.y);
             projection = new Uniform<>("uProjection", camera.perspectiveMatrix());
-            Stream.of(opaqueMaterialShader, transparentTempShader, fireShader, smokeShader)
+            Stream.of(opaqueMaterialShader, transparentTempShader, fireShader, smokeShader, transparentOxygenShader)
                     .forEach(projection::populateShader);
         });
     }
