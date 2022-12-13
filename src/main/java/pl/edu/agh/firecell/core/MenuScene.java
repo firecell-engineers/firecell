@@ -17,6 +17,7 @@ import pl.edu.agh.firecell.storage.SimulationStorage;
 import pl.edu.agh.firecell.storage.StateBlueprintStorage;
 
 import java.io.IOException;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 import static imgui.flag.ImGuiWindowFlags.*;
@@ -29,15 +30,18 @@ public class MenuScene implements Scene {
     private final StateBlueprintStorage stateBlueprintStorage;
     private final SimulationStorage simulationStorage;
     private final SimulationConfig defaultConfig = createInitialSimulationConfig();
-    private final StartSimulationHandler startSimulationHandler;
+    private final Consumer<String> startStoredSimulationHandler;
+    private final BiConsumer<SimulationConfig, String> startSimulationHandler;
     private Dialog currentDialog = null;
 
-    public MenuScene(StartSimulationHandler startSimulationHandler, Consumer<StateBlueprint> startStateBuilderHandler,
+    public MenuScene(BiConsumer<SimulationConfig, String> startSimulationHandler,
+                     Consumer<String> startStoredSimulationHandler, Consumer<StateBlueprint> startStateBuilderHandler,
                      StateBlueprintStorage stateBlueprintStorage, SimulationStorage simulationStorage) {
         this.startStateBuilderHandler = startStateBuilderHandler;
-        this.startSimulationHandler = startSimulationHandler;
         this.stateBlueprintStorage = stateBlueprintStorage;
         this.simulationStorage = simulationStorage;
+        this.startStoredSimulationHandler = startStoredSimulationHandler;
+        this.startSimulationHandler = startSimulationHandler;
     }
 
     @Override
@@ -102,7 +106,7 @@ public class MenuScene implements Scene {
             }
             State initialState = stateBuilder.build();
             SimulationConfig simulationConfig = new SimulationConfig(initialState, defaultConfig.stepTime());
-            startSimulationHandler.runNewSimulation(simulationConfig, roomName);
+            startSimulationHandler.accept(simulationConfig, roomName);
         } catch (IOException e) {
             // TODO: show some gui
         }
@@ -112,7 +116,7 @@ public class MenuScene implements Scene {
         if (simulationName == null) {
             return;
         }
-        startSimulationHandler.runSavedSimulation(simulationName);
+        startStoredSimulationHandler.accept(simulationName);
     }
 
     private void editRoomHandler(String roomName) {

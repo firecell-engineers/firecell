@@ -33,7 +33,7 @@ import java.util.Objects;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
 
-public class Window implements StartSimulationHandler {
+public class Window {
     private static final Path SAVED_SIMULATIONS_PATH = Path.of("simulations");
     private static final String STATES_DIRECTORY_NAME = "states";
 
@@ -77,7 +77,8 @@ public class Window implements StartSimulationHandler {
         double startFrameTime = glfwGetTime();
         double frameTime = 0.0;
 
-        scene = new MenuScene(this, this::startStateBuilder, stateBlueprintStorage, simulationStorage);
+        scene = new MenuScene(this::startNewSimulation, this::startSavedSimulation, this::startStateBuilder,
+                stateBlueprintStorage, simulationStorage);
 
         while (!glfwWindowShouldClose(glfwWindow)) {
             glfwPollEvents();
@@ -121,7 +122,8 @@ public class Window implements StartSimulationHandler {
     private void finishSceneHandler() {
         scene.dispose();
         logger.info("Finished scene {}. Opening menu.", scene.getClass().getName());
-        scene = new MenuScene(this, this::startStateBuilder, stateBlueprintStorage, simulationStorage);
+        scene = new MenuScene(this::startNewSimulation, this::startSavedSimulation, this::startStateBuilder,
+                stateBlueprintStorage, simulationStorage);
     }
 
     private void startStateBuilder(StateBlueprint stateBlueprint) {
@@ -189,8 +191,7 @@ public class Window implements StartSimulationHandler {
         imGuiGl3.init(GLSL_VERSION);
     }
 
-    @Override
-    public void runNewSimulation(SimulationConfig config, String simulationName) {
+    public void startNewSimulation(SimulationConfig config, String simulationName) {
         try {
             simulationStorage.initializeSimulation(simulationName,
                     new StoredSimulationConfig(config.initialState().spaceSize(), config.stepTime()));
@@ -205,8 +206,7 @@ public class Window implements StartSimulationHandler {
         }
     }
 
-    @Override
-    public void runSavedSimulation(String simulationName) {
+    public void startSavedSimulation(String simulationName) {
         try {
             StoredSimulationConfig storedConfig = simulationStorage.readStoredConfig(simulationName);
             Vector3i spaceSize = storedConfig.spaceSize();
