@@ -28,7 +28,7 @@ import static pl.edu.agh.firecell.core.util.StateUtils.emptyState;
 public class StateBuilderScene implements Scene {
     private final ImString nameBuffer;
     private final StateBuilderService stateBuilderService;
-    private final StateBlueprintStorage stateBlueprintStorage;
+    private final StateBlueprintStorage stateBlueprintStorage = new StateBlueprintStorage();
     private final List<ElementWrapper> elements = new ArrayList<>();
     private final Renderer renderer;
     private ElementWrapper selectedElement = null;
@@ -40,10 +40,9 @@ public class StateBuilderScene implements Scene {
     private final ImInt spaceSizeZ = new ImInt(30);
     public static final String DEFAULT_ROOM_NAME = "New state";
 
-    public StateBuilderScene(StateBlueprintStorage stateBlueprintStorage, IOListener ioListener, float aspectRatio,
-                             Runnable finishedHandler, StateBlueprint stateBlueprint) throws IOException {
+    public StateBuilderScene(IOListener ioListener, float aspectRatio, Runnable finishedHandler,
+                             StateBlueprint stateBlueprint) throws IOException {
         this.finishedHandler = finishedHandler;
-        this.stateBlueprintStorage = stateBlueprintStorage;
         if (stateBlueprint != null) {
             elements.addAll(stateBlueprint.elements());
             nameBuffer = new ImString(stateBlueprint.name(), 100);
@@ -59,9 +58,9 @@ public class StateBuilderScene implements Scene {
         stateBuilderService.scheduleStateCalculation(elements);
     }
 
-    public StateBuilderScene(StateBlueprintStorage stateBlueprintStorage, IOListener ioListener, float aspectRatio,
+    public StateBuilderScene(IOListener ioListener, float aspectRatio,
                              Runnable finishedHandler) throws IOException {
-        this(stateBlueprintStorage, ioListener, aspectRatio, finishedHandler, null);
+        this(ioListener, aspectRatio, finishedHandler, null);
     }
 
     @Override

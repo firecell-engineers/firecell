@@ -18,12 +18,8 @@ public class SimulationStorage {
     private static final Logger logger = LoggerFactory.getLogger(SimulationStorage.class);
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final String CONFIG_FILE_NAME = "config.json";
-
-    private final Path rootPath;
-
-    public SimulationStorage(Path path) {
-        this.rootPath = path;
-    }
+    private static final Path SAVED_SIMULATIONS_PATH = Path.of("simulations");
+    private static final String STATES_DIRECTORY_NAME = "states";
 
     public void initializeSimulation(String name, StoredSimulationConfig config) throws IOException {
         Path path = resolvePath(name);
@@ -42,7 +38,8 @@ public class SimulationStorage {
     }
 
     public List<String> findStoredSimulations() {
-        File[] files = ArrayUtils.nullToEmpty(rootPath.toFile().listFiles(this::fileMatches), File[].class);
+        File[] files = ArrayUtils.nullToEmpty(SAVED_SIMULATIONS_PATH.toFile().listFiles(this::fileMatches),
+                File[].class);
         return Arrays.stream(files)
                 .map(File::getName)
                 .collect(Collectors.toList());
@@ -57,6 +54,10 @@ public class SimulationStorage {
     }
 
     public Path resolvePath(String name) {
-        return rootPath.resolve(name);
+        return SAVED_SIMULATIONS_PATH.resolve(name);
+    }
+
+    public Path resolveStatesPath(String name) {
+        return resolvePath(name).resolve(STATES_DIRECTORY_NAME);
     }
 }

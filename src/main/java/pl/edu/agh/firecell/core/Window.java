@@ -22,7 +22,6 @@ import pl.edu.agh.firecell.core.util.LoggingOutputStream;
 import pl.edu.agh.firecell.core.util.StateUtils;
 import pl.edu.agh.firecell.model.SimulationConfig;
 import pl.edu.agh.firecell.storage.SimulationStorage;
-import pl.edu.agh.firecell.storage.StateBlueprintStorage;
 
 import java.io.IOException;
 import java.io.PrintStream;
@@ -34,16 +33,11 @@ import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
 
 public class Window {
-    private static final Path SAVED_SIMULATIONS_PATH = Path.of("simulations");
-    private static final String STATES_DIRECTORY_NAME = "states";
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     // need to be same as in glsl shaders
     private static final String GLSL_VERSION = "#version 330";
-    private final StateBlueprintStorage stateBlueprintStorage = new StateBlueprintStorage();
-    private final SimulationStorage simulationStorage = new SimulationStorage(SAVED_SIMULATIONS_PATH);
-
     private final String name;
     private Vector2i size;
 
@@ -77,8 +71,7 @@ public class Window {
         double startFrameTime = glfwGetTime();
         double frameTime = 0.0;
 
-        scene = new MenuScene(this::startNewSimulation, this::startSavedSimulation, this::startStateBuilder,
-                stateBlueprintStorage, simulationStorage);
+        scene = new MenuScene(this::startNewSimulation, this::startSavedSimulation, this::startStateBuilder);
 
         while (!glfwWindowShouldClose(glfwWindow)) {
             glfwPollEvents();
@@ -122,18 +115,17 @@ public class Window {
     private void finishSceneHandler() {
         scene.dispose();
         logger.info("Finished scene {}. Opening menu.", scene.getClass().getName());
-        scene = new MenuScene(this::startNewSimulation, this::startSavedSimulation, this::startStateBuilder,
-                stateBlueprintStorage, simulationStorage);
+        scene = new MenuScene(this::startNewSimulation, this::startSavedSimulation, this::startStateBuilder);
     }
 
     private void startStateBuilder(StateBlueprint stateBlueprint) {
         try {
             StateBuilderScene builderScene;
             if (stateBlueprint == null) {
-                builderScene = new StateBuilderScene(stateBlueprintStorage, ioListener, size.x / (float) size.y,
+                builderScene = new StateBuilderScene(ioListener, size.x / (float) size.y,
                         this::finishSceneHandler);
             } else {
-                builderScene = new StateBuilderScene(stateBlueprintStorage, ioListener, size.x / (float) size.y,
+                builderScene = new StateBuilderScene(ioListener, size.x / (float) size.y,
                         this::finishSceneHandler, stateBlueprint);
             }
             scene.dispose();
@@ -193,11 +185,12 @@ public class Window {
 
     public void startNewSimulation(SimulationConfig config, String simulationName) {
         try {
+            var simulationStorage = new SimulationStorage();
             simulationStorage.initializeSimulation(simulationName,
                     new StoredSimulationConfig(config.initialState().spaceSize(), config.stepTime()));
-            Path statesStoragePath = simulationStorage.resolvePath(simulationName).resolve(STATES_DIRECTORY_NAME);
-            var simulationScene = new SimulationScene(config, this::finishSceneHandler,
-                    ioListener, getAspectRatio(), statesStoragePath);
+            Path stateStoragePath = simulationStorage.resolveStatesPath(simulationName);
+            var simulationScene = new SimulationScene(config, this::finishSceneHandler, ioListener,
+                    getAspectRatio(), stateStoragePath);
             scene.dispose();
             scene = simulationScene;
             logger.info("Starting simulation.");
@@ -208,12 +201,13 @@ public class Window {
 
     public void startSavedSimulation(String simulationName) {
         try {
+            var simulationStorage = new SimulationStorage();
             StoredSimulationConfig storedConfig = simulationStorage.readStoredConfig(simulationName);
             Vector3i spaceSize = storedConfig.spaceSize();
             SimulationConfig config = new SimulationConfig(StateUtils.emptyState(spaceSize), storedConfig.stepTime());
-            Path statesStoragePath = simulationStorage.resolvePath(simulationName).resolve(STATES_DIRECTORY_NAME);
+            Path stateStoragePath = simulationStorage.resolveStatesPath(simulationName);
             var simulationScene = new StoredSimulationScene(config, this::finishSceneHandler,
-                    ioListener, getAspectRatio(), statesStoragePath);
+                    ioListener, getAspectRatio(), stateStoragePath);
             scene.dispose();
             scene = simulationScene;
             logger.info("Running stored simulation.");

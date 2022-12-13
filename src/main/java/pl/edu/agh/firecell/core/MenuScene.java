@@ -27,19 +27,16 @@ public class MenuScene implements Scene {
     private final Logger logger = LoggerFactory.getLogger(MenuScene.class);
 
     private final Consumer<StateBlueprint> startStateBuilderHandler;
-    private final StateBlueprintStorage stateBlueprintStorage;
-    private final SimulationStorage simulationStorage;
+    private final StateBlueprintStorage stateBlueprintStorage = new StateBlueprintStorage();
+    private final SimulationStorage simulationStorage = new SimulationStorage();
     private final SimulationConfig defaultConfig = createInitialSimulationConfig();
     private final Consumer<String> startStoredSimulationHandler;
     private final BiConsumer<SimulationConfig, String> startSimulationHandler;
     private Dialog currentDialog = null;
 
     public MenuScene(BiConsumer<SimulationConfig, String> startSimulationHandler,
-                     Consumer<String> startStoredSimulationHandler, Consumer<StateBlueprint> startStateBuilderHandler,
-                     StateBlueprintStorage stateBlueprintStorage, SimulationStorage simulationStorage) {
+                     Consumer<String> startStoredSimulationHandler, Consumer<StateBlueprint> startStateBuilderHandler) {
         this.startStateBuilderHandler = startStateBuilderHandler;
-        this.stateBlueprintStorage = stateBlueprintStorage;
-        this.simulationStorage = simulationStorage;
         this.startStoredSimulationHandler = startStoredSimulationHandler;
         this.startSimulationHandler = startSimulationHandler;
     }
