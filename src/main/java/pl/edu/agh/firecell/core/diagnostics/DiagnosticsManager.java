@@ -1,8 +1,8 @@
 package pl.edu.agh.firecell.core.diagnostics;
 
-import pl.edu.agh.firecell.engine.algorithm.BasicAlgorithm;
-import pl.edu.agh.firecell.model.material.Material;
+import pl.edu.agh.firecell.engine.algorithm.AlgorithmUtils;
 import pl.edu.agh.firecell.model.State;
+import pl.edu.agh.firecell.model.material.Material;
 
 public class DiagnosticsManager {
 
@@ -52,24 +52,36 @@ public class DiagnosticsManager {
     }
 
     public double averageSolidsTemperature() {
-        return solidsTemperature / (double)solidsCellsCount;
+        return solidsTemperature / (double) solidsCellsCount;
     }
 
     public double averageAirTemperature() {
-        return airTemperature / (double)airCellsCount;
+        return airTemperature / (double) airCellsCount;
     }
 
-    public double totalSmokeValue(){ return totalSmokeValue; }
+    public double totalSmokeValue() {
+        return totalSmokeValue;
+    }
 
-    public double minSmokeValue(){ return minSmokeValue; }
+    public double minSmokeValue() {
+        return minSmokeValue;
+    }
 
-    public double maxSmokeValue(){ return maxSmokeValue; }
+    public double maxSmokeValue() {
+        return maxSmokeValue;
+    }
 
-    public double totalOxygenValue(){ return totalOxygenValue; }
+    public double totalOxygenValue() {
+        return totalOxygenValue;
+    }
 
-    public double minOxygenValue(){ return minOxygenValue; }
+    public double minOxygenValue() {
+        return minOxygenValue;
+    }
 
-    public double maxOxygenValue(){ return maxOxygenValue; }
+    public double maxOxygenValue() {
+        return maxOxygenValue;
+    }
 
     private void processState() {
         totalTemperature = 0.0;
@@ -105,7 +117,7 @@ public class DiagnosticsManager {
                 solidsCellsCount += 1;
             }
 
-            if (BasicAlgorithm.isCellBurning(cell)) {
+            if (AlgorithmUtils.isCellBurning(cell)) {
                 burningCellsCount += 1;
             }
         });

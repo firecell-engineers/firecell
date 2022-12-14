@@ -31,21 +31,25 @@ public class BasicAlgorithm implements Algorithm {
 
         Cell oldCell = oldState.getCell(cellIndex);
 
+        // Temperature propagation
         double newTemperature = temperaturePropagator.computeConduction(oldState, cellIndex, oldCell.temperature());
         if (oldCell.material().getMatterState().equals(MatterState.FLUID))
             newTemperature = temperaturePropagator.computeConvection(oldState, cellIndex, newTemperature);
 
-        double newSmokeIndicator = smokePropagator.computeNewSmokeIndicator(oldState, cellIndex, oldCell);
-
+        // Fire propagation
         int newRemainingFirePillar = firePropagator.computeFirePillar(oldState, oldCell, cellIndex, oldCell.remainingFirePillar());
         int newBurningTime = firePropagator.computeBurningTime(oldState, oldCell, cellIndex, newTemperature);
-        boolean newFlammable = firePropagator.computeNewFlammable(oldCell, newBurningTime);
+        boolean newFlammable = firePropagator.computeNewFlammable(oldState, cellIndex, newBurningTime);
         newTemperature = temperaturePropagator.updateTemperatureBasedOnFire(oldCell, newTemperature);
 
+        // Smoke propagation
+        double newSmokeIndicator = smokePropagator.computeNewSmokeIndicator(oldState, cellIndex, oldCell);
+
+        // Diffusion
         if (oldCell.isFluid())
             newSmokeIndicator = diffusionGenerator.smokeUpdate(oldState, cellIndex, newSmokeIndicator);
         newTemperature = diffusionGenerator.temperatureUpdate(oldState, cellIndex, newTemperature);
-        newOxygenLevel = oxygenPropagator.makeUseOfOxygen(oldState, cellIndex, oldCell.oxygenLevel());
+        double newOxygenLevel = oxygenPropagator.makeUseOfOxygen(oldState, cellIndex, oldCell.oxygenLevel());
         newOxygenLevel = diffusionGenerator.oxygenUpdate(oldState, cellIndex, newOxygenLevel);
 
         return new Cell(
