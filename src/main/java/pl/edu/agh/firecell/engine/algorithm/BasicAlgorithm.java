@@ -16,12 +16,14 @@ public class BasicAlgorithm implements Algorithm {
     private final FirePropagator firePropagator;
     private final SmokePropagator smokePropagator;
     private final DiffusionGenerator diffusionGenerator;
+    private final OxygenPropagator oxygenPropagator;
 
     public BasicAlgorithm(double deltaTime) throws ConductionCoefficientException {
         this.temperaturePropagator = new TemperaturePropagator(deltaTime);
         this.firePropagator = new FirePropagator();
         this.diffusionGenerator = new DiffusionGenerator(deltaTime);
         this.smokePropagator = new SmokePropagator(deltaTime);
+        this.oxygenPropagator = new OxygenPropagator(deltaTime);
     }
 
     @Override
@@ -34,12 +36,17 @@ public class BasicAlgorithm implements Algorithm {
             newTemperature = temperaturePropagator.computeConvection(oldState, cellIndex, newTemperature);
 
         double newSmokeIndicator = smokePropagator.computeNewSmokeIndicator(oldState, cellIndex, oldCell);
-        diffusionGenerator.smokeUpdate(oldState, cellIndex);
 
         int newRemainingFirePillar = firePropagator.computeFirePillar(oldState, oldCell, cellIndex, oldCell.remainingFirePillar());
         int newBurningTime = firePropagator.computeBurningTime(oldState, oldCell, cellIndex, newTemperature);
         boolean newFlammable = firePropagator.computeNewFlammable(oldCell, newBurningTime);
         newTemperature = temperaturePropagator.updateTemperatureBasedOnFire(oldCell, newTemperature);
+
+        if (oldCell.isFluid())
+            newSmokeIndicator = diffusionGenerator.smokeUpdate(oldState, cellIndex, newSmokeIndicator);
+        newTemperature = diffusionGenerator.temperatureUpdate(oldState, cellIndex, newTemperature);
+        newOxygenLevel = oxygenPropagator.makeUseOfOxygen(oldState, cellIndex, oldCell.oxygenLevel());
+        newOxygenLevel = diffusionGenerator.oxygenUpdate(oldState, cellIndex, newOxygenLevel);
 
         return new Cell(
                 newTemperature,
@@ -47,7 +54,8 @@ public class BasicAlgorithm implements Algorithm {
                 newFlammable,
                 oldCell.material(),
                 newRemainingFirePillar,
-                newSmokeIndicator
+                newSmokeIndicator,
+                newOxygenLevel
         );
     }
 

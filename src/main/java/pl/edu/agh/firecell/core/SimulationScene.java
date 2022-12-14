@@ -103,6 +103,9 @@ public class SimulationScene implements Scene {
                 ImGui.text("Max smoke:    %s".formatted(String.valueOf(Math.round(diagnosticsManager.maxSmokeValue()))));
                 ImGui.text("Min smoke:    %s".formatted(String.valueOf(Math.round(diagnosticsManager.minSmokeValue()))));
 
+                ImGui.text("Total oxygen:    %s".formatted(String.valueOf(Math.round(diagnosticsManager.totalOxygenValue()))));
+                ImGui.text("Max oxygen:    %s".formatted(String.valueOf(Math.round(diagnosticsManager.maxOxygenValue()))));
+                ImGui.text("Min oxygen:    %s".formatted(String.valueOf(Math.round(diagnosticsManager.minOxygenValue()))));
                 ImGui.endMenu();
             }
             if (ImGui.beginMenu("Render mode")) {
@@ -117,6 +120,10 @@ public class SimulationScene implements Scene {
                 if (ImGui.menuItem("Solid temperature")) {
                     renderer.setRenderMode(RenderMode.TEMPERATURE_SOLID);
                     logger.info("Render mode set to Solid");
+                }
+                if (ImGui.menuItem("Oxygen level")) {
+                    renderer.setRenderMode(RenderMode.OXYGEN_LEVEL);
+                    logger.info("Render mode set to Oxygen level");
                 }
                 ImGui.endMenu();
             }
