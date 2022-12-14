@@ -7,6 +7,7 @@ layout (location = 3) in float aInstanceTemperature;
 layout (location = 4) in int   aInstanceMaterial;
 layout (location = 5) in int   aInstanceBurningTime;
 layout (location = 6) in int   aInstanceSmokeIndicator;
+layout (location = 7) in float aInstanceOxygenLevel;
 
 uniform mat4 uProjection;
 uniform mat4 uView;

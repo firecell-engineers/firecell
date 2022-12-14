@@ -9,24 +9,20 @@ import pl.edu.agh.firecell.renderer.mesh.Shader;
 
 import static org.lwjgl.opengl.GL11.glDepthMask;
 
-public class StandardRenderStrategy extends RenderStrategy {
-
+public class OxygenRenderStrategy extends RenderStrategy{
     private final Shader opaqueMaterialShader;
-    private final Shader fireShader;
-    private final Shader smokeShader;
+    private final Shader transparentOxygenShader;
 
-    public StandardRenderStrategy(Camera camera, Shader opaqueMaterialShader, Shader fireShader, Shader smokeShader) {
+    public OxygenRenderStrategy(Camera camera, Shader opaqueMaterialShader, Shader transparentOxygenShader) {
         super(camera);
         this.opaqueMaterialShader = opaqueMaterialShader;
-        this.fireShader = fireShader;
-        this.smokeShader = smokeShader;
+        this.transparentOxygenShader = transparentOxygenShader;
     }
 
     @Override
     public void renderState(State state) {
         renderSolidsByMaterial(state);
-        renderSmoke(state);
-        renderFire(state);
+        renderOxygenByLevel(state);
     }
 
     private void renderSolidsByMaterial(State state) {
@@ -38,28 +34,18 @@ public class StandardRenderStrategy extends RenderStrategy {
         mesh.draw();
     }
 
-    private void renderSmoke(State state) {
+    protected void renderOxygenByLevel(State state) {
         glDepthMask(false);
-        var smokeCellsList = state.getIndexedCellsStream()
+        var airCells = state.getIndexedCellsStream()
                 .filter(indexedCell -> indexedCell.cell().material().equals(Material.AIR))
-                .filter(indexedCell -> indexedCell.cell().smokeIndicator() > 0 && indexedCell.cell().smokeIndicator() <= 100)
+                .sorted(cameraDistanceCellComparator(camera.position()))
                 .toList();
-        var mesh = new InstancedCubeMesh(MeshUtils.CUBE_VERTICES, smokeCellsList);
-        smokeShader.bind();
+        var mesh = new InstancedCubeMesh(MeshUtils.CUBE_VERTICES, airCells);
+        transparentOxygenShader.bind();
         mesh.draw();
         glDepthMask(true);
     }
 
-    private void renderFire(State state) {
-        glDepthMask(false);
-        var burningCellsList = state.getIndexedCellsStream()
-                .filter(indexedCell -> indexedCell.cell().burningTime() > 0
-                        && indexedCell.cell().material().equals(Material.AIR))
-                .sorted(cameraDistanceCellComparator(camera.position()))
-                .toList();
-        var mesh = new InstancedCubeMesh(MeshUtils.CUBE_VERTICES, burningCellsList);
-        fireShader.bind();
-        mesh.draw();
-        glDepthMask(true);
-    }
+
+
 }

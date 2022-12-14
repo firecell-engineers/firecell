@@ -5,7 +5,7 @@ import pl.edu.agh.firecell.core.statebuilder.element.CuboidElement;
 import pl.edu.agh.firecell.core.statebuilder.element.Element;
 import pl.edu.agh.firecell.core.statebuilder.element.IgnitionElement;
 import pl.edu.agh.firecell.model.Cell;
-import pl.edu.agh.firecell.model.Material;
+import pl.edu.agh.firecell.model.material.Material;
 import pl.edu.agh.firecell.model.State;
 
 import java.util.ArrayList;

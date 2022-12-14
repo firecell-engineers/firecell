@@ -5,7 +5,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import pl.edu.agh.firecell.model.Cell;
-import pl.edu.agh.firecell.model.Material;
+import pl.edu.agh.firecell.model.exception.ConductionCoefficientException;
+import pl.edu.agh.firecell.model.material.Material;
 import pl.edu.agh.firecell.model.State;
 
 import java.util.ArrayList;
@@ -19,7 +20,7 @@ class BasicAlgorithmTest {
 
     @ParameterizedTest(name = "Compute for index {1} failed.")
     @MethodSource("computeTestMethodSource")
-    public void computeTestMethod(State state, Vector3i cellIndex, Cell expectedCell) {
+    public void computeTestMethod(State state, Vector3i cellIndex, Cell expectedCell) throws ConductionCoefficientException {
         // given
         Algorithm algorithm = new BasicAlgorithm(deltaTime);
         // when then
@@ -37,10 +38,10 @@ class BasicAlgorithmTest {
         final Vector3i index201 = new Vector3i(2, 0, 1);
         final Vector3i index222 = new Vector3i(2, 2, 2);
 
-        final double COND_COEFF = BasicAlgorithm.CONDUCTIVITY_COEFFICIENT_WOOD;
+        final double COND_COEFF = 1;
 
         return Stream.of(
-                Arguments.of(initWoodState, index111, new Cell(Material.WOOD.getBurningTemperature()-220, 1, true, Material.WOOD),
+                Arguments.of(initWoodState, index111, new Cell(Material.WOOD.getBurningTemperature()-220, 1, false, Material.WOOD),
                 Arguments.of(initWoodState, index201, new Cell(initWoodState.getTemp(index201), 0, true, Material.WOOD)),
                 Arguments.of(initWoodState, index222, new Cell(initWoodState.getTemp(index222), 0, true, Material.WOOD)),
                 Arguments.of(initAirState,  index111, new Cell(initAirState.getTemp(index111) + deltaTime * COND_COEFF * -300, 1, true, Material.AIR)),

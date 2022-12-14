@@ -15,6 +15,7 @@ message ProtoVector3i {
 enum ProtoMaterial {
   WOOD = 1;
   AIR = 2;
+  CELLULAR_CONCRETE = 3;
 }
 
 message ProtoCell {
@@ -24,6 +25,7 @@ message ProtoCell {
   required ProtoMaterial material = 4;
   required int32 remainingFirePillar = 5;
   required double smokeIndicator = 6;
+  required double oxygenLevel = 7;
 }
 
 message ProtoState {

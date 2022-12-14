@@ -2,7 +2,7 @@ package pl.edu.agh.firecell.core.statebuilder.element;
 
 import org.joml.Vector3i;
 import pl.edu.agh.firecell.model.Cell;
-import pl.edu.agh.firecell.model.Material;
+import pl.edu.agh.firecell.model.material.Material;
 import pl.edu.agh.firecell.model.util.IndexUtils;
 
 import java.util.List;

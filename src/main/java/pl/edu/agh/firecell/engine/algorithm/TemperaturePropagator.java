@@ -2,20 +2,22 @@ package pl.edu.agh.firecell.engine.algorithm;
 
 import org.joml.Vector3i;
 import pl.edu.agh.firecell.model.Cell;
-import pl.edu.agh.firecell.model.Material;
+import pl.edu.agh.firecell.model.exception.ConductionCoefficientException;
+import pl.edu.agh.firecell.model.material.MaterialConductionMap;
 import pl.edu.agh.firecell.model.State;
 import pl.edu.agh.firecell.model.util.NeighbourUtils;
 
+
 import static pl.edu.agh.firecell.engine.algorithm.BasicAlgorithm.*;
-import static pl.edu.agh.firecell.model.Material.AIR;
-import static pl.edu.agh.firecell.model.Material.WOOD;
 
 public class TemperaturePropagator {
 
     private final double deltaTime;
+    private final MaterialConductionMap materialConductionMap;
 
-    public TemperaturePropagator(double deltaTime) {
+    public TemperaturePropagator(double deltaTime) throws ConductionCoefficientException {
         this.deltaTime = deltaTime;
+        this.materialConductionMap = new MaterialConductionMap();
     }
 
     public double computeConduction(State oldState, Vector3i cellIndex, double currentTemperature) {
@@ -48,17 +50,7 @@ public class TemperaturePropagator {
     }
 
     private double getCoe(Cell neighbour, Cell middleCell) {
-        double coe = 0.0;
-        if (neighbour.material().equals(WOOD) && middleCell.material().equals(WOOD))
-            coe = CONDUCTIVITY_COEFFICIENT_WOOD;
-
-        if ((neighbour.material().equals(WOOD) && middleCell.material().equals(AIR)) ||
-                (neighbour.material().equals(AIR) && middleCell.material().equals(WOOD)))
-            coe = CONDUCTIVITY_COEFFICIENT_WOOD_AIR;
-
-        if ((neighbour.material().equals(AIR) && middleCell.material().equals(AIR)))
-            coe = CONDUCTIVITY_COEFFICIENT_AIR;
-        return coe;
+        return materialConductionMap.getCoefficient(neighbour.material(), middleCell.material());
     }
 
     private double computeConductivity(Cell former, Cell middle, Cell latter, double conductivityCoeFormer, double conductivityCoeFurther) {
