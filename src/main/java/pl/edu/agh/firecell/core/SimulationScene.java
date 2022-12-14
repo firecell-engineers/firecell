@@ -1,12 +1,11 @@
 package pl.edu.agh.firecell.core;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import pl.edu.agh.firecell.core.io.IOListener;
 import pl.edu.agh.firecell.engine.BasicEngine;
 import pl.edu.agh.firecell.engine.Engine;
 import pl.edu.agh.firecell.engine.algorithm.BasicAlgorithm;
 import pl.edu.agh.firecell.model.SimulationConfig;
+import pl.edu.agh.firecell.model.exception.ConductionCoefficientException;
 import pl.edu.agh.firecell.storage.FileSystemStorage;
 import pl.edu.agh.firecell.storage.StateProvider;
 import pl.edu.agh.firecell.storage.serialization.BinaryStateSerializer;
@@ -17,14 +16,12 @@ import java.nio.file.Path;
 
 public class SimulationScene extends AbstractSimulationScene {
 
-    private final Logger logger = LoggerFactory.getLogger(SimulationScene.class);
-
     private final Engine engine;
     private final FileSystemStorage storage;
 
     public SimulationScene(SimulationConfig config, Runnable finishSimulationHandler,
                            IOListener ioListener, float aspectRatio, Path stateStoragePath)
-            throws IOException, InvalidPathException, IllegalStateException {
+            throws IOException, InvalidPathException, IllegalStateException, ConductionCoefficientException {
         super(config, finishSimulationHandler, ioListener, aspectRatio);
         this.storage = new FileSystemStorage(new BinaryStateSerializer(), stateStoragePath);
         this.storage.clearDirectory();

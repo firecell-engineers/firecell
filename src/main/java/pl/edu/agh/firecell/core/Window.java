@@ -21,8 +21,8 @@ import pl.edu.agh.firecell.core.statebuilder.StateBuilderScene;
 import pl.edu.agh.firecell.core.util.LoggingOutputStream;
 import pl.edu.agh.firecell.core.util.StateUtils;
 import pl.edu.agh.firecell.model.SimulationConfig;
-import pl.edu.agh.firecell.storage.SimulationStorage;
 import pl.edu.agh.firecell.model.exception.ConductionCoefficientException;
+import pl.edu.agh.firecell.storage.SimulationStorage;
 
 import java.io.IOException;
 import java.io.PrintStream;
@@ -195,7 +195,7 @@ public class Window {
             scene.dispose();
             scene = simulationScene;
             logger.info("Starting simulation.");
-        } catch (IOException | InvalidPathException | IllegalStateException e | ConductionCoefficientException e) {
+        } catch (IOException | InvalidPathException | IllegalStateException | ConductionCoefficientException e) {
             logger.error("Could not start simulation.", e);
         }
     }
@@ -212,7 +212,7 @@ public class Window {
             scene.dispose();
             scene = simulationScene;
             logger.info("Running stored simulation.");
-        } catch (IOException | InvalidPathException | IllegalStateException e | ConductionCoefficientException e) {
+        } catch (IOException | InvalidPathException | IllegalStateException e) {
             logger.error("Could not start stored simulation.", e);
         }
     }
