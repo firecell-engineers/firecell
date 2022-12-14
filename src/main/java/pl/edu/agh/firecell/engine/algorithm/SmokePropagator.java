@@ -9,8 +9,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
-import static pl.edu.agh.firecell.engine.algorithm.BasicAlgorithm.isCellBurning;
-
 public class SmokePropagator {
 
     private final double deltaTime;
@@ -38,7 +36,7 @@ public class SmokePropagator {
     private double generateSmoke(State oldState, Vector3i cellIndex) {
         double smokeFromFire = 0;
         if (oldState.hasCell(NeighbourUtils.down(cellIndex)) &&
-                isCellBurning(oldState.getCell(NeighbourUtils.down(cellIndex))) &&
+                AlgorithmUtils.isCellBurning(oldState.getCell(NeighbourUtils.down(cellIndex))) &&
                 oldState.getCell(NeighbourUtils.down(cellIndex)).isSolid()) {
             smokeFromFire = oldState.getCell(NeighbourUtils.down(cellIndex)).material().smokeCoe();
         }
@@ -51,7 +49,7 @@ public class SmokePropagator {
                             )
                         )
                         .map(oldState::getCell)
-                        .filter(cell -> isCellBurning(cell)&&cell.isSolid())
+                        .filter(cell -> AlgorithmUtils.isCellBurning(cell)&&cell.isSolid())
                         .mapToDouble(cell -> cell.material().smokeCoe() / 4.0).sum();
         return smokeFromFire;
     }

@@ -8,9 +8,10 @@ import pl.edu.agh.firecell.model.State;
 import pl.edu.agh.firecell.model.util.NeighbourUtils;
 
 
-import static pl.edu.agh.firecell.engine.algorithm.BasicAlgorithm.*;
-
 public class TemperaturePropagator {
+
+    private static final double BURNING_TEMPERATURE_COEFFICIENT = 0.3;
+    private static final double CONVECTION_COEFFICIENT = 1;
 
     private final double deltaTime;
     private final MaterialConductionMap materialConductionMap;
@@ -54,7 +55,8 @@ public class TemperaturePropagator {
     }
 
     private double computeConductivity(Cell former, Cell middle, Cell latter, double conductivityCoeFormer, double conductivityCoeFurther) {
-        return -(conductivityCoeFormer * tempDiff(middle, former) + conductivityCoeFurther * tempDiff(middle, latter));
+        return -(conductivityCoeFormer * AlgorithmUtils.tempDiff(middle, former)
+                        + conductivityCoeFurther * AlgorithmUtils.tempDiff(middle, latter));
     }
 
     public double computeConvection(State oldState, Vector3i cellIndex, double currentTemperature) {
@@ -64,29 +66,28 @@ public class TemperaturePropagator {
         try {
             Cell cellUnder = oldState.getCell(NeighbourUtils.down(cellIndex));
             if (cellUnder.isFluid() && cellUnder.temperature() > oldCell.temperature())
-                temperatureDifference += CONVECTION_COEFFICIENT * tempDiffAbs(oldCell, cellUnder);
+                temperatureDifference += CONVECTION_COEFFICIENT * AlgorithmUtils.tempDiffAbs(oldCell, cellUnder);
         } catch (IndexOutOfBoundsException ignored) {
         }
 
         try {
             Cell cellAbove = oldState.getCell(NeighbourUtils.up(cellIndex));
             if (cellAbove.isFluid() && cellAbove.temperature() < oldCell.temperature())
-                temperatureDifference -= CONVECTION_COEFFICIENT * tempDiffAbs(oldCell, cellAbove);
+                temperatureDifference -= CONVECTION_COEFFICIENT * AlgorithmUtils.tempDiffAbs(oldCell, cellAbove);
         } catch (IndexOutOfBoundsException ignored) {
         }
         return currentTemperature + deltaTime * temperatureDifference;
     }
 
     public double updateTemperatureBasedOnFire(Cell oldCell, double currentTemperature) {
-        return oldCell.burningTime() > 0 && oldCell.flammable() ? oldCell.material().getBurningTemperature() : currentTemperature;
-    }
+        if (!AlgorithmUtils.isCellBurning(oldCell))
+            return currentTemperature;
 
-    private static double tempDiffAbs(Cell cellOne, Cell cellTwo) {
-        return Math.abs(tempDiff(cellOne, cellTwo));
-    }
+        double diffToMaterialBurningTemperature = oldCell.material().getBurningTemperature() - currentTemperature;
+        if (diffToMaterialBurningTemperature > 0)
+            return currentTemperature + diffToMaterialBurningTemperature * deltaTime * BURNING_TEMPERATURE_COEFFICIENT;
 
-    private static double tempDiff(Cell cellOne, Cell cellTwo) {
-        return cellOne.temperature() - cellTwo.temperature();
+        return currentTemperature;
     }
 
 }
