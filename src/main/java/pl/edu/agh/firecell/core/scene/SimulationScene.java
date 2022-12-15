@@ -1,4 +1,4 @@
-package pl.edu.agh.firecell.core;
+package pl.edu.agh.firecell.core.scene;
 
 import imgui.ImGui;
 import org.slf4j.Logger;
@@ -32,9 +32,11 @@ public class SimulationScene implements Scene {
     private final Runnable finishSimulationHandler;
     private final DiagnosticsManager diagnosticsManager;
     private State currentState;
+    private PlayingMode playingMode = PlayingMode.FORWARD;
+
     private final double stepTime;
-    private double frameRate;
-    private int indexStep = 0;
+    private double frameRate = 0;
+    private int nextStateIndex = 0;
     private double lastStateUpdateTime = glfwGetTime();
 
     public SimulationScene(SimulationConfig config, Runnable finishSimulationHandler,
@@ -43,7 +45,6 @@ public class SimulationScene implements Scene {
         this.currentState = config.initialState();
         this.finishSimulationHandler = finishSimulationHandler;
         this.stepTime = config.stepTime();
-        this.frameRate = 0;
         this.diagnosticsManager = new DiagnosticsManager(this.currentState);
         this.renderer = new BasicRenderer(aspectRatio, ioListener, config);
         this.storage = new FileSystemStorage(new BinaryStateSerializer());
@@ -69,19 +70,29 @@ public class SimulationScene implements Scene {
         double currentStepTime = glfwGetTime() - lastStateUpdateTime;
         if (currentStepTime >= stepTime) {
             lastStateUpdateTime = glfwGetTime();
-            storage.getState(indexStep).ifPresent(state -> {
-                currentState = state;
-                diagnosticsManager.updateState(state);
-                indexStep++;
-            });
-            logger.info("Getting next state with index: " + indexStep);
+            storage.getState(nextStateIndex)
+                    .ifPresent(state -> {
+                        currentState = state;
+                        diagnosticsManager.updateState(state);
+                        updateNextStateIndex();
+                    });
+            logger.debug("Getting next state with index: %s".formatted(nextStateIndex));
         }
     }
 
     private void renderGUI() {
         if (ImGui.beginMainMenuBar()) {
             if (ImGui.beginMenu("Simulation")) {
-                if (ImGui.menuItem("Finish simulation")) {
+                if (ImGui.menuItem("Pause")) {
+                    playingMode = PlayingMode.PAUSED;
+                }
+                if (ImGui.menuItem("Play")) {
+                    playingMode = PlayingMode.FORWARD;
+                }
+                if (ImGui.menuItem("Rewind")) {
+                    playingMode = PlayingMode.BACKWARD;
+                }
+                if (ImGui.menuItem("Finish")) {
                     finishSimulationHandler.run();
                 }
                 ImGui.endMenu();
@@ -128,6 +139,14 @@ public class SimulationScene implements Scene {
                 ImGui.endMenu();
             }
             ImGui.endMainMenuBar();
+        }
+    }
+
+    private void updateNextStateIndex() {
+        switch (playingMode) {
+            case FORWARD  -> nextStateIndex ++;
+            case BACKWARD -> { if (nextStateIndex > 0) nextStateIndex --; }
+            default       -> { /* nothing to do here */ }
         }
     }
 }

@@ -1,7 +1,6 @@
-package pl.edu.agh.firecell.core;
+package pl.edu.agh.firecell.core.dialog;
 
 import imgui.ImGui;
-import pl.edu.agh.firecell.core.dialog.AbstractDialog;
 
 import java.util.List;
 import java.util.Objects;
