@@ -31,6 +31,8 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Objects;
 
 import static org.lwjgl.glfw.GLFW.*;
@@ -190,9 +192,10 @@ public class Window {
     public void startNewSimulation(SimulationConfig config, String simulationName) {
         try {
             var simulationStorage = new SimulationStorage();
-            simulationStorage.initializeSimulation(simulationName,
+            String simulationNameWithTime = createSimulationPath(simulationName);
+            simulationStorage.initializeSimulation(simulationNameWithTime,
                     new StoredSimulationConfig(config.initialState().spaceSize(), config.stepTime()));
-            Path stateStoragePath = simulationStorage.resolveStatesPath(simulationName);
+            Path stateStoragePath = simulationStorage.resolveStatesPath(simulationNameWithTime);
             var simulationScene = new SimulationScene(config, this::finishSceneHandler, ioListener,
                     getAspectRatio(), stateStoragePath);
             scene.dispose();
@@ -218,6 +221,10 @@ public class Window {
         } catch (IOException | InvalidPathException | IllegalStateException e) {
             logger.error("Could not start stored simulation.", e);
         }
+    }
+
+    private String createSimulationPath(String simulationName) {
+        return new SimpleDateFormat("dd_MM_yyyy_HH_mm_ss_").format(new Date()) + simulationName;
     }
 
     private float getAspectRatio() {
