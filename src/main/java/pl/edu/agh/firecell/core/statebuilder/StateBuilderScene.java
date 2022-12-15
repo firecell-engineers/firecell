@@ -6,6 +6,8 @@ import imgui.type.ImString;
 import org.joml.RoundingMode;
 import org.joml.Vector2i;
 import org.joml.Vector3i;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import pl.edu.agh.firecell.core.Scene;
 import pl.edu.agh.firecell.core.io.IOListener;
 import pl.edu.agh.firecell.core.statebuilder.dialog.ManipulateElementDialog;
@@ -26,6 +28,7 @@ import static pl.edu.agh.firecell.core.util.StateUtils.emptyState;
 
 // TODO: make abstract state-rendering scene
 public class StateBuilderScene implements Scene {
+    private static final Logger logger = LoggerFactory.getLogger(StateBuilderScene.class);
     private final ImString nameBuffer;
     private final StateBuilderService stateBuilderService;
     private final StateBlueprintStorage stateBlueprintStorage = new StateBlueprintStorage();
@@ -142,6 +145,7 @@ public class StateBuilderScene implements Scene {
         try {
             stateBlueprintStorage.saveBlueprint(stateBlueprint);
         } catch (IOException e) {
+            logger.warn("Failed to save blueprint", e);
             // TODO: show some error message
         }
     }

@@ -217,7 +217,6 @@ public class Window {
         }
     }
 
-
     private float getAspectRatio() {
         return size.x / (float) size.y;
     }

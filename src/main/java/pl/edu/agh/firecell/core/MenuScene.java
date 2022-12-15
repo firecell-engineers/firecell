@@ -10,9 +10,9 @@ import pl.edu.agh.firecell.core.dialog.Dialog;
 import pl.edu.agh.firecell.core.statebuilder.ElementWrapper;
 import pl.edu.agh.firecell.core.statebuilder.StateBlueprint;
 import pl.edu.agh.firecell.core.statebuilder.StateBuilder;
-import pl.edu.agh.firecell.model.material.Material;
 import pl.edu.agh.firecell.model.SimulationConfig;
 import pl.edu.agh.firecell.model.State;
+import pl.edu.agh.firecell.model.material.Material;
 import pl.edu.agh.firecell.storage.SimulationStorage;
 import pl.edu.agh.firecell.storage.StateBlueprintStorage;
 
@@ -105,6 +105,7 @@ public class MenuScene implements Scene {
             SimulationConfig simulationConfig = new SimulationConfig(initialState, defaultConfig.stepTime());
             startSimulationHandler.accept(simulationConfig, roomName);
         } catch (IOException e) {
+            logger.warn("Failed to load blueprint", e);
             // TODO: show some gui
         }
     }
@@ -124,6 +125,7 @@ public class MenuScene implements Scene {
             StateBlueprint stateBlueprint = stateBlueprintStorage.loadBlueprint(roomName);
             startStateBuilderHandler.accept(stateBlueprint);
         } catch (IOException e) {
+            logger.warn("Failed to load blueprint", e);
             // TODO: show some gui
         }
     }
