@@ -1,4 +1,4 @@
-package pl.edu.agh.firecell.core;
+package pl.edu.agh.firecell.core.scene;
 
 import imgui.ImGui;
 import org.joml.RoundingMode;
@@ -7,6 +7,7 @@ import org.joml.Vector3i;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pl.edu.agh.firecell.core.dialog.Dialog;
+import pl.edu.agh.firecell.core.dialog.RoomListDialog;
 import pl.edu.agh.firecell.core.statebuilder.ElementWrapper;
 import pl.edu.agh.firecell.core.statebuilder.StateBlueprint;
 import pl.edu.agh.firecell.core.statebuilder.StateBuilder;

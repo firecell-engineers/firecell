@@ -33,7 +33,7 @@ public class BasicEngineRunnable implements Runnable {
         logger.info("Engine run.");
         while (!Thread.currentThread().isInterrupted()) {
             stateConsumer.putState(currentState, currentStateIndex);
-            logger.info("Putted new state in storage at index: " + currentStateIndex);
+            logger.debug("Putted new state in storage at index: " + currentStateIndex);
             currentState = computeNewState(currentState);
             currentStateIndex++;
         }

@@ -8,13 +8,13 @@ import pl.edu.agh.firecell.model.util.NeighbourUtils;
 
 import java.util.stream.Stream;
 
-import static pl.edu.agh.firecell.engine.algorithm.BasicAlgorithm.*;
 
 public class FirePropagator {
 
+    private static final int MAX_BURNING_TIME = 50;
     // Required time period to set on fire neighbour cell with temperature
     // higher than ignition temperature
-    private static final int REQUIRED_TIME = 10;
+    private static final int REQUIRED_TIME = 25;
     // Value how much percentage of oxygen one cell should use
     // it also define how much must be accessible
     public static final double OXYGEN_USAGE_IN_FIRE = 5;
@@ -43,15 +43,15 @@ public class FirePropagator {
         // from under
         int downFirePillar = 0;
         if (oldState.hasCell(NeighbourUtils.down(cellIndex)) &&
-                isCellBurning(oldState.getCell(NeighbourUtils.down(cellIndex))) &&
+                AlgorithmUtils.isCellBurning(oldState.getCell(NeighbourUtils.down(cellIndex))) &&
                 oldState.getCell(NeighbourUtils.down(cellIndex)).remainingFirePillar() > 1) {
             downFirePillar = oldState.getCell(NeighbourUtils.down(cellIndex)).remainingFirePillar() - 1;
         }
 
         // from neighbour
         int neighbourFirePillar = 0;
-        int horizontalNeighbourFirePillar = getBurningHorizontalNeighbours(oldState, cellIndex)
-                .filter(neighbourIndex -> !isUpNeighbourAir(oldState, neighbourIndex) &&
+        int horizontalNeighbourFirePillar = AlgorithmUtils.getBurningHorizontalNeighbours(oldState, cellIndex)
+                .filter(neighbourIndex -> !AlgorithmUtils.isUpNeighbourAir(oldState, neighbourIndex) &&
                         oldState.getCell(neighbourIndex).remainingFirePillar() - 1 > 0)
                 .map(neighbourIndex -> oldState.getCell(neighbourIndex).remainingFirePillar())
                 .max(Integer::compareTo)
@@ -63,32 +63,26 @@ public class FirePropagator {
         return Math.max(downFirePillar, neighbourFirePillar);
     }
 
-    public static Stream<Vector3i> getBurningHorizontalNeighbours(State oldState, Vector3i cellIndex) {
-        return Stream
-                .concat(NeighbourUtils.neighboursStream(cellIndex, NeighbourUtils.Axis.X), NeighbourUtils.neighboursStream(cellIndex, NeighbourUtils.Axis.Z))
-                .filter(neighbourIndex -> oldState.hasCell(neighbourIndex) &&
-                        isCellBurning(oldState.getCell(neighbourIndex)) &&
-                        oldState.getCell(neighbourIndex).remainingFirePillar() > 0 &&
-                        !isUpNeighbourAir(oldState, neighbourIndex));
-    }
+
 
     private int computeBurningTimeWood(State oldState, Vector3i cellIndex, double newTemperature, int currenBurningTime) {
         Cell oldCell = oldState.getCell(cellIndex);
-        int newBurningTime = currenBurningTime;
-        if (oldCell.burningTime() == 0 &&
-                MAX_BURNING_TIME != 0 &&
-                oldCell.flammable()) {
+
+        if (oldCell.burningTime() == 0 && MAX_BURNING_TIME != 0 && oldCell.flammable()) {
+
             if (newTemperature > Material.WOOD.autoIgnitionTemperature()) {
-                newBurningTime++;
-            } else if (shouldIgniteFromNeighbour(oldState, cellIndex) &&
-                    newTemperature > Material.WOOD.ignitionTemperature()) {
-                newBurningTime++;
+                return 1;
+
+            } else if (shouldIgniteFromNeighbour(oldState, cellIndex)
+                    && newTemperature > Material.WOOD.ignitionTemperature()) {
+                return 1;
             }
         }
+
         if (oldCell.burningTime() > 0 && oldCell.burningTime() <= MAX_BURNING_TIME) {
-            newBurningTime++;
+            return currenBurningTime + 1;
         }
-        return newBurningTime;
+        return currenBurningTime;
     }
 
     private boolean shouldIgniteFromNeighbour(State oldState, Vector3i cellIndex) {

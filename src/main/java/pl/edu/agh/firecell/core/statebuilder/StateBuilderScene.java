@@ -8,7 +8,7 @@ import org.joml.Vector2i;
 import org.joml.Vector3i;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import pl.edu.agh.firecell.core.Scene;
+import pl.edu.agh.firecell.core.scene.Scene;
 import pl.edu.agh.firecell.core.io.IOListener;
 import pl.edu.agh.firecell.core.statebuilder.dialog.ManipulateElementDialog;
 import pl.edu.agh.firecell.model.SimulationConfig;
