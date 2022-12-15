@@ -6,17 +6,20 @@ import org.joml.Vector2i;
 import org.joml.Vector3i;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import pl.edu.agh.firecell.core.SimulationsListDialog;
 import pl.edu.agh.firecell.core.dialog.Dialog;
 import pl.edu.agh.firecell.core.dialog.RoomListDialog;
 import pl.edu.agh.firecell.core.statebuilder.ElementWrapper;
-import pl.edu.agh.firecell.core.statebuilder.Room;
-import pl.edu.agh.firecell.core.statebuilder.RoomStorage;
+import pl.edu.agh.firecell.core.statebuilder.StateBlueprint;
 import pl.edu.agh.firecell.core.statebuilder.StateBuilder;
-import pl.edu.agh.firecell.model.material.Material;
 import pl.edu.agh.firecell.model.SimulationConfig;
 import pl.edu.agh.firecell.model.State;
+import pl.edu.agh.firecell.model.material.Material;
+import pl.edu.agh.firecell.storage.SimulationStorage;
+import pl.edu.agh.firecell.storage.StateBlueprintStorage;
 
 import java.io.IOException;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 import static imgui.flag.ImGuiWindowFlags.*;
@@ -25,17 +28,19 @@ public class MenuScene implements Scene {
 
     private final Logger logger = LoggerFactory.getLogger(MenuScene.class);
 
-    private final Consumer<Room> startStateBuilderHandler;
-    private final RoomStorage roomStorage;
+    private final Consumer<StateBlueprint> startStateBuilderHandler;
+    private final StateBlueprintStorage stateBlueprintStorage = new StateBlueprintStorage();
+    private final SimulationStorage simulationStorage = new SimulationStorage();
     private final SimulationConfig defaultConfig = createInitialSimulationConfig();
-    private final Consumer<SimulationConfig> startSimulationHandler;
+    private final Consumer<String> startStoredSimulationHandler;
+    private final BiConsumer<SimulationConfig, String> startSimulationHandler;
     private Dialog currentDialog = null;
 
-    public MenuScene(Consumer<SimulationConfig> startSimulationHandler, Consumer<Room> startStateBuilderHandler,
-                     RoomStorage roomStorage) {
+    public MenuScene(BiConsumer<SimulationConfig, String> startSimulationHandler,
+                     Consumer<String> startStoredSimulationHandler, Consumer<StateBlueprint> startStateBuilderHandler) {
         this.startStateBuilderHandler = startStateBuilderHandler;
+        this.startStoredSimulationHandler = startStoredSimulationHandler;
         this.startSimulationHandler = startSimulationHandler;
-        this.roomStorage = roomStorage;
     }
 
     @Override
@@ -51,24 +56,26 @@ public class MenuScene implements Scene {
     private void renderMenuBar() {
         if (ImGui.beginMainMenuBar()) {
             if (ImGui.beginMenu("Simulation")) {
-                if (ImGui.menuItem("Start simulation (OLD)")) {  // TODO: remove this item
-                    startSimulationHandler.accept(defaultConfig);
-                }
                 if (ImGui.menuItem("Start simulation")) {
                     currentDialog = new RoomListDialog("Start simulation",
-                            roomStorage.getRoomNames(), this::startSimulationHandler);
+                            stateBlueprintStorage.getBlueprintNames(), this::startSimulationHandler);
                     logger.debug("Created start simulation dialog");
+                }
+                if (ImGui.menuItem("Run stored simulation")) {
+                    currentDialog = new SimulationsListDialog(simulationStorage.findStoredSimulations(),
+                            this::startStoredSimulationHandler);
+                    logger.debug("Created start stored simulation dialog");
                 }
                 ImGui.endMenu();
             }
-            if (ImGui.beginMenu("Editor")) {
-                if (ImGui.menuItem("Create new room")) {
+            if (ImGui.beginMenu("State builder")) {
+                if (ImGui.menuItem("Create new state")) {
                     startStateBuilderHandler.accept(null);
                 }
-                if (ImGui.menuItem("Edit room")) {
-                    currentDialog = new RoomListDialog("Edit room",
-                            roomStorage.getRoomNames(), this::editRoomHandler);
-                    logger.debug("Created edit room dialog");
+                if (ImGui.menuItem("Edit state")) {
+                    currentDialog = new RoomListDialog("Edit state",
+                            stateBlueprintStorage.getBlueprintNames(), this::editRoomHandler);
+                    logger.debug("Created edit state dialog");
                 }
                 ImGui.endMenu();
             }
@@ -91,17 +98,25 @@ public class MenuScene implements Scene {
             return;
         }
         try {
-            Room room = roomStorage.loadRoom(roomName);
-            StateBuilder stateBuilder = new StateBuilder(room.spaceSize());
-            for (ElementWrapper elementWrapper : room.elements()) {
+            StateBlueprint stateBlueprint = stateBlueprintStorage.loadBlueprint(roomName);
+            StateBuilder stateBuilder = new StateBuilder(stateBlueprint.spaceSize());
+            for (ElementWrapper elementWrapper : stateBlueprint.elements()) {
                 stateBuilder.addElement(elementWrapper.element());
             }
             State initialState = stateBuilder.build();
             SimulationConfig simulationConfig = new SimulationConfig(initialState, defaultConfig.stepTime());
-            startSimulationHandler.accept(simulationConfig);
+            startSimulationHandler.accept(simulationConfig, roomName);
         } catch (IOException e) {
+            logger.warn("Failed to load blueprint", e);
             // TODO: show some gui
         }
+    }
+
+    private void startStoredSimulationHandler(String simulationName) {
+        if (simulationName == null) {
+            return;
+        }
+        startStoredSimulationHandler.accept(simulationName);
     }
 
     private void editRoomHandler(String roomName) {
@@ -109,9 +124,10 @@ public class MenuScene implements Scene {
             return;
         }
         try {
-            Room room = roomStorage.loadRoom(roomName);
-            startStateBuilderHandler.accept(room);
+            StateBlueprint stateBlueprint = stateBlueprintStorage.loadBlueprint(roomName);
+            startStateBuilderHandler.accept(stateBlueprint);
         } catch (IOException e) {
+            logger.warn("Failed to load blueprint", e);
             // TODO: show some gui
         }
     }

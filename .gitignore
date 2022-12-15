@@ -106,6 +106,9 @@ Temporary Items
 
 /states/
 /rooms/
-!/rooms/important/
+/simulations/
+
+# Predefined rooms
+!/rooms/Test1.json
 
 imgui.ini

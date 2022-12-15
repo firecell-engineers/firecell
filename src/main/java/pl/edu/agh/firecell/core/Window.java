@@ -7,6 +7,7 @@ import imgui.gl3.ImGuiImplGl3;
 import imgui.glfw.ImGuiImplGlfw;
 import io.reactivex.rxjava3.disposables.Disposable;
 import org.joml.Vector2i;
+import org.joml.Vector3i;
 import org.lwjgl.Version;
 import org.lwjgl.glfw.Callbacks;
 import org.lwjgl.glfw.GLFWErrorCallback;
@@ -18,16 +19,20 @@ import pl.edu.agh.firecell.core.io.IOListener;
 import pl.edu.agh.firecell.core.scene.MenuScene;
 import pl.edu.agh.firecell.core.scene.Scene;
 import pl.edu.agh.firecell.core.scene.SimulationScene;
-import pl.edu.agh.firecell.core.statebuilder.Room;
-import pl.edu.agh.firecell.core.statebuilder.RoomStorage;
+import pl.edu.agh.firecell.core.statebuilder.StateBlueprint;
 import pl.edu.agh.firecell.core.statebuilder.StateBuilderScene;
 import pl.edu.agh.firecell.core.util.LoggingOutputStream;
+import pl.edu.agh.firecell.core.util.StateUtils;
 import pl.edu.agh.firecell.model.SimulationConfig;
 import pl.edu.agh.firecell.model.exception.ConductionCoefficientException;
+import pl.edu.agh.firecell.storage.SimulationStorage;
 
 import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Objects;
 
 import static org.lwjgl.glfw.GLFW.*;
@@ -39,8 +44,6 @@ public class Window {
 
     // need to be same as in glsl shaders
     private static final String GLSL_VERSION = "#version 330";
-    private final RoomStorage roomStorage = new RoomStorage();
-
     private final String name;
     private Vector2i size;
 
@@ -74,7 +77,7 @@ public class Window {
         double startFrameTime = glfwGetTime();
         double frameTime = 0.0;
 
-        scene = new MenuScene(this::startSimulation, this::startStateBuilder, roomStorage);
+        scene = new MenuScene(this::startNewSimulation, this::startSavedSimulation, this::startStateBuilder);
 
         while (!glfwWindowShouldClose(glfwWindow)) {
             glfwPollEvents();
@@ -115,32 +118,21 @@ public class Window {
         Objects.requireNonNull(glfwSetErrorCallback(null)).free();
     }
 
-    private void startSimulation(SimulationConfig config) {
-        try {
-            var simulationScene = new SimulationScene(config, this::finishSceneHandler, ioListener, size.x / (float) size.y);
-            scene.dispose();
-            scene = simulationScene;
-            logger.info("Starting simulation.");
-        } catch (IOException | InvalidPathException | IllegalStateException |ConductionCoefficientException e) {
-            logger.error("Could not create Simulation Scene.", e);
-        }
-    }
-
     private void finishSceneHandler() {
         scene.dispose();
         logger.info("Finished scene {}. Opening menu.", scene.getClass().getName());
-        scene = new MenuScene(this::startSimulation, this::startStateBuilder, roomStorage);
+        scene = new MenuScene(this::startNewSimulation, this::startSavedSimulation, this::startStateBuilder);
     }
 
-    private void startStateBuilder(Room room) {
+    private void startStateBuilder(StateBlueprint stateBlueprint) {
         try {
             StateBuilderScene builderScene;
-            if (room == null) {
-                builderScene = new StateBuilderScene(roomStorage, ioListener, size.x / (float) size.y,
+            if (stateBlueprint == null) {
+                builderScene = new StateBuilderScene(ioListener, size.x / (float) size.y,
                         this::finishSceneHandler);
             } else {
-                builderScene = new StateBuilderScene(roomStorage, ioListener, size.x / (float) size.y,
-                        this::finishSceneHandler, room);
+                builderScene = new StateBuilderScene(ioListener, size.x / (float) size.y,
+                        this::finishSceneHandler, stateBlueprint);
             }
             scene.dispose();
             scene = builderScene;
@@ -195,5 +187,47 @@ public class Window {
         imGuiGl3 = new ImGuiImplGl3();
         imGuiGlfw.init(glfwWindow, true);
         imGuiGl3.init(GLSL_VERSION);
+    }
+
+    public void startNewSimulation(SimulationConfig config, String simulationName) {
+        try {
+            var simulationStorage = new SimulationStorage();
+            String simulationNameWithTime = createSimulationPath(simulationName);
+            simulationStorage.initializeSimulation(simulationNameWithTime,
+                    new StoredSimulationConfig(config.initialState().spaceSize(), config.stepTime()));
+            Path stateStoragePath = simulationStorage.resolveStatesPath(simulationNameWithTime);
+            var simulationScene = new SimulationScene(config, this::finishSceneHandler, ioListener,
+                    getAspectRatio(), stateStoragePath);
+            scene.dispose();
+            scene = simulationScene;
+            logger.info("Starting simulation.");
+        } catch (IOException | InvalidPathException | IllegalStateException | ConductionCoefficientException e) {
+            logger.error("Could not start simulation.", e);
+        }
+    }
+
+    public void startSavedSimulation(String simulationName) {
+        try {
+            var simulationStorage = new SimulationStorage();
+            StoredSimulationConfig storedConfig = simulationStorage.readStoredConfig(simulationName);
+            Vector3i spaceSize = storedConfig.spaceSize();
+            SimulationConfig config = new SimulationConfig(StateUtils.emptyState(spaceSize), storedConfig.stepTime());
+            Path stateStoragePath = simulationStorage.resolveStatesPath(simulationName);
+            var simulationScene = new StoredSimulationScene(config, this::finishSceneHandler,
+                    ioListener, getAspectRatio(), stateStoragePath);
+            scene.dispose();
+            scene = simulationScene;
+            logger.info("Running stored simulation.");
+        } catch (IOException | InvalidPathException | IllegalStateException e) {
+            logger.error("Could not start stored simulation.", e);
+        }
+    }
+
+    private String createSimulationPath(String simulationName) {
+        return new SimpleDateFormat("dd_MM_yyyy_HH_mm_ss_").format(new Date()) + simulationName;
+    }
+
+    private float getAspectRatio() {
+        return size.x / (float) size.y;
     }
 }

@@ -6,6 +6,8 @@ import imgui.type.ImString;
 import org.joml.RoundingMode;
 import org.joml.Vector2i;
 import org.joml.Vector3i;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import pl.edu.agh.firecell.core.scene.Scene;
 import pl.edu.agh.firecell.core.io.IOListener;
 import pl.edu.agh.firecell.core.statebuilder.dialog.ManipulateElementDialog;
@@ -13,6 +15,7 @@ import pl.edu.agh.firecell.model.SimulationConfig;
 import pl.edu.agh.firecell.model.util.GuiUtils;
 import pl.edu.agh.firecell.renderer.BasicRenderer;
 import pl.edu.agh.firecell.renderer.Renderer;
+import pl.edu.agh.firecell.storage.StateBlueprintStorage;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -25,9 +28,10 @@ import static pl.edu.agh.firecell.core.util.StateUtils.emptyState;
 
 // TODO: make abstract state-rendering scene
 public class StateBuilderScene implements Scene {
+    private static final Logger logger = LoggerFactory.getLogger(StateBuilderScene.class);
     private final ImString nameBuffer;
     private final StateBuilderService stateBuilderService;
-    private final RoomStorage roomStorage;
+    private final StateBlueprintStorage stateBlueprintStorage = new StateBlueprintStorage();
     private final List<ElementWrapper> elements = new ArrayList<>();
     private final Renderer renderer;
     private ElementWrapper selectedElement = null;
@@ -37,15 +41,14 @@ public class StateBuilderScene implements Scene {
     private final ImInt spaceSizeX = new ImInt(30);
     private final ImInt spaceSizeY = new ImInt(10);
     private final ImInt spaceSizeZ = new ImInt(30);
-    public static final String DEFAULT_ROOM_NAME = "New room";
+    public static final String DEFAULT_ROOM_NAME = "New state";
 
-    public StateBuilderScene(RoomStorage roomStorage, IOListener ioListener, float aspectRatio,
-                             Runnable finishedHandler, Room room) throws IOException {
+    public StateBuilderScene(IOListener ioListener, float aspectRatio, Runnable finishedHandler,
+                             StateBlueprint stateBlueprint) throws IOException {
         this.finishedHandler = finishedHandler;
-        this.roomStorage = roomStorage;
-        if (room != null) {
-            elements.addAll(room.elements());
-            nameBuffer = new ImString(room.name(), 100);
+        if (stateBlueprint != null) {
+            elements.addAll(stateBlueprint.elements());
+            nameBuffer = new ImString(stateBlueprint.name(), 100);
         } else {
             nameBuffer = new ImString(determineDefaultRoomName(), 100);
         }
@@ -54,13 +57,13 @@ public class StateBuilderScene implements Scene {
         renderer = new BasicRenderer(aspectRatio, ioListener, createInitialConfig(composeSpaceSize()));
         manipulateElementDialog = new ManipulateElementDialog(this::manipulateElementHandler);
 
-        roomStorage.createBaseDirectory();
+        stateBlueprintStorage.createBaseDirectory();
         stateBuilderService.scheduleStateCalculation(elements);
     }
 
-    public StateBuilderScene(RoomStorage roomStorage, IOListener ioListener, float aspectRatio,
+    public StateBuilderScene(IOListener ioListener, float aspectRatio,
                              Runnable finishedHandler) throws IOException {
-        this(roomStorage, ioListener, aspectRatio, finishedHandler, null);
+        this(ioListener, aspectRatio, finishedHandler, null);
     }
 
     @Override
@@ -138,10 +141,11 @@ public class StateBuilderScene implements Scene {
     }
 
     private void saveElements() {
-        Room room = new Room(composeSpaceSize(), nameBuffer.get(), elements);
+        StateBlueprint stateBlueprint = new StateBlueprint(composeSpaceSize(), nameBuffer.get(), elements);
         try {
-            roomStorage.saveRoom(room);
+            stateBlueprintStorage.saveBlueprint(stateBlueprint);
         } catch (IOException e) {
+            logger.warn("Failed to save blueprint", e);
             // TODO: show some error message
         }
     }
@@ -171,7 +175,7 @@ public class StateBuilderScene implements Scene {
     }
 
     private String determineDefaultRoomName() {
-        Set<String> roomNames = new HashSet<>(roomStorage.getRoomNames());
+        Set<String> roomNames = new HashSet<>(stateBlueprintStorage.getBlueprintNames());
         int number = 0;
         String newRoomName = DEFAULT_ROOM_NAME;
         while (roomNames.contains(newRoomName)) {
