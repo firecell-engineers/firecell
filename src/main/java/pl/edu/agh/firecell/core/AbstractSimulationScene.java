@@ -5,6 +5,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pl.edu.agh.firecell.core.diagnostics.DiagnosticsManager;
 import pl.edu.agh.firecell.core.io.IOListener;
+import pl.edu.agh.firecell.core.scene.PlayingMode;
+import pl.edu.agh.firecell.core.scene.Scene;
 import pl.edu.agh.firecell.model.SimulationConfig;
 import pl.edu.agh.firecell.model.State;
 import pl.edu.agh.firecell.renderer.BasicRenderer;
@@ -17,14 +19,16 @@ import java.io.IOException;
 import static org.lwjgl.glfw.GLFW.glfwGetTime;
 
 public abstract class AbstractSimulationScene implements Scene {
-    private final Logger logger = LoggerFactory.getLogger(SimulationScene.class);
+    private final Logger logger = LoggerFactory.getLogger(AbstractSimulationScene.class);
     private final Renderer renderer;
     private final Runnable finishSimulationHandler;
     private final DiagnosticsManager diagnosticsManager;
     private State currentState;
+    private PlayingMode playingMode = PlayingMode.FORWARD;
+
     private final double stepTime;
-    private double frameRate;
-    private int indexStep = 0;
+    private double frameRate = 0;
+    private int nextStateIndex = 0;
     private double lastStateUpdateTime = glfwGetTime();
 
     protected AbstractSimulationScene(SimulationConfig config, Runnable finishSimulationHandler,
@@ -32,7 +36,6 @@ public abstract class AbstractSimulationScene implements Scene {
         this.currentState = config.initialState();
         this.finishSimulationHandler = finishSimulationHandler;
         this.stepTime = config.stepTime();
-        this.frameRate = 0;
         this.diagnosticsManager = new DiagnosticsManager(this.currentState);
         this.renderer = new BasicRenderer(aspectRatio, ioListener, config);
     }
@@ -54,19 +57,29 @@ public abstract class AbstractSimulationScene implements Scene {
         double currentStepTime = glfwGetTime() - lastStateUpdateTime;
         if (currentStepTime >= stepTime) {
             lastStateUpdateTime = glfwGetTime();
-            getStateProvider().getState(indexStep).ifPresent(state -> {
-                currentState = state;
-                diagnosticsManager.updateState(state);
-                indexStep++;
-            });
-            logger.info("Getting next state with index: " + indexStep);
+            getStateProvider().getState(nextStateIndex)
+                    .ifPresent(state -> {
+                        currentState = state;
+                        diagnosticsManager.updateState(state);
+                        updateNextStateIndex();
+                    });
+            logger.debug("Getting next state with index: %s".formatted(nextStateIndex));
         }
     }
 
     private void renderGUI() {
         if (ImGui.beginMainMenuBar()) {
             if (ImGui.beginMenu("Simulation")) {
-                if (ImGui.menuItem("Finish simulation")) {
+                if (ImGui.menuItem("Pause")) {
+                    playingMode = PlayingMode.PAUSED;
+                }
+                if (ImGui.menuItem("Play")) {
+                    playingMode = PlayingMode.FORWARD;
+                }
+                if (ImGui.menuItem("Rewind")) {
+                    playingMode = PlayingMode.BACKWARD;
+                }
+                if (ImGui.menuItem("Finish")) {
                     finishSimulationHandler.run();
                 }
                 ImGui.endMenu();
@@ -113,6 +126,16 @@ public abstract class AbstractSimulationScene implements Scene {
                 ImGui.endMenu();
             }
             ImGui.endMainMenuBar();
+        }
+    }
+
+    private void updateNextStateIndex() {
+        switch (playingMode) {
+            case FORWARD -> nextStateIndex++;
+            case BACKWARD -> {
+                if (nextStateIndex > 0) nextStateIndex--;
+            }
+            default -> { /* nothing to do here */ }
         }
     }
 

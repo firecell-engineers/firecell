@@ -6,6 +6,7 @@ import org.joml.Vector2i;
 import org.joml.Vector3i;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import pl.edu.agh.firecell.core.SimulationsListDialog;
 import pl.edu.agh.firecell.core.dialog.Dialog;
 import pl.edu.agh.firecell.core.dialog.RoomListDialog;
 import pl.edu.agh.firecell.core.statebuilder.ElementWrapper;

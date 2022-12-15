@@ -1,5 +1,6 @@
-package pl.edu.agh.firecell.core;
+package pl.edu.agh.firecell.core.scene;
 
+import pl.edu.agh.firecell.core.AbstractSimulationScene;
 import pl.edu.agh.firecell.core.io.IOListener;
 import pl.edu.agh.firecell.engine.BasicEngine;
 import pl.edu.agh.firecell.engine.Engine;
